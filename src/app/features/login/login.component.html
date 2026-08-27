@@ -1,0 +1,80 @@
+<main class="login-page">
+  <section class="login-story" aria-label="Presentacion DrapeMind">
+    <a class="brand brand--light" href="/" aria-label="DrapeMind inicio">
+      <span class="brand__mark">D</span>
+      <span>DrapeMind</span>
+    </a>
+    <div class="story-copy">
+      <p class="eyebrow eyebrow--light">Moda operada con inteligencia</p>
+      <h1>Del perchero<br />a la decision.</h1>
+      <p>
+        Inventario real, reservas en tienda y un estilista IA que consulta herramientas antes de
+        responder.
+      </p>
+    </div>
+    <div class="garment-study" aria-hidden="true">
+      <div class="garment garment--one"></div>
+      <div class="garment garment--two"></div>
+      <span class="garment-label">Coleccion / 01</span>
+    </div>
+    <p class="story-foot">Sistema de ventas e inventario | Bolivia</p>
+  </section>
+
+  <section class="login-form-wrap">
+    <div class="login-form">
+      <p class="eyebrow">Acceso al atelier</p>
+      <h2>Bienvenido de vuelta</h2>
+      <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label for="email">Correo electronico</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="nombre@drapemind.com"
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <small class="field-error">Escribe un correo valido.</small>
+        }
+
+        <label for="password">Contrasena</label>
+        <div class="password-field">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Minimo 8 caracteres"
+          />
+          <button
+            type="button"
+            class="text-button"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
+          >
+            {{ showPassword() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+
+        @if (error()) {
+          <div class="form-alert" role="alert">{{ error() }}</div>
+        }
+
+        <button class="button button--primary button--wide" type="submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Verificando
+          } @else {
+            Entrar al sistema
+            <span aria-hidden="true">-&gt;</span>
+          }
+        </button>
+      </form>
+      <p class="privacy-note">
+        Conexion protegida con JWT. Tu sesion se cierra al cerrar esta pestana.
+      </p>
+    </div>
+  </section>
+</main>

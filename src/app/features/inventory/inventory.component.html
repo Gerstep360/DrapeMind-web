@@ -1,0 +1,96 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Control fisico</p>
+    <h1>Inventario sin puntos ciegos.</h1>
+    <p class="page-lead">Cada ajuste deja una huella auditable en movimientos de inventario.</p>
+  </div>
+  <button class="button button--primary" type="button" (click)="editorOpen.set(!editorOpen())">
+    {{ editorOpen() ? 'Cerrar registro' : 'Nueva variante' }}
+  </button>
+</section>
+
+<section class="inventory-summary">
+  <div>
+    <span>Variantes</span><strong>{{ rows().length }}</strong>
+  </div>
+  <div>
+    <span>Unidades disponibles</span><strong>{{ availableUnits }}</strong>
+  </div>
+  <div>
+    <span>Stock critico</span><strong>{{ criticalCount }}</strong>
+  </div>
+</section>
+
+@if (editorOpen()) {
+  <form class="variant-editor" [formGroup]="variantForm" (ngSubmit)="createVariant()">
+    <div class="variant-editor__title">
+      <p class="eyebrow">Talla + color + SKU</p>
+      <h2>Registrar variante</h2>
+    </div>
+    <label>
+      Producto
+      <select formControlName="producto_id">
+        <option [ngValue]="0">Seleccionar producto</option>
+        @for (product of products(); track product.id) {
+          <option [ngValue]="product.id">{{ product.nombre }}</option>
+        }
+      </select>
+    </label>
+    <label>SKU <input formControlName="sku" placeholder="DRAPE-BLZ-CR-M" /></label>
+    <label>Color <input formControlName="color" placeholder="Crudo" /></label>
+    <label>Talla <input formControlName="talla" placeholder="M" /></label>
+    <label>Stock inicial <input type="number" min="0" formControlName="stock_total" /></label>
+    <button class="button button--inverse" type="submit">Guardar variante</button>
+  </form>
+}
+
+@if (loading()) {
+  <div class="loading-state"><span class="spinner"></span> Contando existencias</div>
+} @else {
+  <section class="data-sheet" aria-label="Inventario por variante">
+    <div class="data-sheet__head">
+      <span>Prenda / SKU</span><span>Color</span><span>Talla</span><span>Reservado</span
+      ><span>Total</span><span></span>
+    </div>
+    @for (row of rows(); track row.variant.id) {
+      <article
+        class="data-sheet__row"
+        [class.data-sheet__row--critical]="row.variant.stock_disponible <= 3"
+      >
+        <div class="item-identity">
+          <span class="swatch" [style.background]="row.variant.codigo_color || '#d8d2c2'"></span>
+          <div>
+            <strong>{{ row.product.nombre }}</strong
+            ><small>{{ row.variant.sku }}</small>
+          </div>
+        </div>
+        <span>{{ row.variant.color }}</span>
+        <strong>{{ row.variant.talla }}</strong>
+        <span>{{ row.variant.stock_reservado }}</span>
+        <input
+          class="stock-input"
+          type="number"
+          min="0"
+          [value]="stockDrafts()[row.variant.id]"
+          (input)="setStock(row.variant.id, $any($event.target).value)"
+          [attr.aria-label]="'Stock total de ' + row.variant.sku"
+        />
+        <button
+          class="save-cell"
+          type="button"
+          (click)="saveStock(row)"
+          [disabled]="
+            stockDrafts()[row.variant.id] === row.variant.stock_total ||
+            savingId() === row.variant.id
+          "
+        >
+          {{ savingId() === row.variant.id ? '...' : 'Guardar' }}
+        </button>
+      </article>
+    } @empty {
+      <div class="empty-state">
+        Aun no hay variantes. Registra talla, color y stock para vender.
+      </div>
+    }
+  </section>
+}

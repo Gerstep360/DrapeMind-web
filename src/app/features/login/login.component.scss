@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.login-page {
+  display: grid;
+  width: 100%;
+  min-height: 100dvh;
+  grid-template-columns: minmax(390px, 1.05fr) minmax(430px, 0.95fr);
+  background: var(--paper);
+}
+
+.login-story {
+  position: relative;
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3.75rem);
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.story-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 37rem;
+  margin-top: auto;
+  margin-bottom: clamp(12rem, 27vh, 19rem);
+}
+
+.story-copy h1 {
+  margin: 0.7rem 0 1.3rem;
+  color: white;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 7vw, 7.8rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.82;
+}
+
+.story-copy > p:last-child {
+  max-width: 32rem;
+  color: color-mix(in srgb, var(--paper) 68%, transparent);
+  font-size: 1.03rem;
+  line-height: 1.65;
+}
+
+.story-foot {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: color-mix(in srgb, var(--paper) 48%, transparent);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.garment-study {
+  position: absolute;
+  right: -4rem;
+  bottom: -5rem;
+  width: min(33vw, 31rem);
+  height: 32rem;
+  transform: rotate(-5deg);
+}
+
+.garment {
+  position: absolute;
+  border-radius: 48% 48% 12% 12% / 24% 24% 6% 6%;
+}
+
+.garment--one {
+  inset: 4rem 5rem 0 2rem;
+  background: var(--acid);
+  clip-path: polygon(
+    22% 0,
+    38% 10%,
+    62% 10%,
+    78% 0,
+    100% 22%,
+    82% 35%,
+    76% 100%,
+    24% 100%,
+    18% 35%,
+    0 22%
+  );
+}
+
+.garment--two {
+  inset: 0 0 6rem 12rem;
+  border: 1px solid color-mix(in srgb, white 36%, transparent);
+  clip-path: polygon(
+    25% 0,
+    42% 9%,
+    58% 9%,
+    75% 0,
+    100% 25%,
+    81% 38%,
+    77% 100%,
+    23% 100%,
+    19% 38%,
+    0 25%
+  );
+}
+
+.garment-label {
+  position: absolute;
+  right: 4rem;
+  bottom: 5rem;
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.login-form-wrap {
+  display: grid;
+  min-width: 0;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(2rem, 8vw, 8rem);
+}
+
+.login-form {
+  width: 100%;
+  max-width: 30rem;
+  min-width: 0;
+}
+
+.login-form h2 {
+  margin: 0.55rem 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.7rem, 5vw, 4.7rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.form-intro {
+  margin: 0 0 2.5rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  min-width: 0;
+  gap: 0.65rem;
+}
+
+form input {
+  width: 100%;
+  min-width: 0;
+}
+
+form label {
+  margin-top: 0.75rem;
+  font-size: 0.79rem;
+  font-weight: 750;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 4.5rem;
+}
+
+.text-button {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  min-height: 2.25rem;
+  transform: translateY(-50%);
+  border: 0;
+  color: var(--forest);
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.field-error {
+  color: var(--danger);
+}
+
+.form-alert {
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--danger);
+  padding: 0.75rem 1rem;
+  color: var(--danger);
+  background: var(--danger-soft);
+  font-size: 0.84rem;
+}
+
+.privacy-note {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 840px) {
+  .login-page {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-x: hidden;
+  }
+
+  .login-story {
+    min-height: 18rem;
+    padding: 1.5rem;
+  }
+
+  .story-copy {
+    margin: auto 0 0;
+  }
+
+  .story-copy h1 {
+    font-size: clamp(3.15rem, 15vw, 3.8rem);
+  }
+
+  .story-copy > p:last-child,
+  .story-foot,
+  .garment-study {
+    display: none;
+  }
+
+  .login-form-wrap {
+    display: block;
+    min-height: auto;
+    padding: 3rem 1.25rem;
+  }
+
+  .login-form {
+    max-width: 100%;
+  }
+}

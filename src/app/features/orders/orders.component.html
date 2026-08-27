@@ -1,0 +1,226 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Flujo de Entrega y Operaciones</p>
+    <h1>Pedidos y Ventas.</h1>
+    <p class="page-lead">
+      Monitoreo en tiempo real de cada orden, canal de entrega y confirmación de pagos.
+    </p>
+  </div>
+  <div class="order-live">
+    <span class="status-dot status-dot--live"></span>
+    <span>Eventos WebSocket en vivo</span>
+  </div>
+</section>
+
+<nav class="filter-line" aria-label="Filtrar pedidos">
+  @for (
+    state of ['TODOS', 'PENDIENTE_PAGO', 'PAGADO', 'PREPARANDO', 'LISTO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'];
+    track state
+  ) {
+    <button type="button" [class.active]="filter() === state" (click)="filter.set(state)">
+      {{ state }}
+    </button>
+  }
+</nav>
+
+@if (loading()) {
+  <div class="loading-state"><span class="spinner"></span> Siguiendo pedidos...</div>
+} @else {
+  <section class="order-board">
+    @for (order of filteredOrders(); track order.id) {
+      <article class="order-card" [class.order-card--pending]="order.estado === 'PENDIENTE_PAGO'">
+        <header>
+          <div>
+            <span class="order-label">Pedido Registrado</span>
+            <strong class="order-id">#{{ order.id.toString().padStart(5, '0') }}</strong>
+          </div>
+          <span class="status-badge" [attr.data-status]="order.estado">{{ order.estado }}</span>
+        </header>
+
+        <div class="order-card__body">
+          <dl>
+            <div>
+              <dt>Canal</dt>
+              <dd class="val-pill">{{ order.canal }}</dd>
+            </div>
+            <div>
+              <dt>Modalidad</dt>
+              <dd class="val-pill">{{ order.tipo_entrega }}</dd>
+            </div>
+            <div>
+              <dt>Fecha</dt>
+              <dd>{{ order.created_at | date: 'd MMM, HH:mm' }}</dd>
+            </div>
+          </dl>
+
+          <div class="order-total">
+            <span>Importe Total</span>
+            <strong class="total-amount">Bs {{ order.total | number: '1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="order-progress" [attr.data-state]="order.estado" aria-hidden="true">
+          @for (
+            step of ['PENDIENTE_PAGO', 'PAGADO', 'PREPARANDO', 'LISTO', 'ENTREGADO'];
+            track step
+          ) {
+            <span [class.reached]="step === order.estado"></span>
+          }
+        </div>
+
+        <footer>
+          <!-- OPINION Y COBRO EN EFECTIVO PARA EL VENDEDOR / ADMIN -->
+          @if (auth.user()?.rol !== 'CLIENTE' && order.estado === 'PENDIENTE_PAGO') {
+            <div class="seller-cash-card">
+              <div class="seller-cash-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="12" x="2" y="6" rx="2"/>
+                  <circle cx="12" cy="12" r="2"/>
+                  <path d="M6 12h.01M18 12h.01"/>
+                </svg>
+                <div>
+                  <strong>Cobro en Efectivo Pendiente</strong>
+                  <span>Cliente registrado para pagar Bs {{ order.total | number: '1.2-2' }} en tienda</span>
+                </div>
+              </div>
+              <button
+                class="button button--accent button--small"
+                type="button"
+                [disabled]="actionId() === order.id"
+                (click)="confirmCashPayment(order)"
+              >
+                <span>{{ actionId() === order.id ? 'Registrando...' : '💵 Confirmar Cobro en Efectivo' }}</span>
+              </button>
+            </div>
+          }
+
+          <!-- AVISO Y PAGO QR PARA EL CLIENTE -->
+          @if (order.estado === 'PENDIENTE_PAGO') {
+            @if (auth.user()?.rol === 'CLIENTE') {
+              <div class="client-cash-notice">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>Para pagar en <strong>efectivo</strong>, indica tu código <strong>#{{ order.id }}</strong> al vendedor. O paga al instante por QR:</span>
+              </div>
+            }
+
+            <div class="pay-action-row">
+              <button
+                class="button button--primary button--small"
+                type="button"
+                (click)="openPaymentModal(order)"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                  <path d="M12 18h.01"/>
+                </svg>
+                <span>Pagar con QR / Simular Pago</span>
+              </button>
+            </div>
+          }
+
+          <!-- BOTONES DE TRANSICION DE ESTADO PARA STAFF (ADMIN / VENDEDOR) -->
+          @if (auth.user()?.rol !== 'CLIENTE' && nextStatuses(order).length) {
+            <div class="staff-actions">
+              <span class="actions-label">Avanzar Estado:</span>
+              <div class="status-buttons">
+                @for (status of nextStatuses(order); track status) {
+                  <button
+                    class="button button--small"
+                    [class.button--danger]="status === 'CANCELADO'"
+                    [class.button--primary]="status !== 'CANCELADO'"
+                    type="button"
+                    (click)="updateStatus(order, status)"
+                    [disabled]="actionId() === order.id"
+                  >
+                    @if (actionId() === order.id) {
+                      ...
+                    } @else {
+                      {{ status }}
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </footer>
+      </article>
+    } @empty {
+      <div class="empty-state">
+        <div class="empty-icon-box">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2"/>
+            <line x1="8" x2="16" y1="6" y2="6"/>
+            <line x1="8" x2="16" y1="10" y2="10"/>
+            <line x1="8" x2="12" y1="14" y2="14"/>
+          </svg>
+        </div>
+        <strong>No hay pedidos en este estado.</strong>
+        <span>Los nuevos pedidos y ventas procesadas aparecerán automáticamente aquí.</span>
+      </div>
+    }
+  </section>
+}
+
+<!-- MODAL DE PAGO QR Y SIMULACION -->
+@if (payModalOpen() && selectedOrderForPay(); as order) {
+  <div class="modal-scrim" (click)="closePaymentModal()" aria-hidden="true"></div>
+
+  <div class="order-pay-modal" role="dialog" aria-label="Pagar pedido">
+    <header class="modal-header">
+      <div>
+        <p class="eyebrow">Pasarela de Pago Segura</p>
+        <h2>Pagar Pedido #{{ order.id.toString().padStart(5, '0') }}</h2>
+      </div>
+      <button class="close-button" type="button" (click)="closePaymentModal()" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="pay-amount-box">
+        <span>Total a Pagar</span>
+        <strong>Bs {{ order.total | number: '1.2-2' }}</strong>
+      </div>
+
+      <div class="qr-display-box">
+        <div class="qr-mockup">
+          <div class="qr-pattern">
+            <span class="qr-corner top-left"></span>
+            <span class="qr-corner top-right"></span>
+            <span class="qr-corner bottom-left"></span>
+            <div class="qr-center-icon">DM</div>
+          </div>
+        </div>
+        <p class="qr-info">
+          Código QR interoperable (BCP, BNB, Banco Unión, DeUna).
+        </p>
+      </div>
+
+      <div class="modal-pay-actions">
+        <button
+          class="button button--accent button--wide"
+          type="button"
+          (click)="confirmMockPayment()"
+          [disabled]="payingMock() || !currentPayment()"
+        >
+          @if (payingMock()) {
+            <span class="spinner"></span> Confirmando transacción...
+          } @else {
+            <span>Simular Pago Aprobado Ahora</span>
+          }
+        </button>
+        <button class="button button--ghost button--wide" type="button" (click)="closePaymentModal()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,68 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Apartados en tienda</p>
+    <h1>Reservas con tiempo.</h1>
+    <p class="page-lead">El stock se bloquea hasta la visita, cancelacion o vencimiento.</p>
+  </div>
+  <div class="reservation-total">
+    <strong>{{ reservations().length }}</strong>
+    <span>registros</span>
+  </div>
+</section>
+
+@if (auth.user()?.rol !== 'CLIENTE') {
+  <form class="qr-validator" (ngSubmit)="validateQr()">
+    <div>
+      <p class="eyebrow eyebrow--light">Punto de venta</p>
+      <h2>Validar QR</h2>
+    </div>
+    <label>
+      <span class="sr-only">Token QR</span>
+      <input [formControl]="qrToken" placeholder="Pega o escanea el UUID de la reserva" />
+    </label>
+    <button class="button button--accent" type="submit" [disabled]="validating()">
+      {{ validating() ? 'Validando' : 'Confirmar visita' }}
+    </button>
+  </form>
+}
+
+@if (loading()) {
+  <div class="loading-state"><span class="spinner"></span> Consultando reservas</div>
+} @else {
+  <section class="reservation-list">
+    @for (reservation of reservations(); track reservation.id) {
+      <article class="reservation-row">
+        <div class="reservation-row__code">
+          <span>Reserva</span>
+          <strong>#{{ reservation.id.toString().padStart(4, '0') }}</strong>
+        </div>
+        <div>
+          <span class="status-badge" [attr.data-status]="reservation.estado">{{
+            reservation.estado
+          }}</span>
+          <p>{{ reservation.observacion || 'Sin observaciones' }}</p>
+        </div>
+        <div class="reservation-time">
+          <span>Creada {{ reservation.fecha_reserva | date: 'd MMM - HH:mm' }}</span>
+          <strong>Vence {{ reservation.vence_at | date: 'd MMM - HH:mm' }}</strong>
+          <span class="time-track"><i [style.width.%]="timeProgress(reservation)"></i></span>
+        </div>
+        @if (auth.user()?.rol !== 'CLIENTE') {
+          <button
+            class="button button--small"
+            type="button"
+            (click)="convert(reservation)"
+            [disabled]="
+              !['PENDIENTE', 'CONFIRMADA'].includes(reservation.estado) ||
+              actionId() === reservation.id
+            "
+          >
+            {{ actionId() === reservation.id ? 'Procesando' : 'Convertir a compra' }}
+          </button>
+        }
+      </article>
+    } @empty {
+      <div class="empty-state">No hay reservas en este momento.</div>
+    }
+  </section>
+}

@@ -1,0 +1,114 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Pulso del negocio</p>
+    <h1>Todo en su sitio,<br />todo en movimiento.</h1>
+  </div>
+  <div class="heading-note">
+    <span class="heading-note__number">{{ activeOrders }}</span>
+    <p>operaciones requieren atencion hoy</p>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading-state"><span class="spinner"></span> Preparando el resumen</div>
+} @else {
+  <section class="metric-strip" aria-label="Metricas principales">
+    <article>
+      <span>01 / Pedidos activos</span>
+      <strong>{{ activeOrders }}</strong>
+      <small>En preparacion o camino</small>
+    </article>
+    <article>
+      <span>02 / Reservas vivas</span>
+      <strong>{{ activeReservations }}</strong>
+      <small>Pendientes de visita</small>
+    </article>
+    <article>
+      <span>03 / Unidades disponibles</span>
+      <strong>{{ metrics()?.inventario?.unidades_disponibles ?? '' }}</strong>
+      <small>{{ metrics()?.inventario?.stock_bajo ?? 0 }} variantes con stock bajo</small>
+    </article>
+    <article class="metric-strip__accent">
+      <span>04 / Ventas entregadas</span>
+      <strong>Bs {{ metrics()?.ventas?.ingresos ?? 0 }}</strong>
+      <small>Ingreso historico confirmado</small>
+    </article>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="operation-board">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Cola operativa</p>
+          <h2>Pedidos recientes</h2>
+        </div>
+        <a class="text-link" href="/orders">Ver todos -&gt;</a>
+      </div>
+
+      <div class="operation-list">
+        @for (order of orders().slice(0, 6); track order.id) {
+          <a class="operation-row" href="/orders">
+            <span class="operation-row__id">#{{ order.id }}</span>
+            <div>
+              <strong>{{ order.tipo_entrega }}</strong>
+              <small>{{ order.created_at | date: 'd MMM, HH:mm' }}</small>
+            </div>
+            <span class="status-badge" [attr.data-status]="order.estado">{{ order.estado }}</span>
+            <strong>Bs {{ order.total }}</strong>
+          </a>
+        } @empty {
+          <div class="empty-state">No hay pedidos todavia. Las nuevas compras apareceran aqui.</div>
+        }
+      </div>
+    </article>
+
+    <aside class="right-rail">
+      @if (auth.user()?.rol === 'ADMIN') {
+        <article class="ai-runtime">
+          <div class="ai-runtime__top">
+            <span class="status-dot" [class.status-dot--live]="runtime()?.healthy"></span>
+            <span>{{ runtime()?.running ? 'MODELO ACTIVO' : 'MODO REPOSO' }}</span>
+          </div>
+          <h2>Gemma 4 E2B</h2>
+          <p>
+            {{
+              runtime()?.running
+                ? 'Atendiendo consultas; se apagara al cumplir el tiempo de inactividad.'
+                : 'Se cargara automaticamente con la siguiente consulta.'
+            }}
+          </p>
+          <dl>
+            <div>
+              <dt>Plataforma</dt>
+              <dd>{{ runtime()?.platform }}</dd>
+            </div>
+            <div>
+              <dt>Apagado idle</dt>
+              <dd>{{ (runtime()?.idle_timeout_seconds ?? 0) / 60 }} min</dd>
+            </div>
+            <div>
+              <dt>Solicitudes</dt>
+              <dd>{{ runtime()?.active_requests ?? 0 }}</dd>
+            </div>
+          </dl>
+          <button
+            class="button button--inverse"
+            type="button"
+            (click)="toggleRuntime()"
+            [disabled]="runtimeBusy()"
+          >
+            {{ runtime()?.running ? 'Apagar ahora' : 'Encender modelo' }}
+          </button>
+        </article>
+      }
+
+      <article class="reservation-note">
+        <span class="reservation-note__count">{{ activeReservations }}</span>
+        <div>
+          <p class="eyebrow">Proximas visitas</p>
+          <h3>Prendas apartadas esperan en tienda.</h3>
+        </div>
+      </article>
+    </aside>
+  </section>
+}
