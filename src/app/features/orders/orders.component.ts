@@ -107,7 +107,7 @@ export class OrdersComponent {
       .initiatePayment({
         pedido_id: order.id,
         metodo: 'QR',
-      })
+      }, `web-order-${order.id}-qr`)
       .subscribe({
         next: (payment) => {
           this.currentPayment.set(payment);

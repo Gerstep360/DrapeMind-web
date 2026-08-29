@@ -396,6 +396,54 @@
   pointer-events: none;
 }
 
+.favorite-toggle {
+  position: absolute;
+  z-index: 3;
+  top: 0.7rem;
+  right: 0.7rem;
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 1px solid rgb(23 26 22 / 18%);
+  border-radius: 50%;
+  color: var(--ink);
+  background: rgb(255 255 255 / 92%);
+  cursor: pointer;
+  transition: transform 150ms ease, color 150ms ease;
+
+  &:hover { transform: scale(1.08); }
+  &--active { color: var(--rust); }
+}
+
+.visual-badges { right: 3.7rem; }
+
+.modal-favorite {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0.25rem 0;
+  color: var(--forest);
+  background: transparent;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.showroom-picker {
+  display: grid;
+  gap: 0.5rem;
+  border-block: 1px solid var(--line);
+  padding: 1rem 0;
+
+  select { width: 100%; }
+  small, p { margin: 0; color: var(--muted); font-size: 0.68rem; line-height: 1.45; }
+}
+
+.modal-actions .reserve-btn {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
 .quality-tag {
   display: grid;
   width: 2rem;

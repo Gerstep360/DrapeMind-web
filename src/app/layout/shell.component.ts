@@ -8,7 +8,14 @@ import { UserRole } from '../core/models';
 import { ToastService } from '../core/toast.service';
 import { CartDrawerComponent } from './cart-drawer/cart-drawer.component';
 
-export type NavIcon = 'dashboard' | 'catalog' | 'inventory' | 'reservations' | 'orders' | 'stylist';
+export type NavIcon =
+  | 'dashboard'
+  | 'catalog'
+  | 'inventory'
+  | 'reservations'
+  | 'orders'
+  | 'stylist'
+  | 'account';
 
 interface NavItem {
   label: string;
@@ -37,25 +44,31 @@ export class ShellComponent {
       label: 'Colección',
       icon: 'catalog',
       route: '/catalog',
-      roles: ['ADMIN', 'VENDEDOR', 'CLIENTE'],
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
     },
     {
       label: 'Personal Stylist',
       icon: 'stylist',
       route: '/ai-studio',
-      roles: ['ADMIN', 'VENDEDOR', 'CLIENTE'],
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
     },
     {
       label: 'Pedidos & Ventas',
       icon: 'orders',
       route: '/orders',
-      roles: ['ADMIN', 'VENDEDOR', 'CLIENTE'],
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
     },
     {
       label: 'Reservas',
       icon: 'reservations',
       route: '/reservations',
-      roles: ['ADMIN', 'VENDEDOR', 'CLIENTE'],
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
+    },
+    {
+      label: 'Mi Cuenta',
+      icon: 'account',
+      route: '/account',
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
     },
     {
       label: 'Inventario',
@@ -67,7 +80,7 @@ export class ShellComponent {
       label: 'Panel General',
       icon: 'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'VENDEDOR', 'CLIENTE'],
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
     },
   ];
 

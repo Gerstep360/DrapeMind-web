@@ -24,6 +24,12 @@ export const routes: Routes = [
           import('./features/catalog/catalog.component').then((m) => m.CatalogComponent),
       },
       {
+        path: 'account',
+        title: 'Mi cuenta | DrapeMind',
+        loadComponent: () =>
+          import('./features/account/account.component').then((m) => m.AccountComponent),
+      },
+      {
         path: 'inventory',
         title: 'Inventario | DrapeMind',
         loadComponent: () =>

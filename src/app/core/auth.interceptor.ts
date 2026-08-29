@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(AuthService);
-  const token = auth.token();
+  const token = auth.hasValidToken() ? auth.token() : null;
   const authorized = token
     ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : request;

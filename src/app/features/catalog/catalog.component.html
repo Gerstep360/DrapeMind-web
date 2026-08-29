@@ -137,6 +137,17 @@
     @for (product of products(); track product.id; let index = $index) {
       <article class="product-card" (click)="openProductDetail(product)">
         <div class="product-card__visual">
+          <button
+            class="favorite-toggle"
+            type="button"
+            [class.favorite-toggle--active]="favoriteIds().has(product.id)"
+            (click)="toggleFavorite(product, $event)"
+            [attr.aria-label]="favoriteIds().has(product.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="favoriteIds().has(product.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+            </svg>
+          </button>
           @if (imageUrl(product); as image) {
             <img [src]="image" [alt]="product.nombre" loading="lazy" (error)="onImageError(product)" />
           } @else {
@@ -229,7 +240,9 @@
         <div class="modal-details">
           <div class="price-header">
             <strong class="modal-price">Bs {{ product.precio | number: '1.2-2' }}</strong>
-            <span class="gender-pill">{{ product.genero_objetivo }}</span>
+            <button class="modal-favorite" type="button" (click)="toggleFavorite(product)">
+              {{ favoriteIds().has(product.id) ? 'Guardada en favoritos' : 'Guardar en favoritos' }}
+            </button>
           </div>
 
           <p class="modal-desc">{{ product.descripcion }}</p>
@@ -299,6 +312,27 @@
             </div>
           }
 
+          <div class="showroom-picker">
+            <label class="section-title" for="showroom-select">Disponibilidad en showroom</label>
+            @if (selectedVariantAvailability().length) {
+              <select
+                id="showroom-select"
+                [value]="selectedBranchId() ?? ''"
+                (change)="selectedBranchId.set(+$any($event.target).value)"
+              >
+                <option value="">Selecciona una sede</option>
+                @for (row of selectedVariantAvailability(); track row.sucursal_id) {
+                  <option [value]="row.sucursal_id">
+                    Sucursal #{{ row.sucursal_id }} · {{ row.stock_disponible }} disponibles
+                  </option>
+                }
+              </select>
+              <small>La reserva bloquea esta talla durante 48 horas en la sede elegida.</small>
+            } @else {
+              <p>Esta combinación no está disponible para reserva física.</p>
+            }
+          </div>
+
           <!-- SELECTOR DE CANTIDAD -->
           <div class="quantity-section">
             <label class="section-title">Cantidad:</label>
@@ -318,6 +352,14 @@
 
           <!-- ACCIONES DE COMPRA -->
           <div class="modal-actions">
+            <button
+              class="button button--ghost modal-btn reserve-btn"
+              type="button"
+              (click)="reserveSelected()"
+              [disabled]="!selectedBranchId() || reserving()"
+            >
+              <span>{{ reserving() ? 'Reservando...' : 'Reservar 48 h' }}</span>
+            </button>
             <button
               class="button button--ghost modal-btn"
               type="button"

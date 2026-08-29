@@ -1,0 +1,101 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Tu relación con el atelier</p>
+    <h1>Cuenta y preferencias.</h1>
+    <p class="page-lead">Mantén tus datos de entrega, prendas guardadas y showrooms a mano.</p>
+  </div>
+  <div class="account-stamp">
+    <span>{{ auth.user()?.nombre?.charAt(0) }}</span>
+    <div><strong>{{ auth.user()?.nombre }}</strong><small>{{ auth.user()?.email }}</small></div>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading-state"><span class="spinner"></span> Sincronizando tu cuenta</div>
+} @else {
+  <section class="account-layout">
+    <article class="profile-panel">
+      <p class="eyebrow">CU-03 · Perfil</p>
+      <h2>Datos personales</h2>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <label>Nombre completo<input formControlName="nombre" autocomplete="name" /></label>
+        <label>Teléfono<input formControlName="telefono" autocomplete="tel" placeholder="Ej. 70000000" /></label>
+        <button class="button button--primary" type="submit" [disabled]="profileForm.invalid || savingProfile()">
+          {{ savingProfile() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="addresses-panel">
+      <header>
+        <div><p class="eyebrow">Entrega</p><h2>Mis direcciones</h2></div>
+        <button class="button button--small" type="button" (click)="newAddress()">+ Añadir</button>
+      </header>
+      <div class="address-list">
+        @for (address of addresses(); track address.id) {
+          <div class="address-row" [class.address-row--primary]="address.es_principal">
+            <div>
+              <strong>{{ address.alias }}</strong>
+              @if (address.es_principal) { <span>Principal</span> }
+              <p>{{ address.direccion }} · {{ address.zona || address.ciudad }}</p>
+            </div>
+            <div class="row-actions">
+              <button type="button" (click)="editAddress(address)">Editar</button>
+              <button type="button" class="danger-link" (click)="deleteAddress(address)">Eliminar</button>
+            </div>
+          </div>
+        } @empty {
+          <div class="compact-empty"><strong>Aún no guardaste una dirección.</strong><span>La necesitarás para delivery.</span></div>
+        }
+      </div>
+    </article>
+  </section>
+
+  <section class="collection-section">
+    <header>
+      <div><p class="eyebrow">CU-08 · Selección personal</p><h2>Favoritos</h2></div>
+      <span>{{ favorites().length }} prendas</span>
+    </header>
+    <div class="favorite-grid">
+      @for (product of favorites(); track product.id) {
+        <article class="favorite-card">
+          <button class="favorite-main" type="button" (click)="openProduct(product)">
+            <div class="favorite-visual">
+              @if (imageUrl(product); as image) { <img [src]="image" [alt]="product.nombre" /> }
+              @else { <span>{{ product.nombre.slice(0, 2).toUpperCase() }}</span> }
+            </div>
+            <div><small>{{ product.marca || 'DrapeMind' }}</small><strong>{{ product.nombre }}</strong><span>Bs {{ product.precio | number: '1.2-2' }}</span></div>
+          </button>
+          <button class="remove-favorite" type="button" (click)="removeFavorite(product)" aria-label="Quitar de favoritos">×</button>
+        </article>
+      } @empty {
+        <div class="compact-empty"><strong>Tu selección está vacía.</strong><span>Marca prendas desde el catálogo para encontrarlas aquí.</span></div>
+      }
+    </div>
+  </section>
+
+  <section class="showroom-section">
+    <header><p class="eyebrow">CU-07 · Disponibilidad física</p><h2>Showrooms disponibles</h2></header>
+    <div class="branch-line">
+      @for (branch of branches(); track branch.id) {
+        <article><span>{{ branch.codigo }}</span><strong>{{ branch.nombre }}</strong><p>{{ branch.direccion }} · {{ branch.ciudad }}</p></article>
+      }
+    </div>
+  </section>
+}
+
+@if (addressEditorOpen()) {
+  <button class="drawer-scrim" type="button" aria-label="Cerrar" (click)="addressEditorOpen.set(false)"></button>
+  <aside class="address-drawer">
+    <header><div><p class="eyebrow">Libreta de entrega</p><h2>{{ editingAddressId() ? 'Editar dirección' : 'Nueva dirección' }}</h2></div><button type="button" (click)="addressEditorOpen.set(false)">×</button></header>
+    <form [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+      <div class="form-row"><label>Alias<input formControlName="alias" /></label><label>Teléfono<input formControlName="telefono_contacto" /></label></div>
+      <div class="form-row"><label>Departamento<input formControlName="departamento" /></label><label>Ciudad<input formControlName="ciudad" /></label></div>
+      <label>Zona<input formControlName="zona" /></label>
+      <label>Dirección exacta<input formControlName="direccion" /></label>
+      <label>Referencia<textarea rows="3" formControlName="referencia"></textarea></label>
+      <label class="check-row"><input type="checkbox" formControlName="es_principal" /> Usar como dirección principal</label>
+      <button class="button button--primary button--wide" type="submit" [disabled]="addressForm.invalid || savingAddress()">{{ savingAddress() ? 'Guardando...' : 'Guardar dirección' }}</button>
+    </form>
+  </aside>
+}

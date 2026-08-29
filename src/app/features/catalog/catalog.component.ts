@@ -2,10 +2,10 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, forkJoin, Observable } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { CartService } from '../../core/cart.service';
-import { Category, Product, ProductVariant } from '../../core/models';
+import { BranchStock, Category, Product, ProductVariant } from '../../core/models';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
@@ -32,6 +32,10 @@ export class CatalogComponent {
   readonly loading = signal(true);
   readonly editorOpen = signal(false);
   readonly saving = signal(false);
+  readonly favoriteIds = signal<Set<number>>(new Set());
+  readonly availability = signal<BranchStock[]>([]);
+  readonly selectedBranchId = signal<number | null>(null);
+  readonly reserving = signal(false);
 
   // AI Concierge
   readonly aiQueryControl = new FormControl('', { nonNullable: true });
@@ -95,6 +99,15 @@ export class CatalogComponent {
     return p.variantes.find((v) => v.color === color && v.talla === size) || null;
   });
 
+  readonly selectedVariantAvailability = computed(() => {
+    const variantId = this.activeVariant()?.id;
+    return variantId
+      ? this.availability().filter(
+          (row) => row.variante_id === variantId && row.stock_disponible > 0,
+        )
+      : [];
+  });
+
   constructor() {
     this.load();
     this.route.queryParamMap.subscribe((params) => {
@@ -121,6 +134,7 @@ export class CatalogComponent {
         this.selectedColor.set(first?.color ?? null);
         this.selectedSize.set(first?.talla ?? null);
         this.loadingDetail.set(false);
+        this.loadAvailability(product.id);
       },
       error: () => {
         this.loadingDetail.set(false);
@@ -134,10 +148,12 @@ export class CatalogComponent {
     forkJoin({
       categories: this.api.categories(),
       products: this.api.products({ limit: 60 }),
+      favorites: this.api.favorites(),
     }).subscribe({
-      next: ({ categories, products }) => {
+      next: ({ categories, products, favorites }) => {
         this.categories.set(categories);
         this.products.set(products);
+        this.favoriteIds.set(new Set(favorites.map((product) => product.id)));
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -244,6 +260,7 @@ export class CatalogComponent {
           this.selectedSize.set(first.talla);
         }
         this.loadingDetail.set(false);
+        this.loadAvailability(fullProduct.id);
       },
       error: () => {
         this.loadingDetail.set(false);
@@ -254,6 +271,8 @@ export class CatalogComponent {
   closeDetail(): void {
     this.detailModalOpen.set(false);
     this.selectedProduct.set(null);
+    this.availability.set([]);
+    this.selectedBranchId.set(null);
   }
 
   selectColor(color: string): void {
@@ -266,6 +285,65 @@ export class CatalogComponent {
 
   selectSize(size: string): void {
     this.selectedSize.set(size);
+    this.selectedBranchId.set(null);
+  }
+
+  private loadAvailability(productId: number): void {
+    this.api.productAvailability(productId).subscribe({
+      next: (rows) => {
+        this.availability.set(rows);
+        const first = rows.find((row) => row.variante_id === this.activeVariant()?.id);
+        this.selectedBranchId.set(first?.sucursal_id ?? null);
+      },
+      error: () => this.availability.set([]),
+    });
+  }
+
+  toggleFavorite(product: Product, event?: Event): void {
+    event?.stopPropagation();
+    const isFavorite = this.favoriteIds().has(product.id);
+    const request: Observable<unknown> = isFavorite
+      ? this.api.removeFavorite(product.id)
+      : this.api.addFavorite(product.id);
+    request.subscribe({
+      next: () => {
+        this.favoriteIds.update((current) => {
+          const next = new Set(current);
+          isFavorite ? next.delete(product.id) : next.add(product.id);
+          return next;
+        });
+        this.toast.show(
+          isFavorite ? 'Prenda retirada de favoritos' : 'Prenda guardada en favoritos',
+          'success',
+        );
+      },
+      error: () => this.toast.show('No se pudo actualizar favoritos', 'error'),
+    });
+  }
+
+  reserveSelected(): void {
+    const variant = this.activeVariant();
+    const branchId = this.selectedBranchId();
+    if (!variant || !branchId || this.reserving()) {
+      this.toast.show('Selecciona una talla y un showroom con stock', 'error');
+      return;
+    }
+    this.reserving.set(true);
+    this.api
+      .createReservation(branchId, [{ variante_id: variant.id, cantidad: this.selectedQty() }])
+      .pipe(finalize(() => this.reserving.set(false)))
+      .subscribe({
+        next: (reservation) => {
+          this.toast.show(`Reserva #${reservation.id} creada por 48 horas`, 'success');
+          this.closeDetail();
+          void this.router.navigate(['/reservations']);
+        },
+        error: (error) =>
+          this.toast.show(
+            error?.error?.detail ?? 'No se pudo reservar en ese showroom',
+            'error',
+          ),
+      });
   }
 
   changeQty(delta: number): void {

@@ -5,6 +5,8 @@ import {
   Address,
   AddressInput,
   AiRuntimeStatus,
+  Branch,
+  BranchStock,
   Cart,
   Category,
   CheckoutRequest,
@@ -14,6 +16,7 @@ import {
   Product,
   Reservation,
   SalesInventoryMetrics,
+  User,
 } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 
@@ -40,6 +43,31 @@ export class StoreApiService {
 
   product(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.runtime.apiUrl}/catalog/products/${id}`);
+  }
+
+  favorites(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.runtime.apiUrl}/catalog/favorites`);
+  }
+
+  addFavorite(productId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.runtime.apiUrl}/catalog/favorites/${productId}`,
+      {},
+    );
+  }
+
+  removeFavorite(productId: number): Observable<void> {
+    return this.http.delete<void>(`${this.runtime.apiUrl}/catalog/favorites/${productId}`);
+  }
+
+  branches(): Observable<Branch[]> {
+    return this.http.get<Branch[]>(`${this.runtime.apiUrl}/branches`);
+  }
+
+  productAvailability(productId: number): Observable<BranchStock[]> {
+    return this.http.get<BranchStock[]>(
+      `${this.runtime.apiUrl}/branches/products/${productId}/availability`,
+    );
   }
 
   createProduct(payload: Partial<Product>): Observable<Product> {
@@ -73,6 +101,40 @@ export class StoreApiService {
 
   myReservations(): Observable<Reservation[]> {
     return this.http.get<Reservation[]>(`${this.runtime.apiUrl}/reservations`);
+  }
+
+  reservation(id: number): Observable<Reservation> {
+    return this.http.get<Reservation>(`${this.runtime.apiUrl}/reservations/${id}`);
+  }
+
+  createReservation(
+    sucursal_id: number,
+    items: Array<{ variante_id: number; cantidad: number }>,
+    observacion?: string,
+  ): Observable<Reservation> {
+    return this.http.post<Reservation>(`${this.runtime.apiUrl}/reservations`, {
+      sucursal_id,
+      items,
+      observacion: observacion || null,
+    });
+  }
+
+  cancelReservation(id: number): Observable<Reservation> {
+    return this.http.post<Reservation>(`${this.runtime.apiUrl}/reservations/${id}/cancel`, {});
+  }
+
+  reservationQr(id: number): Observable<Blob> {
+    return this.http.get(`${this.runtime.apiUrl}/reservations/${id}/qr`, {
+      responseType: 'blob',
+    });
+  }
+
+  prepareReservation(id: number): Observable<Reservation> {
+    return this.http.post<Reservation>(`${this.runtime.apiUrl}/reservations/${id}/prepare`, {});
+  }
+
+  markReservationReady(id: number): Observable<Reservation> {
+    return this.http.post<Reservation>(`${this.runtime.apiUrl}/reservations/${id}/ready`, {});
   }
 
   validateQr(qr_token: string): Observable<Reservation> {
@@ -130,8 +192,14 @@ export class StoreApiService {
     return this.http.post<Order>(`${this.runtime.apiUrl}/orders/checkout`, payload);
   }
 
-  initiatePayment(payload: PaymentCreate): Observable<Payment> {
-    return this.http.post<Payment>(`${this.runtime.apiUrl}/payments`, payload);
+  initiatePayment(payload: PaymentCreate, idempotencyKey?: string): Observable<Payment> {
+    return this.http.post<Payment>(`${this.runtime.apiUrl}/payments`, payload, {
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {},
+    });
+  }
+
+  orderPayments(orderId: number): Observable<Payment[]> {
+    return this.http.get<Payment[]>(`${this.runtime.apiUrl}/payments/order/${orderId}`);
   }
 
   mockConfirmPayment(payment_id: number): Observable<Payment> {
@@ -142,8 +210,19 @@ export class StoreApiService {
     return this.http.get<Address[]>(`${this.runtime.apiUrl}/users/me/addresses`);
   }
 
+  updateMe(payload: { nombre?: string; telefono?: string | null }): Observable<User> {
+    return this.http.patch<User>(`${this.runtime.apiUrl}/users/me`, payload);
+  }
+
   createAddress(payload: AddressInput): Observable<Address> {
     return this.http.post<Address>(`${this.runtime.apiUrl}/users/me/addresses`, payload);
+  }
+
+  updateAddress(addressId: number, payload: AddressInput): Observable<Address> {
+    return this.http.put<Address>(
+      `${this.runtime.apiUrl}/users/me/addresses/${addressId}`,
+      payload,
+    );
   }
 
   deleteAddress(address_id: number): Observable<void> {

@@ -40,29 +40,45 @@
           <span class="status-badge" [attr.data-status]="reservation.estado">{{
             reservation.estado
           }}</span>
-          <p>{{ reservation.observacion || 'Sin observaciones' }}</p>
+          <p>Sucursal #{{ reservation.sucursal_id || '—' }} · {{ reservation.observacion || 'Sin observaciones' }}</p>
         </div>
         <div class="reservation-time">
           <span>Creada {{ reservation.fecha_reserva | date: 'd MMM - HH:mm' }}</span>
           <strong>Vence {{ reservation.vence_at | date: 'd MMM - HH:mm' }}</strong>
           <span class="time-track"><i [style.width.%]="timeProgress(reservation)"></i></span>
         </div>
-        @if (auth.user()?.rol !== 'CLIENTE') {
-          <button
-            class="button button--small"
-            type="button"
-            (click)="convert(reservation)"
-            [disabled]="
-              !['PENDIENTE', 'CONFIRMADA'].includes(reservation.estado) ||
-              actionId() === reservation.id
-            "
-          >
-            {{ actionId() === reservation.id ? 'Procesando' : 'Convertir a compra' }}
-          </button>
-        }
+        <div class="reservation-actions">
+          @if (auth.user()?.rol === 'CLIENTE') {
+            @if (['PENDIENTE', 'CONFIRMADA', 'EN_PREPARACION', 'LISTA'].includes(reservation.estado)) {
+              <button class="button button--small" type="button" (click)="showQr(reservation)">Ver QR</button>
+              <button class="button button--small button--danger" type="button" (click)="cancel(reservation)" [disabled]="actionId() === reservation.id">Cancelar</button>
+            }
+          } @else {
+            @if (canPrepare() && ['PENDIENTE', 'CONFIRMADA'].includes(reservation.estado)) {
+              <button class="button button--small" type="button" (click)="prepare(reservation)" [disabled]="actionId() === reservation.id">Preparar</button>
+            }
+            @if (canPrepare() && reservation.estado === 'EN_PREPARACION') {
+              <button class="button button--small button--accent" type="button" (click)="markReady(reservation)" [disabled]="actionId() === reservation.id">Marcar lista</button>
+            }
+            @if (canConvert() && ['CONFIRMADA', 'EN_PREPARACION', 'LISTA', 'RETIRADA'].includes(reservation.estado)) {
+              <button class="button button--small button--primary" type="button" (click)="convert(reservation)" [disabled]="actionId() === reservation.id">Convertir a compra</button>
+            }
+          }
+        </div>
       </article>
     } @empty {
       <div class="empty-state">No hay reservas en este momento.</div>
     }
+  </section>
+}
+
+@if (qrPreviewUrl(); as qrUrl) {
+  <button class="qr-scrim" type="button" aria-label="Cerrar QR" (click)="closeQr()"></button>
+  <section class="qr-modal" role="dialog" aria-modal="true" aria-label="QR de reserva">
+    <p class="eyebrow">Presenta en showroom</p>
+    <h2>Reserva #{{ qrReservation()?.id }}</h2>
+    <img [src]="qrUrl" alt="Código QR de la reserva" />
+    <p>Válido hasta {{ qrReservation()?.vence_at | date: 'd MMM, HH:mm' }}</p>
+    <button class="button button--primary button--wide" type="button" (click)="closeQr()">Cerrar</button>
   </section>
 }

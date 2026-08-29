@@ -1,0 +1,30 @@
+.account-stamp { display:flex; align-items:center; gap:.8rem; padding:.8rem 1rem; border:1px solid var(--ink); background:var(--paper-strong); }
+.account-stamp>span { display:grid; width:2.8rem; height:2.8rem; place-items:center; border-radius:50%; color:var(--acid); background:var(--forest); font:700 1.3rem var(--font-display); }
+.account-stamp div { display:grid; gap:.15rem; } .account-stamp small { color:var(--muted); font-size:.7rem; }
+.account-layout { display:grid; grid-template-columns:minmax(18rem,.72fr) minmax(26rem,1.28fr); gap:1.25rem; margin:2rem 0; }
+.profile-panel,.addresses-panel,.collection-section,.showroom-section { border-top:3px solid var(--ink); padding:1.25rem; background:var(--paper-strong); }
+h2 { margin:.25rem 0 1.1rem; font:400 2rem var(--font-display); }
+.profile-panel form,.address-drawer form { display:grid; gap:.85rem; } label { display:grid; gap:.35rem; color:var(--muted-strong); font-size:.72rem; font-weight:750; }
+.addresses-panel>header,.collection-section>header { display:flex; align-items:start; justify-content:space-between; gap:1rem; }
+.address-list { display:grid; } .address-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border-top:1px solid var(--line); padding:1rem 0; }
+.address-row--primary { border-left:3px solid var(--acid); padding-left:.8rem; }
+.address-row strong { margin-right:.5rem; } .address-row span { padding:.15rem .4rem; color:var(--forest); background:var(--sage); font-size:.58rem; font-weight:800; text-transform:uppercase; }
+.address-row p,.branch-line p { margin:.35rem 0 0; color:var(--muted); font-size:.72rem; }
+.row-actions { display:flex; gap:.6rem; } .row-actions button,.remove-favorite { border:0; color:var(--forest); background:transparent; font-size:.68rem; font-weight:800; cursor:pointer; }
+.row-actions .danger-link { color:var(--danger); }
+.collection-section,.showroom-section { margin-bottom:1.25rem; }
+.favorite-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.8rem; }
+.favorite-card { position:relative; border:1px solid var(--line); background:white; }
+.favorite-main { display:grid; width:100%; grid-template-columns:5rem 1fr; gap:.8rem; border:0; padding:.65rem; text-align:left; background:transparent; cursor:pointer; }
+.favorite-visual { display:grid; min-height:5rem; place-items:center; overflow:hidden; color:var(--forest); background:var(--sand); font:700 1.2rem var(--font-display); }
+.favorite-visual img { width:100%; height:100%; object-fit:cover; }
+.favorite-main>div:last-child { display:grid; align-content:center; gap:.2rem; min-width:0; } .favorite-main small { color:var(--forest); text-transform:uppercase; font-size:.56rem; } .favorite-main strong { font-size:.78rem; } .favorite-main span { font-size:.72rem; font-weight:850; }
+.remove-favorite { position:absolute; top:.25rem; right:.3rem; display:grid; width:1.8rem; height:1.8rem; place-items:center; border:1px solid var(--line); background:white; font-size:1rem; }
+.branch-line { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--line); }
+.branch-line article { display:grid; gap:.25rem; border-right:1px solid var(--line); padding:1rem; } .branch-line span { color:var(--forest); font:600 .62rem var(--font-mono); }
+.compact-empty { display:grid; min-height:6rem; align-content:center; gap:.25rem; color:var(--muted); } .compact-empty strong { color:var(--ink); }
+.address-drawer { position:fixed; z-index:31; top:0; right:0; width:min(34rem,100%); height:100dvh; overflow:auto; padding:1.5rem; background:var(--paper-strong); box-shadow:var(--shadow); }
+.address-drawer>header { display:flex; justify-content:space-between; margin-bottom:1.5rem; border-bottom:1px solid var(--ink); } .address-drawer>header button { border:0; background:none; font-size:1.5rem; cursor:pointer; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; } .check-row { display:flex!important; align-items:center; } .check-row input { min-height:auto; }
+@media(max-width:900px){.account-layout{grid-template-columns:1fr}.favorite-grid,.branch-line{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.favorite-grid,.branch-line,.form-row{grid-template-columns:1fr}.address-row{align-items:start;flex-direction:column}.account-stamp{width:100%}}

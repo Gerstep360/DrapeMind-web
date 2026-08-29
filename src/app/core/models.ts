@@ -1,4 +1,4 @@
-export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR';
+export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO';
 
 export interface User {
   id: number;
@@ -62,15 +62,64 @@ export interface Product {
 export interface Reservation {
   id: number;
   codigo_publico: string;
-  estado: 'PENDIENTE' | 'CONFIRMADA' | 'RETIRADA' | 'VENCIDA' | 'CANCELADA' | 'CONVERTIDA';
+  sucursal_id: number | null;
+  estado:
+    | 'PENDIENTE'
+    | 'CONFIRMADA'
+    | 'EN_PREPARACION'
+    | 'LISTA'
+    | 'RETIRADA'
+    | 'VENCIDA'
+    | 'CANCELADA'
+    | 'CONVERTIDA';
   fecha_reserva: string;
   vence_at: string;
   observacion: string | null;
+  preparado_por_id?: number | null;
+  preparado_at?: string | null;
+  atendido_por_id?: number | null;
+  atendido_at?: string | null;
+  items?: ReservationItem[];
+}
+
+export interface ReservationItem {
+  variante_id: number;
+  cantidad: number;
+  precio_referencia: number;
+}
+
+export interface Branch {
+  id: number;
+  ciudad_id: number;
+  codigo: string;
+  nombre: string;
+  direccion: string;
+  telefono: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  activo: boolean;
+  ciudad: string | null;
+  departamento: string | null;
+}
+
+export interface BranchStock {
+  sucursal_id: number;
+  variante_id: number;
+  producto_id: number;
+  producto: string;
+  sku: string;
+  color: string;
+  talla: string;
+  stock_total: number;
+  stock_reservado: number;
+  stock_disponible: number;
+  activo: boolean;
 }
 
 export interface Order {
   id: number;
   codigo_publico: string;
+  sucursal_id?: number | null;
   estado:
     'PENDIENTE_PAGO' | 'PAGADO' | 'PREPARANDO' | 'LISTO' | 'ENVIADO' | 'ENTREGADO' | 'CANCELADO';
   canal: 'MOBILE' | 'WEB' | 'TIENDA';
@@ -105,6 +154,8 @@ export interface AiRuntimeStatus {
 
 export interface RealtimeEvent {
   type: string;
+  code?: string;
+  message?: string;
   order_id?: number;
   reservation_id?: number;
   payment_id?: number;
@@ -272,6 +323,7 @@ export interface AiSocketEvent {
   content?: string;
   text?: string;
   message?: string;
+  code?: string;
   name?: string;
   result?: unknown;
   session_id?: number;
@@ -288,4 +340,3 @@ export interface AiSocketEvent {
   response_meta?: AiResponseMeta;
   suggested_actions?: AiSuggestedAction[];
 }
-

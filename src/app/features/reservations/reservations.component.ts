@@ -25,6 +25,8 @@ export class ReservationsComponent {
   readonly qrToken = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly validating = signal(false);
   readonly actionId = signal<number | null>(null);
+  readonly qrPreviewUrl = signal<string | null>(null);
+  readonly qrReservation = signal<Reservation | null>(null);
 
   constructor() {
     effect(() => {
@@ -74,6 +76,76 @@ export class ReservationsComponent {
       error: (error) => {
         this.actionId.set(null);
         this.toast.show(error?.error?.detail ?? 'No se pudo convertir la reserva', 'error');
+      },
+    });
+  }
+
+  prepare(reservation: Reservation): void {
+    this.runAction(
+      reservation,
+      this.api.prepareReservation(reservation.id),
+      `Reserva #${reservation.id} en preparación`,
+    );
+  }
+
+  markReady(reservation: Reservation): void {
+    this.runAction(
+      reservation,
+      this.api.markReservationReady(reservation.id),
+      `Reserva #${reservation.id} lista para recojo`,
+    );
+  }
+
+  cancel(reservation: Reservation): void {
+    if (!window.confirm('¿Cancelar esta reserva y liberar sus prendas?')) return;
+    this.runAction(
+      reservation,
+      this.api.cancelReservation(reservation.id),
+      `Reserva #${reservation.id} cancelada`,
+    );
+  }
+
+  showQr(reservation: Reservation): void {
+    this.api.reservationQr(reservation.id).subscribe({
+      next: (blob) => {
+        this.closeQr();
+        this.qrPreviewUrl.set(URL.createObjectURL(blob));
+        this.qrReservation.set(reservation);
+      },
+      error: (error) => this.toast.show(error?.error?.detail ?? 'El QR ya no está activo', 'error'),
+    });
+  }
+
+  closeQr(): void {
+    const current = this.qrPreviewUrl();
+    if (current) URL.revokeObjectURL(current);
+    this.qrPreviewUrl.set(null);
+    this.qrReservation.set(null);
+  }
+
+  canPrepare(): boolean {
+    return ['ADMIN', 'VENDEDOR', 'ENCARGADO'].includes(this.auth.user()?.rol ?? '');
+  }
+
+  canConvert(): boolean {
+    return ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'].includes(this.auth.user()?.rol ?? '');
+  }
+
+  private runAction(
+    reservation: Reservation,
+    request: ReturnType<StoreApiService['cancelReservation']>,
+    message: string,
+  ): void {
+    this.actionId.set(reservation.id);
+    request.subscribe({
+      next: () => {
+        this.actionId.set(null);
+        this.toast.show(message, 'success');
+        this.load();
+      },
+      error: (error) => {
+        this.actionId.set(null);
+        this.toast.show(error?.error?.detail ?? 'No se pudo actualizar la reserva', 'error');
       },
     });
   }

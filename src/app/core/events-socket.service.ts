@@ -12,36 +12,51 @@ export class EventsSocketService {
   private socket: WebSocket | null = null;
   private retryTimer: number | null = null;
   private retry = 0;
+  private authRejected = false;
+  private manualDisconnect = false;
 
   readonly connected = signal(false);
   readonly events = signal<RealtimeEvent[]>([]);
 
   connect(): void {
-    const token = this.auth.token();
+    const token = this.auth.hasValidToken() ? this.auth.token() : null;
     if (!token || this.socket) return;
+    this.manualDisconnect = false;
+    this.authRejected = false;
     this.socket = new WebSocket(this.runtime.wsUrl('events'));
     this.socket.onopen = () => {
       this.socket?.send(JSON.stringify({ type: 'auth', token }));
-      this.retry = 0;
     };
     this.socket.onmessage = (message) => {
       const event = JSON.parse(String(message.data)) as RealtimeEvent;
       if (event.type === 'connected') {
+        this.retry = 0;
         this.connected.set(true);
         return;
       }
       if (event.type === 'pong') return;
+      if (event.type === 'error' && event.code === 'AUTH_INVALID') {
+        this.authRejected = true;
+        this.disconnect(false);
+        this.auth.logout();
+        return;
+      }
       this.events.update((items) => [event, ...items].slice(0, 30));
       this.toast.show(this.eventMessage(event), 'info');
     };
-    this.socket.onclose = () => {
+    this.socket.onclose = (event) => {
       this.socket = null;
       this.connected.set(false);
-      if (this.auth.isAuthenticated()) this.scheduleRetry();
+      if (this.authRejected || event.code === 4401) {
+        if (this.auth.token()) this.auth.logout();
+        return;
+      }
+      if (!this.manualDisconnect && this.auth.hasValidToken()) this.scheduleRetry();
     };
   }
 
-  disconnect(): void {
+  disconnect(manual = true): void {
+    this.manualDisconnect = manual;
     if (this.retryTimer !== null) window.clearTimeout(this.retryTimer);
     this.socket?.close(1000, 'logout');
     this.socket = null;
@@ -49,6 +64,7 @@ export class EventsSocketService {
   }
 
   private scheduleRetry(): void {
+    if (!this.auth.hasValidToken() || this.retry >= 5) return;
     const delay = Math.min(30_000, 1000 * 2 ** this.retry++);
     this.retryTimer = window.setTimeout(() => this.connect(), delay);
   }

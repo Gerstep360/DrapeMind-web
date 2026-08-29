@@ -20,6 +20,8 @@ export class AiSocketService {
   private reconnectAttempt = 0;
   private queuedMessage: string | null = null;
   private responseStartedAt = 0;
+  private authRejected = false;
+  private manualDisconnect = false;
 
   readonly status = signal<SocketStatus>('offline');
   readonly sessions = signal<ChatSession[]>([]);
@@ -200,7 +202,7 @@ export class AiSocketService {
 
   // --- WEBSOCKET CONNECTION ---
   connect(): void {
-    const token = this.auth.token();
+    const token = this.auth.hasValidToken() ? this.auth.token() : null;
     if (
       !token ||
       this.socket?.readyState === WebSocket.OPEN ||
@@ -209,11 +211,12 @@ export class AiSocketService {
       return;
     }
     this.clearReconnect();
+    this.manualDisconnect = false;
+    this.authRejected = false;
     this.status.set('connecting');
     this.socket = new WebSocket(this.runtime.wsUrl('ai'));
 
     this.socket.onopen = () => {
-      this.reconnectAttempt = 0;
       this.socket?.send(JSON.stringify({ type: 'auth', token }));
       this.startHeartbeat();
     };
@@ -244,7 +247,7 @@ export class AiSocketService {
       });
     };
 
-    this.socket.onclose = () => {
+    this.socket.onclose = (event) => {
       this.socket = null;
       this.stopHeartbeat();
       this.stopThinkingTicker();
@@ -260,7 +263,14 @@ export class AiSocketService {
         }
         return last;
       });
-      if (this.auth.isAuthenticated()) {
+      if (this.authRejected || event.code === 4401) {
+        this.clearReconnect();
+        this.queuedMessage = null;
+        this.status.set('offline');
+        if (this.auth.token()) this.auth.logout();
+        return;
+      }
+      if (!this.manualDisconnect && this.auth.hasValidToken()) {
         this.status.set('offline');
         this.scheduleReconnect();
       }
@@ -268,6 +278,7 @@ export class AiSocketService {
   }
 
   disconnect(): void {
+    this.manualDisconnect = true;
     this.clearReconnect();
     this.stopHeartbeat();
     this.stopThinkingTicker();
@@ -358,6 +369,7 @@ export class AiSocketService {
     const activeId = this.activeSessionId();
 
     if (event.type === 'connected') {
+      this.reconnectAttempt = 0;
       this.status.set('connected');
       if (this.queuedMessage) {
         const message = this.queuedMessage;
@@ -477,6 +489,16 @@ export class AiSocketService {
             }
           : last,
       );
+      if (
+        event.code === 'AUTH_INVALID' ||
+        /sesión inválida|sesion invalida|token.*expir|usuario inactivo/i.test(event.message ?? '')
+      ) {
+        this.authRejected = true;
+        this.clearReconnect();
+        this.queuedMessage = null;
+        this.socket?.close(4401, 'auth_expired');
+        this.auth.logout();
+      }
       this.saveSessionsToStorage();
     }
   }
@@ -559,6 +581,11 @@ export class AiSocketService {
 
   private scheduleReconnect(): void {
     this.clearReconnect();
+    if (!this.auth.hasValidToken()) return;
+    if (this.reconnectAttempt >= 5) {
+      this.status.set('error');
+      return;
+    }
     const delay = Math.min(30_000, 1000 * 2 ** this.reconnectAttempt++);
     this.reconnectTimer = window.setTimeout(() => this.connect(), delay);
   }

@@ -93,6 +93,41 @@
   background: var(--rust);
 }
 
+.reservation-actions {
+  display: flex;
+  max-width: 19rem;
+  justify-content: end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.qr-scrim {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  border: 0;
+  background: rgb(23 26 22 / 72%);
+}
+
+.qr-modal {
+  position: fixed;
+  z-index: 41;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: min(24rem, calc(100vw - 2rem));
+  justify-items: center;
+  transform: translate(-50%, -50%);
+  border-top: 4px solid var(--acid);
+  padding: 1.5rem;
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.qr-modal h2 { margin: .35rem 0 1rem; font: 400 2.4rem var(--font-display); }
+.qr-modal img { width: min(16rem, 70vw); aspect-ratio: 1; border: 1px solid var(--line); }
+.qr-modal p:last-of-type { color: var(--muted); font-size: .72rem; }
+
 @media (max-width: 900px) {
   .qr-validator {
     grid-template-columns: 1fr;
@@ -106,4 +141,6 @@
   .reservation-time {
     grid-column: 1 / -1;
   }
+
+  .reservation-actions { grid-column: 1 / -1; justify-content: start; }
 }
