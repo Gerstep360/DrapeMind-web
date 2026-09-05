@@ -265,11 +265,23 @@ verify_frontend() {
     echo ""
 }
 
+update_frontend_code() {
+    log_info "Actualizando Frontend con los cambios más recientes de Git..."
+    cd "${WEB_DIR}"
+    git pull || log_warn "Git pull finalizó con observaciones (revisa cambios locales)."
+
+    install_dependencies
+    build_and_deploy_angular
+    configure_nginx
+    verify_frontend
+}
+
 show_help() {
     echo "Uso: sudo bash install.sh [OPCION]"
     echo ""
     echo "Opciones disponibles:"
     echo "  --all         Instalación completa (Node.js, npm, Angular build y Nginx)"
+    echo "  --update      Actualiza con git pull, recompila Angular y recarga Nginx"
     echo "  --build       Solo compila Angular y copia a /var/www/drapemind/browser"
     echo "  --nginx       Solo configura Nginx y recarga el servicio"
     echo "  --check       Verifica conectividad y código HTTP"
@@ -288,6 +300,9 @@ case "${1:-}" in
         configure_nginx
         verify_frontend
         ;;
+    --update)
+        update_frontend_code
+        ;;
     --build)
         install_dependencies
         build_and_deploy_angular
@@ -305,12 +320,13 @@ case "${1:-}" in
         banner
         echo "Selecciona una opción para el Frontend:"
         echo "  1) Instalación completa de Frontend (Angular build + Nginx)"
-        echo "  2) Solo compilar Angular y desplegar en /var/www"
-        echo "  3) Solo configurar Nginx (/DrapeMind)"
-        echo "  4) Verificar estado de respuesta HTTP"
-        echo "  5) Salir"
+        echo "  2) Actualizar Frontend con cambios recientes (Git pull + Build + Nginx)"
+        echo "  3) Solo compilar Angular y desplegar en /var/www"
+        echo "  4) Solo configurar y recargar Nginx (/DrapeMind)"
+        echo "  5) Verificar estado de respuesta HTTP"
+        echo "  6) Salir"
         echo ""
-        read -rp "Opción [1-5]: " opt
+        read -rp "Opción [1-6]: " opt
         case $opt in
             1)
                 install_dependencies
@@ -319,16 +335,19 @@ case "${1:-}" in
                 verify_frontend
                 ;;
             2)
+                update_frontend_code
+                ;;
+            3)
                 install_dependencies
                 build_and_deploy_angular
                 ;;
-            3)
+            4)
                 configure_nginx
                 ;;
-            4)
+            5)
                 verify_frontend
                 ;;
-            5)
+            6)
                 exit 0
                 ;;
             *)
