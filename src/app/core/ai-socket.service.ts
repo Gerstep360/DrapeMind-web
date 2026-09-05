@@ -245,7 +245,8 @@ export class AiSocketService {
       }
     };
 
-    this.socket.onerror = () => {
+    this.socket.onerror = (err) => {
+      console.error('[Altair WebSocket Error]', err);
       this.status.set('error');
       this.stopThinkingTicker();
       this.updateLastMessage(this.activeSessionId(), (last) => {
@@ -254,7 +255,7 @@ export class AiSocketService {
             ...last,
             pending: false,
             error: true,
-            content: last.content || 'Error de conexión con Altair AI. Inicia sesión o verifica tu red.',
+            content: last.content || 'Error de red en canal WebSocket (conexión rechazada o caída de red).',
             durationMs: Math.max(0, Date.now() - this.responseStartedAt),
           };
         }
@@ -266,13 +267,27 @@ export class AiSocketService {
       this.socket = null;
       this.stopHeartbeat();
       this.stopThinkingTicker();
+
+      let errorMsg = '';
+      if (event.code === 4401) {
+        errorMsg = 'Sesión expirada o token inválido (Código 4401). Vuelve a iniciar sesión.';
+      } else if (event.code === 4403) {
+        errorMsg = `Acceso denegado por CORS (Código 4403: ${event.reason || 'Origin no permitido'}).`;
+      } else if (event.code === 1006) {
+        errorMsg = 'Conexión WebSocket cerrada inesperadamente (Código 1006: Timeout del proxy Nginx o socket reiniciado).';
+      } else if (event.code === 1000) {
+        errorMsg = event.reason ? `Conexión cerrada: ${event.reason}` : 'Conexión finalizada normalmente.';
+      } else {
+        errorMsg = `Conexión cerrada (Código ${event.code}${event.reason ? ': ' + event.reason : ''}).`;
+      }
+
       this.updateLastMessage(this.activeSessionId(), (last) => {
         if (last.pending) {
           return {
             ...last,
             pending: false,
             error: true,
-            content: last.content || 'Conexión cerrada. Vuelve a iniciar sesión si tu token expiró.',
+            content: last.content ? `${last.content}\n\n[${errorMsg}]` : errorMsg,
             durationMs: Math.max(0, Date.now() - this.responseStartedAt),
           };
         }
@@ -492,11 +507,14 @@ export class AiSocketService {
           : { ...step },
       );
 
+      const errorMsg = event.message || (event as any).detail || 'No se pudo completar la consulta.';
+      const codeMsg = event.code ? ` (${event.code})` : '';
+
       this.updateLastMessage(activeId, (last) =>
         last.pending
           ? {
               ...last,
-              content: event.message ?? 'No se pudo completar la consulta.',
+              content: `**[Error de Altair AI]**${codeMsg}: ${errorMsg}`,
               pending: false,
               error: true,
               trace,
@@ -616,7 +634,7 @@ export class AiSocketService {
       if (this.socket?.readyState === WebSocket.OPEN) {
         this.socket.send(JSON.stringify({ type: 'ping' }));
       }
-    }, 25_000);
+    }, 10_000);
   }
 
   private stopHeartbeat(): void {
