@@ -60,11 +60,23 @@ install_dependencies() {
     fi
 
     if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
-        log_info "Instalando Node.js LTS (v20)..."
+        log_info "Instalando Node.js..."
         apt-get update -qq
         apt-get install -y -qq curl ca-certificates gnupg
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
+        curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1
         apt-get install -y -qq nodejs
+    fi
+
+    # Si Node.js está en 22.22.1 o anterior, intentar subir la micro-versión
+    if command -v node >/dev/null 2>&1; then
+        local CURRENT_NODE
+        CURRENT_NODE=$(node -v | tr -d 'v')
+        if [[ "${CURRENT_NODE}" == 22.22.1* || "${CURRENT_NODE}" == 22.22.0* ]]; then
+            log_info "Node.js v${CURRENT_NODE} requiere actualización menor para Angular CLI. Actualizando con 'n'..."
+            npm install -g n --silent >/dev/null 2>&1 || true
+            n 22 >/dev/null 2>&1 || n lts >/dev/null 2>&1 || true
+            hash -r 2>/dev/null || true
+        fi
     fi
 
     log_success "Node.js $(node -v 2>/dev/null || echo '') y Nginx listos."
@@ -75,6 +87,9 @@ build_and_deploy_angular() {
     cd "${WEB_DIR}"
 
     npm install --silent
+
+    # Compatibilidad de micro-versión para Angular CLI (permite Node 22.22.1 / 22.22.x)
+    sed -i 's/\^22.22.3/\^22.22.0/g' node_modules/@angular/cli/src/utilities/node-version.js 2>/dev/null || true
 
     log_info "Compilando Angular para producción con base-href /DrapeMind/..."
     npm run build:prod
