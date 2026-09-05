@@ -37,6 +37,14 @@ export class AuthService {
       );
   }
 
+  register(payload: { nombre: string; email: string; password: string; telefono?: string }): Observable<User> {
+    return this.http
+      .post<User>(`${this.runtime.apiUrl}/auth/register`, payload)
+      .pipe(
+        switchMap(() => this.login(payload.email, payload.password)),
+      );
+  }
+
   loadMe(): Observable<User> {
     return this.http.get<User>(`${this.runtime.apiUrl}/auth/me`).pipe(
       tap((user) => {

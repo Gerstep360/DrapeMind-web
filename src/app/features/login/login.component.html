@@ -23,10 +23,49 @@
   <section class="login-form-wrap">
     <div class="login-form">
       <p class="eyebrow">Acceso al atelier</p>
-      <h2>Bienvenido de vuelta</h2>
-      <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
+
+      <div class="mode-tabs">
+        <button
+          type="button"
+          class="mode-tab"
+          [class.mode-tab--active]="mode() === 'login'"
+          (click)="mode() !== 'login' && toggleMode()"
+        >
+          Iniciar sesión
+        </button>
+        <button
+          type="button"
+          class="mode-tab"
+          [class.mode-tab--active]="mode() === 'register'"
+          (click)="mode() !== 'register' && toggleMode()"
+        >
+          Registrarse
+        </button>
+      </div>
+
+      @if (mode() === 'login') {
+        <h2>Bienvenido de vuelta</h2>
+        <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
+      } @else {
+        <h2>Crea tu cuenta</h2>
+        <p class="form-intro">Regístrate para guardar favoritos, reservar prendas y diseñar con IA.</p>
+      }
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (mode() === 'register') {
+          <label for="nombre">Nombre completo</label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            autocomplete="name"
+            placeholder="Ej. Ana Morales"
+          />
+          @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+            <small class="field-error">Escribe tu nombre completo (mínimo 2 caracteres).</small>
+          }
+        }
+
         <label for="email">Correo electronico</label>
         <input
           id="email"
@@ -57,6 +96,20 @@
             {{ showPassword() ? 'Ocultar' : 'Ver' }}
           </button>
         </div>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small class="field-error">La contraseña debe tener al menos 8 caracteres.</small>
+        }
+
+        @if (mode() === 'register') {
+          <label for="telefono">Teléfono / Celular <span class="label-optional">(opcional)</span></label>
+          <input
+            id="telefono"
+            type="tel"
+            formControlName="telefono"
+            autocomplete="tel"
+            placeholder="Ej. 70011223"
+          />
+        }
 
         @if (error()) {
           <div class="form-alert" role="alert">{{ error() }}</div>
@@ -65,13 +118,24 @@
         <button class="button button--primary button--wide" type="submit" [disabled]="loading()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
-            Verificando
+            {{ mode() === 'login' ? 'Verificando...' : 'Creando cuenta...' }}
           } @else {
-            Entrar al sistema
+            {{ mode() === 'login' ? 'Entrar al sistema' : 'Registrarme y acceder' }}
             <span aria-hidden="true">-&gt;</span>
           }
         </button>
+
+        <div class="toggle-action">
+          @if (mode() === 'login') {
+            <span>¿No tienes una cuenta aún?</span>
+            <button type="button" class="link-button" (click)="toggleMode()">Regístrate aquí</button>
+          } @else {
+            <span>¿Ya tienes una cuenta creada?</span>
+            <button type="button" class="link-button" (click)="toggleMode()">Inicia sesión</button>
+          }
+        </div>
       </form>
+
       <p class="privacy-note">
         Conexion protegida con JWT. Tu sesion se cierra al cerrar esta pestana.
       </p>

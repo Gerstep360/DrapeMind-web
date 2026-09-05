@@ -198,6 +198,65 @@ form label {
   font-size: 0.84rem;
 }
 
+.mode-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.8rem 0 1.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--sand);
+  width: fit-content;
+}
+
+.mode-tab {
+  border: 0;
+  padding: 0.45rem 1.15rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted-strong);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--active {
+    color: var(--ink);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.label-optional {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.toggle-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.85rem;
+
+  &:hover {
+    color: var(--ink);
+  }
+}
+
 .privacy-note {
   margin-top: 1.5rem;
   color: var(--muted);
