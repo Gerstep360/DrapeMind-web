@@ -196,27 +196,12 @@ EOF
     if [[ -f "/etc/nginx/sites-available/default" ]]; then
         if ! grep -q "drapemind-subpath.conf" /etc/nginx/sites-available/default; then
             log_info "Incluyendo snippet en /etc/nginx/sites-available/default..."
-            python3 -c "
-with open('/etc/nginx/sites-available/default', 'r') as f:
-    content = f.read()
-
-snippet_line = '    include /etc/nginx/snippets/drapemind-subpath.conf;\n'
-if snippet_line not in content:
-    idx = content.rfind('}')
-    if idx != -1:
-        new_content = content[:idx] + snippet_line + content[idx:]
-        with open('/etc/nginx/sites-available/default', 'w') as f:
-            f.write(new_content)
-" 2>/dev/null || sed -i '/server {/a \    include /etc/nginx/snippets/drapemind-subpath.conf;' /etc/nginx/sites-available/default
+            sed -i '/server_name/a \    include /etc/nginx/snippets/drapemind-subpath.conf;' /etc/nginx/sites-available/default 2>/dev/null || \
+            sed -i '/server {/a \    include /etc/nginx/snippets/drapemind-subpath.conf;' /etc/nginx/sites-available/default
         fi
     else
         # Crear sitio completo si no hay default
         cat <<EOF > /etc/nginx/sites-available/drapemind.conf
-map \$http_upgrade \$connection_upgrade {
-    default upgrade;
-    '' close;
-}
-
 server {
     listen 80;
     server_name ${SERVER_IP} localhost;
@@ -226,6 +211,28 @@ server {
 }
 EOF
         ln -sf /etc/nginx/sites-available/drapemind.conf /etc/nginx/sites-enabled/drapemind.conf
+    fi
+
+    # Auto-recuperacion si default tiene errores de sintaxis (ej. llave huerfana previa)
+    if ! nginx -t >/dev/null 2>&1; then
+        log_warn "Conflicto previo detectado en Nginx default. Generando bloque server limpio..."
+        cat <<EOF_CLEAN > /etc/nginx/sites-available/default
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html index.htm;
+
+    server_name _;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+
+    include /etc/nginx/snippets/drapemind-subpath.conf;
+}
+EOF_CLEAN
     fi
 
     if nginx -t; then
