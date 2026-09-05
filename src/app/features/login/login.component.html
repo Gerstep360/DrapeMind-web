@@ -24,31 +24,36 @@
     <div class="login-form">
       <p class="eyebrow">Acceso al atelier</p>
 
-      <div class="mode-tabs">
-        <button
-          type="button"
-          class="mode-tab"
-          [class.mode-tab--active]="mode() === 'login'"
-          (click)="mode() !== 'login' && toggleMode()"
-        >
-          Iniciar sesión
-        </button>
-        <button
-          type="button"
-          class="mode-tab"
-          [class.mode-tab--active]="mode() === 'register'"
-          (click)="mode() !== 'register' && toggleMode()"
-        >
-          Registrarse
-        </button>
-      </div>
+      @if (mode() !== 'forgot') {
+        <div class="mode-tabs">
+          <button
+            type="button"
+            class="mode-tab"
+            [class.mode-tab--active]="mode() === 'login'"
+            (click)="setMode('login')"
+          >
+            Iniciar sesión
+          </button>
+          <button
+            type="button"
+            class="mode-tab"
+            [class.mode-tab--active]="mode() === 'register'"
+            (click)="setMode('register')"
+          >
+            Registrarse
+          </button>
+        </div>
+      }
 
       @if (mode() === 'login') {
         <h2>Bienvenido de vuelta</h2>
         <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
-      } @else {
+      } @else if (mode() === 'register') {
         <h2>Crea tu cuenta</h2>
         <p class="form-intro">Regístrate para guardar favoritos, reservar prendas y diseñar con IA.</p>
+      } @else {
+        <h2>Recuperar acceso</h2>
+        <p class="form-intro">Ingresa tu correo registrado y define tu nueva contraseña para acceder.</p>
       }
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -78,13 +83,20 @@
           <small class="field-error">Escribe un correo valido.</small>
         }
 
-        <label for="password">Contrasena</label>
+        <div class="password-meta">
+          <label for="password">{{ mode() === 'forgot' ? 'Nueva contraseña' : 'Contraseña' }}</label>
+          @if (mode() === 'login') {
+            <button type="button" class="forgot-password-link" (click)="setMode('forgot')">
+              ¿Olvidaste tu contraseña?
+            </button>
+          }
+        </div>
         <div class="password-field">
           <input
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
-            autocomplete="current-password"
+            [autocomplete]="mode() === 'forgot' ? 'new-password' : 'current-password'"
             placeholder="Minimo 8 caracteres"
           />
           <button
@@ -114,13 +126,20 @@
         @if (error()) {
           <div class="form-alert" role="alert">{{ error() }}</div>
         }
+        @if (successMessage()) {
+          <div class="form-success" role="status">{{ successMessage() }}</div>
+        }
 
         <button class="button button--primary button--wide" type="submit" [disabled]="loading()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
-            {{ mode() === 'login' ? 'Verificando...' : 'Creando cuenta...' }}
+            @if (mode() === 'login') { Verificando... }
+            @else if (mode() === 'register') { Creando cuenta... }
+            @else { Restableciendo... }
           } @else {
-            {{ mode() === 'login' ? 'Entrar al sistema' : 'Registrarme y acceder' }}
+            @if (mode() === 'login') { Entrar al sistema }
+            @else if (mode() === 'register') { Registrarme y acceder }
+            @else { Restablecer contraseña }
             <span aria-hidden="true">-&gt;</span>
           }
         </button>
@@ -128,10 +147,13 @@
         <div class="toggle-action">
           @if (mode() === 'login') {
             <span>¿No tienes una cuenta aún?</span>
-            <button type="button" class="link-button" (click)="toggleMode()">Regístrate aquí</button>
-          } @else {
+            <button type="button" class="link-button" (click)="setMode('register')">Regístrate aquí</button>
+          } @else if (mode() === 'register') {
             <span>¿Ya tienes una cuenta creada?</span>
-            <button type="button" class="link-button" (click)="toggleMode()">Inicia sesión</button>
+            <button type="button" class="link-button" (click)="setMode('login')">Inicia sesión</button>
+          } @else {
+            <span>¿Recordaste tu contraseña?</span>
+            <button type="button" class="link-button" (click)="setMode('login')">Volver al inicio de sesión</button>
           }
         </div>
       </form>

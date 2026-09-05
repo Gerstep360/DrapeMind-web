@@ -5,6 +5,21 @@ import { RuntimeConfigService } from './runtime-config.service';
 
 export type SocketStatus = 'offline' | 'connecting' | 'connected' | 'loading' | 'ready' | 'error';
 
+function generateSafeUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      // Fallback si falla el contexto del navegador
+    }
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 @Injectable({ providedIn: 'root' })
 export class AiSocketService {
   private static readonly STORAGE_KEY = 'drapemind_ai_sessions_v2';
@@ -96,7 +111,7 @@ export class AiSocketService {
 
     // Inicializar sesión por defecto
     const initialSession: ChatSession = {
-      id: crypto.randomUUID(),
+      id: generateSafeUuid(),
       title: 'Asesoría Atelier',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -131,7 +146,7 @@ export class AiSocketService {
 
   createNewSession(title?: string): void {
     const newSession: ChatSession = {
-      id: crypto.randomUUID(),
+      id: generateSafeUuid(),
       title: title ?? `Conversación #${this.sessions().length + 1}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

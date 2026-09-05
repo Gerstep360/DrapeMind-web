@@ -45,6 +45,10 @@ export class AuthService {
       );
   }
 
+  forgotPassword(payload: { email: string; new_password: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.runtime.apiUrl}/auth/forgot-password`, payload);
+  }
+
   loadMe(): Observable<User> {
     return this.http.get<User>(`${this.runtime.apiUrl}/auth/me`).pipe(
       tap((user) => {

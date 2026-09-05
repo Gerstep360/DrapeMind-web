@@ -16,9 +16,10 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  readonly mode = signal<'login' | 'register'>('login');
+  readonly mode = signal<'login' | 'register' | 'forgot'>('login');
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly successMessage = signal('');
   readonly showPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
@@ -28,16 +29,22 @@ export class LoginComponent {
     telefono: [''],
   });
 
-  toggleMode(): void {
-    const next = this.mode() === 'login' ? 'register' : 'login';
-    this.mode.set(next);
+  setMode(target: 'login' | 'register' | 'forgot'): void {
+    this.mode.set(target);
     this.error.set('');
-    if (next === 'register') {
+    this.successMessage.set('');
+
+    if (target === 'register') {
       this.form.controls.nombre.setValidators([Validators.required, Validators.minLength(2)]);
     } else {
       this.form.controls.nombre.clearValidators();
     }
     this.form.controls.nombre.updateValueAndValidity();
+  }
+
+  toggleMode(): void {
+    const next = this.mode() === 'login' ? 'register' : 'login';
+    this.setMode(next);
   }
 
   submit(): void {
@@ -47,6 +54,7 @@ export class LoginComponent {
     }
     this.loading.set(true);
     this.error.set('');
+    this.successMessage.set('');
     const { nombre, email, password, telefono } = this.form.getRawValue();
 
     if (this.mode() === 'register') {
@@ -60,8 +68,30 @@ export class LoginComponent {
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: () => void this.router.navigate(['/dashboard']),
-          error: (error) =>
-            this.error.set(error?.error?.detail ?? 'No pudimos crear la cuenta. Revisa tus datos.'),
+          error: (error) => {
+            if (error?.status === 409) {
+              this.error.set('Este correo ya está registrado en el atelier. Inicia sesión directamente o recupera tu contraseña si la olvidaste.');
+            } else {
+              this.error.set(error?.error?.detail ?? 'No pudimos crear la cuenta. Revisa tus datos.');
+            }
+          },
+        });
+    } else if (this.mode() === 'forgot') {
+      this.auth
+        .forgotPassword({
+          email: email.trim().toLowerCase(),
+          new_password: password,
+        })
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (res) => {
+            this.successMessage.set(res?.message ?? '¡Contraseña restablecida con éxito! Ingresa tu nueva contraseña para acceder.');
+            this.form.controls.password.reset();
+            this.mode.set('login');
+          },
+          error: (error) => {
+            this.error.set(error?.error?.detail ?? 'No pudimos restablecer la contraseña. Verifica que el correo esté registrado.');
+          },
         });
     } else {
       this.auth
@@ -70,7 +100,7 @@ export class LoginComponent {
         .subscribe({
           next: () => void this.router.navigate(['/dashboard']),
           error: (error) =>
-            this.error.set(error?.error?.detail ?? 'No pudimos iniciar sesión. Revisa tus datos.'),
+            this.error.set(error?.error?.detail ?? 'Credenciales incorrectas. Revisa tu correo y contraseña.'),
         });
     }
   }
