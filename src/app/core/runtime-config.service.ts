@@ -13,7 +13,12 @@ export class RuntimeConfigService {
 
   async load(): Promise<void> {
     try {
-      const response = await fetch('/config.json', { cache: 'no-store' });
+      const base = typeof document !== 'undefined'
+        ? (document.querySelector('base')?.getAttribute('href') || '/')
+        : '/';
+      const cleanBase = base.endsWith('/') ? base : `${base}/`;
+      const configUrl = `${cleanBase}config.json`;
+      const response = await fetch(configUrl, { cache: 'no-store' });
       if (response.ok) {
         this.config = (await response.json()) as RuntimeConfig;
       }
