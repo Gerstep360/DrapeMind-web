@@ -45,4 +45,18 @@ export class RuntimeConfigService {
     const prefix = this.config.apiPrefix ?? environment.apiPrefix;
     return `${socketBase}${prefix}/ws/${channel}`;
   }
+
+  resolveImageUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (/^(https?:|data:|blob:)/i.test(url)) return url;
+    const clean = url.replace(/^\/+/, '');
+    if (this.backendUrl) {
+      return `${this.backendUrl}/${clean}`;
+    }
+    const base = typeof document !== 'undefined'
+      ? (document.querySelector('base')?.getAttribute('href') || '/DrapeMind/')
+      : '/DrapeMind/';
+    const cleanBase = base.endsWith('/') ? base : `${base}/`;
+    return `${cleanBase}${clean}`;
+  }
 }

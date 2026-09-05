@@ -255,10 +255,7 @@ export class AiStudioComponent implements OnInit {
   }
 
   cardImageUrl(item: AiActionItem): string | null {
-    if (!item.imagen) return null;
-    if (/^(https?:|data:|blob:)/.test(item.imagen)) return item.imagen;
-    const path = item.imagen.startsWith('/') ? item.imagen : `/${item.imagen}`;
-    return `${this.runtime.backendUrl}${path}`;
+    return this.runtime.resolveImageUrl(item.imagen);
   }
 
   formatRelativeTime(isoDate: string | Date): string {

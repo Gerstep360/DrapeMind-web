@@ -7,6 +7,7 @@ import { CartService } from '../../core/cart.service';
 import { Address, Order, Payment } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
+import { RuntimeConfigService } from '../../core/runtime-config.service';
 
 type DrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS';
 
@@ -20,6 +21,7 @@ type DrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS';
 export class CartDrawerComponent {
   readonly cart = inject(CartService);
   readonly auth = inject(AuthService);
+  readonly runtime = inject(RuntimeConfigService);
   private readonly api = inject(StoreApiService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);

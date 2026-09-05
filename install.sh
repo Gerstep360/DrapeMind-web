@@ -162,6 +162,13 @@ location /DrapeMind/static/ {
     add_header Cache-Control "public, no-transform";
 }
 
+location /static/ {
+    proxy_pass http://127.0.0.1:${BACKEND_PORT}/static/;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    expires 7d;
+}
+
 location /DrapeMind/health/ {
     proxy_pass http://127.0.0.1:${BACKEND_PORT}/health/;
     proxy_set_header Host \$host;

@@ -418,13 +418,8 @@ export class CatalogComponent {
 
   imageUrl(product: Product): string | null {
     const first = product.imagenes?.[0];
-    let raw: string | null = null;
-    if (typeof first === 'string') raw = first;
-    else if (first?.url) raw = first.url;
-    if (!raw) return null;
-    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
-    if (raw.startsWith('/')) return `${this.runtime.backendUrl}${raw}`;
-    return `${this.runtime.backendUrl}/${raw}`;
+    const raw = typeof first === 'string' ? first : first?.url;
+    return this.runtime.resolveImageUrl(raw);
   }
 
   onImageError(product: Product): void {
