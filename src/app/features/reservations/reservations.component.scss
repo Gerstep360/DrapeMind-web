@@ -144,3 +144,5 @@
 
   .reservation-actions { grid-column: 1 / -1; justify-content: start; }
 }
+.reservation-filters { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.reservation-filters label { display: grid; gap: 0.4rem; flex: 1 1 220px; }

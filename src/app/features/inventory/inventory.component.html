@@ -4,12 +4,21 @@
     <h1>Inventario sin puntos ciegos.</h1>
     <p class="page-lead">Cada ajuste deja una huella auditable en movimientos de inventario.</p>
   </div>
+  @if (auth.user()?.rol === 'ADMIN') {
   <button class="button button--primary" type="button" (click)="editorOpen.set(!editorOpen())">
     {{ editorOpen() ? 'Cerrar registro' : 'Nueva variante' }}
   </button>
+  }
 </section>
 
 <section class="inventory-summary">
+  <label>Sucursal
+    <select [value]="branchId()" (change)="selectBranch($any($event.target).value)" [disabled]="savingId() !== null">
+      @for (branch of branches(); track branch.id) {
+        <option [value]="branch.id">{{ branch.nombre }} · {{ branch.ciudad }}</option>
+      }
+    </select>
+  </label>
   <div>
     <span>Variantes</span><strong>{{ rows().length }}</strong>
   </div>
@@ -20,6 +29,9 @@
     <span>Stock critico</span><strong>{{ criticalCount }}</strong>
   </div>
 </section>
+<label>Motivo de recepción o ajuste
+  <input maxlength="300" [value]="observation()" (input)="observation.set($any($event.target).value)" placeholder="Ej.: recepción de mercadería, conteo físico" />
+</label>
 
 @if (editorOpen()) {
   <form class="variant-editor" [formGroup]="variantForm" (ngSubmit)="createVariant()">
@@ -39,10 +51,24 @@
     <label>SKU <input formControlName="sku" placeholder="DRAPE-BLZ-CR-M" /></label>
     <label>Color <input formControlName="color" placeholder="Crudo" /></label>
     <label>Talla <input formControlName="talla" placeholder="M" /></label>
-    <label>Stock inicial <input type="number" min="0" formControlName="stock_total" /></label>
+    <p>La variante se crea sin existencias. Registra su recepción en la sucursal seleccionada.</p>
     <button class="button button--inverse" type="submit">Guardar variante</button>
   </form>
 }
+
+<details class="data-sheet" aria-label="Movimientos de la sucursal">
+  <summary>Últimos movimientos ({{ movements().length }})</summary>
+  @for (movement of movements(); track movement.id) {
+    <article class="data-sheet__row">
+      <span>{{ movement.created_at | date:'short' }}</span>
+      <strong>{{ movement.tipo }}</strong>
+      <span>Variante #{{ movement.variante_id }}</span>
+      <span>{{ movement.stock_total_anterior }} → {{ movement.stock_total_nuevo }}</span>
+      <span>{{ movement.observacion }}</span>
+      <small>Usuario #{{ movement.usuario_id }}</small>
+    </article>
+  } @empty { <p class="empty-state">Sin movimientos registrados para esta sucursal.</p> }
+</details>
 
 @if (loading()) {
   <div class="loading-state"><span class="spinner"></span> Contando existencias</div>

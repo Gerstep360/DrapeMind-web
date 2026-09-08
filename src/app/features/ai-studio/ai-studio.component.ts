@@ -278,7 +278,13 @@ export class AiStudioComponent implements OnInit {
 
   parseMarkdown(raw: string): string {
     if (!raw) return '';
-    const cleanText = this.cleanEmoji(raw);
+    const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const codeBlocks: string[] = [];
+    const cleanText = escape(raw).replace(/```[^\n]*\n([\s\S]*?)(?:```|$)/g, (_, code: string) => {
+      const key = `DRAPECODEBLOCK${codeBlocks.length}END`;
+      codeBlocks.push(`<pre class="md-code"><code>${code.replace(/\n$/, '')}</code></pre>`);
+      return key;
+    });
     const lines = cleanText.split('\n');
     const resultLines: string[] = [];
     let inTable = false;
@@ -336,7 +342,7 @@ export class AiStudioComponent implements OnInit {
     // Paragraphs
     html = html.replace(/\n\n+/g, '<br/><br/>');
 
-    return html;
+    return html.replace(/DRAPECODEBLOCK(\d+)END/g, (_, index: string) => codeBlocks[Number(index)] ?? '');
   }
 
   private buildHtmlTable(rows: string[][]): string {

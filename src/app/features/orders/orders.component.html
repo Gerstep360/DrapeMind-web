@@ -70,6 +70,9 @@
         </div>
 
         <footer>
+          @if (!['PENDIENTE_PAGO', 'CANCELADO'].includes(order.estado)) {
+            <button class="button button--small" type="button" (click)="downloadReceipt(order)">Descargar comprobante</button>
+          }
           <!-- OPINION Y COBRO EN EFECTIVO PARA EL VENDEDOR / ADMIN -->
           @if (auth.user()?.rol !== 'CLIENTE' && order.estado === 'PENDIENTE_PAGO') {
             <div class="seller-cash-card">
@@ -173,7 +176,7 @@
   <div class="order-pay-modal" role="dialog" aria-label="Pagar pedido">
     <header class="modal-header">
       <div>
-        <p class="eyebrow">Pasarela de Pago Segura</p>
+        <p class="eyebrow">Estado del pago</p>
         <h2>Pagar Pedido #{{ order.id.toString().padStart(5, '0') }}</h2>
       </div>
       <button class="close-button" type="button" (click)="closePaymentModal()" aria-label="Cerrar">
@@ -191,20 +194,16 @@
       </div>
 
       <div class="qr-display-box">
-        <div class="qr-mockup">
-          <div class="qr-pattern">
-            <span class="qr-corner top-left"></span>
-            <span class="qr-corner top-right"></span>
-            <span class="qr-corner bottom-left"></span>
-            <div class="qr-center-icon">DM</div>
-          </div>
-        </div>
         <p class="qr-info">
-          Código QR interoperable (BCP, BNB, Banco Unión, DeUna).
+          Estado: {{ currentPayment()?.estado || 'Consultando' }}.
+          La aprobación se confirma en el servidor.
+          @if (currentPayment()?.proveedor === 'MOCK') { Modo demostración: no se realizará un cobro bancario. }
         </p>
       </div>
 
       <div class="modal-pay-actions">
+        <button class="button button--primary button--wide" type="button" (click)="refreshPayment()" [disabled]="payingMock() || !currentPayment()">Consultar estado del pago</button>
+        @if (currentPayment()?.proveedor === 'MOCK') {
         <button
           class="button button--accent button--wide"
           type="button"
@@ -217,6 +216,7 @@
             <span>Simular Pago Aprobado Ahora</span>
           }
         </button>
+        }
         <button class="button button--ghost button--wide" type="button" (click)="closePaymentModal()">
           Cancelar
         </button>

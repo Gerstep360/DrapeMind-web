@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
-import { Reservation } from '../../core/models';
+import { Branch, Reservation } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 
@@ -21,6 +21,9 @@ export class ReservationsComponent {
   private readonly toast = inject(ToastService);
 
   readonly reservations = signal<Reservation[]>([]);
+  readonly branches = signal<Branch[]>([]);
+  readonly branchId = signal(0);
+  readonly statusFilter = signal('');
   readonly loading = signal(true);
   readonly qrToken = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly validating = signal(false);
@@ -29,6 +32,9 @@ export class ReservationsComponent {
   readonly qrReservation = signal<Reservation | null>(null);
 
   constructor() {
+    if (this.auth.user()?.rol !== 'CLIENTE') {
+      this.api.assignedBranches().subscribe({ next: (branches) => this.branches.set(branches) });
+    }
     effect(() => {
       const event = this.events.events().at(0);
       if (event?.type.startsWith('reservation_')) this.load();
@@ -38,7 +44,7 @@ export class ReservationsComponent {
 
   load(): void {
     const request =
-      this.auth.user()?.rol === 'CLIENTE' ? this.api.myReservations() : this.api.reservations();
+      this.auth.user()?.rol === 'CLIENTE' ? this.api.myReservations() : this.api.reservations(this.statusFilter(), this.branchId());
     request.subscribe({
       next: (items) => {
         this.reservations.set(items);

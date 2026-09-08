@@ -64,6 +64,34 @@ export class StoreApiService {
     return this.http.get<Branch[]>(`${this.runtime.apiUrl}/branches`);
   }
 
+  branchStock(id: number): Observable<BranchStock[]> {
+    return this.http.get<BranchStock[]>(`${this.runtime.apiUrl}/branches/${id}/availability`, {
+      params: { con_stock: false },
+    });
+  }
+
+  assignedBranches(): Observable<Branch[]> {
+    return this.http.get<Branch[]>(`${this.runtime.apiUrl}/branches/staff/assigned`);
+  }
+
+  branchMovements(id: number): Observable<InventoryMovement[]> {
+    return this.http.get<InventoryMovement[]>(`${this.runtime.apiUrl}/branches/${id}/movements`);
+  }
+
+  setBranchStock(id: number, variantId: number, total: number, observation: string): Observable<BranchStock> {
+    return this.http.put<BranchStock>(`${this.runtime.apiUrl}/branches/${id}/stock`, {
+      variante_id: variantId, stock_total: total, activo: true,
+    }, { params: { observacion: observation } });
+  }
+
+  payment(id: number): Observable<Payment> {
+    return this.http.get<Payment>(`${this.runtime.apiUrl}/payments/${id}`);
+  }
+
+  receipt(orderId: number): Observable<Blob> {
+    return this.http.get(`${this.runtime.apiUrl}/orders/${orderId}/receipt`, {responseType: 'blob'});
+  }
+
   productAvailability(productId: number): Observable<BranchStock[]> {
     return this.http.get<BranchStock[]>(
       `${this.runtime.apiUrl}/branches/products/${productId}/availability`,
@@ -94,8 +122,10 @@ export class StoreApiService {
     });
   }
 
-  reservations(state?: string): Observable<Reservation[]> {
-    const params = state ? new HttpParams().set('state', state) : undefined;
+  reservations(state?: string, branchId?: number): Observable<Reservation[]> {
+    let params = new HttpParams();
+    if (state) params = params.set('state', state);
+    if (branchId) params = params.set('sucursal_id', branchId);
     return this.http.get<Reservation[]>(`${this.runtime.apiUrl}/admin/reservations`, { params });
   }
 
@@ -261,4 +291,10 @@ export interface ProductVariantPayload {
   codigo_barras?: string;
   imagen?: string;
   activo: boolean;
+}
+
+export interface InventoryMovement {
+  id: number; variante_id: number; tipo: string; cantidad: number;
+  stock_total_anterior: number; stock_total_nuevo: number;
+  usuario_id: number; observacion: string; created_at: string;
 }

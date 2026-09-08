@@ -57,7 +57,7 @@ export class OrdersComponent {
 
   nextStatuses(order: Order): string[] {
     const transitions: Record<Order['estado'], string[]> = {
-      PENDIENTE_PAGO: ['PAGADO', 'CANCELADO'],
+      PENDIENTE_PAGO: ['CANCELADO'],
       PAGADO: ['PREPARANDO'],
       PREPARANDO: ['LISTO', 'CANCELADO'],
       LISTO: ['ENVIADO', 'ENTREGADO'],
@@ -122,6 +122,33 @@ export class OrdersComponent {
     this.payModalOpen.set(false);
     this.selectedOrderForPay.set(null);
     this.currentPayment.set(null);
+  }
+
+  refreshPayment(): void {
+    const payment = this.currentPayment();
+    if (!payment || this.payingMock()) return;
+    this.payingMock.set(true);
+    this.api.payment(payment.id).subscribe({
+      next: (updated) => {
+        this.payingMock.set(false);
+        this.currentPayment.set(updated);
+        this.toast.show(`Estado registrado: ${updated.estado}`, updated.estado === 'APROBADO' ? 'success' : 'info');
+        this.load();
+      },
+      error: () => { this.payingMock.set(false); this.toast.show('No se pudo consultar el pago. Reintenta.', 'error'); },
+    });
+  }
+
+  downloadReceipt(order: Order): void {
+    this.api.receipt(order.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = `comprobante-${order.id}.txt`; link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: () => this.toast.show('El comprobante requiere un pago aprobado', 'error'),
+    });
   }
 
   confirmMockPayment(): void {

@@ -74,7 +74,7 @@ export class ShellComponent {
       label: 'Inventario',
       icon: 'inventory',
       route: '/inventory',
-      roles: ['ADMIN'],
+      roles: ['ADMIN', 'ENCARGADO'],
     },
     {
       label: 'Panel General',

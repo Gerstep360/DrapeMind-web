@@ -11,6 +11,16 @@
 </section>
 
 @if (auth.user()?.rol !== 'CLIENTE') {
+  <div class="reservation-filters">
+    <label>Sucursal <select [value]="branchId()" (change)="branchId.set(+$any($event.target).value); load()">
+      <option value="0">Todas mis sucursales</option>
+      @for (branch of branches(); track branch.id) { <option [value]="branch.id">{{ branch.nombre }}</option> }
+    </select></label>
+    <label>Estado <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); load()">
+      <option value="">Todos los estados</option>
+      @for (state of ['PENDIENTE','CONFIRMADA','EN_PREPARACION','LISTA','RETIRADA','CONVERTIDA','CANCELADA','VENCIDA']; track state) { <option [value]="state">{{ state }}</option> }
+    </select></label>
+  </div>
   <form class="qr-validator" (ngSubmit)="validateQr()">
     <div>
       <p class="eyebrow eyebrow--light">Punto de venta</p>
