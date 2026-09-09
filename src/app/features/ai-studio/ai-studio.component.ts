@@ -47,8 +47,47 @@ export class AiStudioComponent implements OnInit {
 
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
+  readonly isToolsMenuOpen = signal(false);
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
+
+  readonly availableTools = [
+    {
+      id: 'search',
+      icon: 'search',
+      label: 'Buscar prendas',
+      desc: 'Por color, ocasión, tipo o precio',
+      prompt: 'Busca prendas disponibles para ',
+    },
+    {
+      id: 'outfit',
+      icon: 'outfit',
+      label: 'Generar outfit',
+      desc: 'Combinación completa con presupuesto',
+      prompt: 'Arma un outfit elegante con presupuesto de Bs 600',
+    },
+    {
+      id: 'arrivals',
+      icon: 'arrivals',
+      label: 'Novedades Atelier',
+      desc: 'Últimas piezas exclusivas en catálogo',
+      prompt: '¿Qué novedades y piezas recién llegadas tienen en el showroom?',
+    },
+    {
+      id: 'advice',
+      icon: 'advice',
+      label: 'Asesoría de estilo',
+      desc: 'Telas, siluetas y combinaciones',
+      prompt: 'Explícame qué cortes y telas me favorecen para una ocasión especial',
+    },
+    {
+      id: 'stock',
+      icon: 'stock',
+      label: 'Consultar stock y tallas',
+      desc: 'Disponibilidad real en tienda',
+      prompt: '¿Tienen stock y tallas disponibles de ',
+    },
+  ];
 
   readonly configForm = new FormGroup({
     occasion: new FormControl('cena'),
@@ -183,6 +222,23 @@ export class AiStudioComponent implements OnInit {
     this.prompt.reset();
     this.followLatest = true;
     window.setTimeout(() => this.scrollToBottom(), 60);
+  }
+
+  toggleToolsMenu(): void {
+    this.isToolsMenuOpen.update((v) => !v);
+  }
+
+  closeToolsMenu(): void {
+    this.isToolsMenuOpen.set(false);
+  }
+
+  selectTool(promptText: string): void {
+    this.prompt.setValue(promptText);
+    this.isToolsMenuOpen.set(false);
+  }
+
+  cancel(): void {
+    this.ai.cancelGeneration();
   }
 
   onKeydown(event: Event): void {

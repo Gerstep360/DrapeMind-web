@@ -285,6 +285,51 @@ export class AiSocketService {
     this.status.set('offline');
   }
 
+  cancelGeneration(): void {
+    if (!this.isBusy()) return;
+
+    this.stopThinkingTicker();
+    this.queuedMessage = null;
+
+    const activeId = this.activeSessionId();
+    this.sessions.update((list) =>
+      list.map((s) => {
+        if (s.id !== activeId) return s;
+        return {
+          ...s,
+          messages: s.messages.map((m) =>
+            m.pending
+              ? {
+                  ...m,
+                  pending: false,
+                  content: m.content
+                    ? `${m.content}\n\n*[Respuesta detenida]*`
+                    : '*Consulta cancelada por el usuario.*',
+                  durationMs: Math.max(0, Date.now() - this.responseStartedAt),
+                }
+              : m,
+          ),
+        };
+      }),
+    );
+
+    this.toolActivity.set([]);
+    this.liveThoughtSteps.set([]);
+    this.currentThought.set(null);
+    this.responseStartedAt = 0;
+    this.thinkingElapsedMs.set(0);
+
+    // Interrumpir la conexión para cancelar la tarea en el backend y reconectar
+    if (this.socket) {
+      this.socket.close(1000, 'cancelled_by_user');
+      this.socket = null;
+    }
+    this.saveSessionsToStorage();
+    setTimeout(() => {
+      this.connect();
+    }, 150);
+  }
+
   sendMessage(content: string): void {
     const clean = content.trim();
     if (!clean || this.isBusy()) return;
