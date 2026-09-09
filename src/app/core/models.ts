@@ -258,6 +258,7 @@ export interface AiNotice {
 }
 
 export interface AiResponseMeta {
+  product_picker?: Array<{type: 'product'; id: number; label: string}>;
   kind?: 'outfit' | 'catalog' | 'orders' | string;
   total_bob?: number;
   budget_bob?: number | null;
@@ -316,6 +317,7 @@ export interface AiSocketEvent {
     | 'model_status'
     | 'tool_start'
     | 'tool_result'
+    | 'results'
     | 'presentation'
     | 'token'
     | 'done'

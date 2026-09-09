@@ -1,7 +1,7 @@
 <section class="page-heading page-heading--split">
   <div>
     <p class="eyebrow">Control fisico</p>
-    <h1>Inventario sin puntos ciegos.</h1>
+    <h1>Inventario por sucursal</h1>
     <p class="page-lead">Cada ajuste deja una huella auditable en movimientos de inventario.</p>
   </div>
   @if (auth.user()?.rol === 'ADMIN') {
@@ -56,21 +56,40 @@
   </form>
 }
 
-<details class="data-sheet" aria-label="Movimientos de la sucursal">
-  <summary>Últimos movimientos ({{ movements().length }})</summary>
-  @for (movement of movements(); track movement.id) {
+<details class="data-sheet" aria-label="Kardex de movimientos de inventario">
+  <summary>Kardex de movimientos ({{ filteredMovements().length }})</summary>
+  <div style="display: flex; justify-content: flex-end; align-items: center; margin: 0.5rem 0 1rem;">
+    <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+      Tipo de movimiento:
+      <select [value]="movementTypeFilter()" (change)="movementTypeFilter.set($any($event.target).value)" style="padding: 0.25rem 0.5rem;">
+        <option value="">Todos los movimientos</option>
+        <option value="ENTRADA">Recepción / Entrada (+)</option>
+        <option value="AJUSTE">Ajuste físico (-)</option>
+        <option value="VENTA">Venta</option>
+        <option value="RESERVA">Reserva</option>
+        <option value="LIBERACION_RESERVA">Liberación</option>
+      </select>
+    </label>
+  </div>
+  @for (movement of filteredMovements(); track movement.id) {
     <article class="data-sheet__row">
       <span>{{ movement.created_at | date:'short' }}</span>
-      <strong>{{ movement.tipo }}</strong>
-      <span>Variante #{{ movement.variante_id }}</span>
-      <span>{{ movement.stock_total_anterior }} → {{ movement.stock_total_nuevo }}</span>
+      <strong [style.color]="movement.tipo === 'ENTRADA' ? 'var(--forest)' : (movement.tipo === 'AJUSTE' ? 'var(--clay)' : 'inherit')">{{ movement.tipo }}</strong>
+      <span>{{ movement.producto ? (movement.producto + ' · ' + (movement.sku || '')) : ('Variante #' + movement.variante_id) }}</span>
+      <span>{{ movement.stock_total_anterior }} → {{ movement.stock_total_nuevo }} ({{ movement.tipo === 'ENTRADA' ? '+' : '-' }}{{ movement.cantidad }})</span>
       <span>{{ movement.observacion }}</span>
       <small>Usuario #{{ movement.usuario_id }}</small>
     </article>
-  } @empty { <p class="empty-state">Sin movimientos registrados para esta sucursal.</p> }
+  } @empty { <p class="empty-state">Sin movimientos registrados con el filtro seleccionado.</p> }
 </details>
 
-@if (loading()) {
+<div class="inventory-tools">
+  <label>Buscar en esta sucursal <input type="search" placeholder="Prenda, SKU, talla o color" [value]="search()" (input)="search.set($any($event.target).value)" /></label>
+  <button class="button" type="button" [attr.aria-pressed]="onlyCritical()" (click)="onlyCritical.set(!onlyCritical())">{{ onlyCritical() ? 'Mostrar todas' : 'Solo stock crítico' }}</button>
+</div>
+@if (loadError()) {
+  <div role="alert" class="empty-state">{{ loadError() }} <button class="button" (click)="load()">Reintentar</button></div>
+} @else if (loading()) {
   <div class="loading-state"><span class="spinner"></span> Contando existencias</div>
 } @else {
   <section class="data-sheet" aria-label="Inventario por variante">
@@ -78,7 +97,7 @@
       <span>Prenda / SKU</span><span>Color</span><span>Talla</span><span>Reservado</span
       ><span>Total</span><span></span>
     </div>
-    @for (row of rows(); track row.variant.id) {
+    @for (row of visibleRows(); track row.variant.id) {
       <article
         class="data-sheet__row"
         [class.data-sheet__row--critical]="row.variant.stock_disponible <= 3"
@@ -107,15 +126,15 @@
           (click)="saveStock(row)"
           [disabled]="
             stockDrafts()[row.variant.id] === row.variant.stock_total ||
-            savingId() === row.variant.id
+            savingId() !== null
           "
         >
-          {{ savingId() === row.variant.id ? '...' : 'Guardar' }}
+          {{ actionLabel(row) }}
         </button>
       </article>
     } @empty {
       <div class="empty-state">
-        Aun no hay variantes. Registra talla, color y stock para vender.
+        No hay variantes que coincidan. Revisa la búsqueda, el filtro o la sucursal seleccionada.
       </div>
     }
   </section>

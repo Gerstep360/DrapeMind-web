@@ -2,6 +2,9 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AgentTraceStep, AiSocketEvent, ChatMessage, ChatSession } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { ToastService } from './toast.service';
 
 export type SocketStatus = 'offline' | 'connecting' | 'connected' | 'loading' | 'ready' | 'error';
 
@@ -27,6 +30,9 @@ export class AiSocketService {
 
   private readonly auth = inject(AuthService);
   private readonly runtime = inject(RuntimeConfigService);
+  private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
+  private remoteBusy = false;
 
   private socket: WebSocket | null = null;
   private reconnectTimer: number | null = null;
@@ -127,6 +133,7 @@ export class AiSocketService {
   }
 
   createNewSession(title?: string): void {
+    if (this.isBusy() || this.remoteBusy) return;
     const newSession: ChatSession = {
       id: generateSafeUuid(),
       title: title ?? `Conversación #${this.sessions().length + 1}`,
@@ -143,6 +150,7 @@ export class AiSocketService {
   }
 
   switchSession(sessionId: string): void {
+    if (this.isBusy() || this.remoteBusy) return;
     if (this.activeSessionId() === sessionId) return;
     if (this.sessions().some((s) => s.id === sessionId)) {
       this.activeSessionId.set(sessionId);
@@ -152,7 +160,10 @@ export class AiSocketService {
     }
   }
 
-  deleteSession(sessionId: string): void {
+  async deleteSession(sessionId: string): Promise<void> {
+    if (this.isBusy() || this.remoteBusy) return;
+    const session = this.sessions().find(item => item.id === sessionId);
+    if (!await this.deleteRemote(session?.backendSessionId)) return;
     this.sessions.update((list) => list.filter((s) => s.id !== sessionId));
     if (this.sessions().length === 0) {
       this.createNewSession('Nueva Conversación');
@@ -162,7 +173,9 @@ export class AiSocketService {
     this.saveSessionsToStorage();
   }
 
-  clearConversation(): void {
+  async clearConversation(): Promise<void> {
+    if (this.isBusy() || this.remoteBusy) return;
+    if (!await this.deleteRemote(this.currentSession().backendSessionId)) return;
     const activeId = this.activeSessionId();
     this.sessions.update((list) =>
       list.map((s) =>
@@ -184,6 +197,33 @@ export class AiSocketService {
   }
 
   // --- WEBSOCKET CONNECTION ---
+  private async deleteRemote(id?: number | null): Promise<boolean> {
+    if (!id) return true;
+    this.remoteBusy = true;
+    try {
+      await firstValueFrom(this.http.delete(this.runtime.apiUrl + '/ai/sessions/' + id));
+      return true;
+    } catch (error: any) {
+      if (error?.status === 404) return true;
+      this.toast.show('No se pudo eliminar el chat del servidor. Reintenta al finalizar la consulta.', 'error');
+      return false;
+    } finally { this.remoteBusy = false; }
+  }
+
+  async selectProduct(id: number): Promise<void> {
+    if (this.isBusy() || this.remoteBusy) return;
+    const chat = this.currentSession();
+    if (!chat.backendSessionId) return;
+    this.remoteBusy = true;
+    try {
+      const result = await firstValueFrom(this.http.post<{followup: string}>(
+        this.runtime.apiUrl + '/ai/sessions/' + chat.backendSessionId + '/selection', {product_id: id}));
+      if (this.activeSessionId() === chat.id) this.sendMessage(result.followup);
+    } catch {
+      this.toast.show('Esta opción ya no está disponible en el chat. Consulta de nuevo.', 'error');
+    } finally { this.remoteBusy = false; }
+  }
+
   connect(): void {
     const token = this.auth.hasValidToken() ? this.auth.token() : null;
     if (
@@ -451,6 +491,11 @@ export class AiSocketService {
       const formatted = event.label || this.formatToolName(event.name);
       const failed = !!(event.result && typeof event.result === 'object' && 'error' in event.result);
       this.finishTrace(formatted, failed ? 'La consulta devolvió un error' : this.resultSummary(event.result), failed);
+      return;
+    }
+
+    if (event.type === 'results') {
+      this.updateLastMessage(activeId, (last) => ({ ...last, actionItems: event.action_items || [] }));
       return;
     }
 

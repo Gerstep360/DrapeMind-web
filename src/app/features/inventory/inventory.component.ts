@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -30,8 +30,20 @@ export class InventoryComponent {
   readonly branchId = signal(0);
   readonly observation = signal('');
   readonly movements = signal<InventoryMovement[]>([]);
+  readonly movementTypeFilter = signal('');
+  readonly filteredMovements = computed(() => {
+    const filter = this.movementTypeFilter().toUpperCase();
+    return this.movements().filter(m => !filter || m.tipo === filter);
+  });
   readonly rows = signal<InventoryRow[]>([]);
   readonly loading = signal(true);
+  readonly loadError = signal('');
+  readonly search = signal('');
+  readonly onlyCritical = signal(false);
+  readonly visibleRows = computed(() => this.rows().filter(row =>
+    (!this.onlyCritical() || row.variant.stock_disponible <= 3) &&
+    [row.product.nombre, row.variant.sku, row.variant.color, row.variant.talla].join(' ')
+      .toLowerCase().includes(this.search().trim().toLowerCase())));
   readonly editorOpen = signal(false);
   readonly stockDrafts = signal<Record<number, number>>({});
   readonly savingId = signal<number | null>(null);
@@ -65,12 +77,13 @@ export class InventoryComponent {
   }
 
   load(): void {
+    this.loadError.set('');
     if (!this.branchId()) { this.loading.set(false); return; }
     const branchId = this.branchId();
     this.movements.set([]);
-    this.api.branchMovements(branchId).subscribe({
+    this.api.adminInventoryMovements({ sucursal_id: branchId, limit: 100 }).subscribe({
       next: (rows) => { if (branchId === this.branchId()) this.movements.set(rows); },
-      error: () => this.toast.show('No se pudo consultar el historial de esta sucursal', 'error'),
+      error: () => this.toast.show('No se pudo consultar el historial de movimientos', 'error'),
     });
     this.loading.set(true);
     this.api.products({ con_stock: false, limit: 100 }).subscribe({
@@ -101,10 +114,10 @@ export class InventoryComponent {
             );
             this.loading.set(false);
           },
-          error: () => this.loading.set(false),
+          error: () => { this.loading.set(false); this.loadError.set('No pudimos consultar las variantes y existencias. Reintenta.'); },
         });
       },
-      error: () => this.loading.set(false),
+      error: () => { this.loading.set(false); this.loadError.set('No pudimos consultar el catálogo. Reintenta.'); },
     });
   }
 
@@ -113,12 +126,17 @@ export class InventoryComponent {
   }
 
   saveStock(row: InventoryRow): void {
+    if (this.savingId() !== null) return;
     const next = this.stockDrafts()[row.variant.id];
     if (!Number.isInteger(next) || next < 0 || this.observation().trim().length < 5) {
       this.toast.show('Indica unidades enteras y un motivo de al menos 5 caracteres', 'error');
       return;
     }
-    if (next === row.variant.stock_total || next < row.variant.stock_reservado) return;
+    if (next < row.variant.stock_reservado) {
+      this.toast.show('El total no puede ser menor que las unidades reservadas', 'error');
+      return;
+    }
+    if (next === row.variant.stock_total) return;
     this.savingId.set(row.variant.id);
     this.api.setBranchStock(this.branchId(), row.variant.id, next, this.observation().trim()).subscribe({
       next: () => {
@@ -172,5 +190,13 @@ export class InventoryComponent {
 
   get criticalCount(): number {
     return this.rows().filter((row) => row.variant.stock_disponible <= 3).length;
+  }
+
+  actionLabel(row: InventoryRow): string {
+    if (this.savingId() === row.variant.id) return '...';
+    const draft = this.stockDrafts()[row.variant.id];
+    if (draft > row.variant.stock_total) return 'Recibir (+)';
+    if (draft < row.variant.stock_total) return 'Ajustar (-)';
+    return 'Guardar';
   }
 }

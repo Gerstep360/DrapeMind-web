@@ -9,7 +9,7 @@
           </svg>
         </span>
         <div>
-          <h1>Altair · Stylist IA</h1>
+          <h1>Altair</h1>
           <p class="ai-subheading">{{ ai.currentSession().title }}</p>
         </div>
       </div>
@@ -145,10 +145,8 @@
                   }
                 </div>
               </div>
-              @if (message.content) {
-                <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
-              }
-            } @else {
+            }
+            @if (!message.pending || message.content || message.actionItems?.length) {
               <!-- COMPLETED BUBBLE TEXT CONTENT -->
               @if (message.content) {
                 <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
@@ -201,13 +199,20 @@
               }
 
               <!-- ACTION ITEMS / GARMENT CARDS -->
+              @if (message.responseMeta?.product_picker?.length) {
+                <div class="action-items-section" role="group" aria-label="Seleccionar una prenda">
+                  @for (option of message.responseMeta!.product_picker!; track option.id) {
+                    <button class="button" type="button" [disabled]="ai.isBusy()" (click)="ai.selectProduct(option.id)">{{ option.label }}</button>
+                  }
+                </div>
+              }
               @if (message.actionItems && message.actionItems.length > 0) {
                 <div class="action-items-section">
                   <div class="action-items-title">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                     </svg>
-                    <span>{{ message.responseTitle || 'PRENDAS SUGERIDAS DEL ATELIER' }}</span>
+                    <span>{{ message.responseTitle || 'Resultados de tu consulta' }}</span>
                   </div>
 
                   <div class="action-cards-grid">
@@ -227,7 +232,7 @@
 
                         <div class="action-card__body">
                           <div class="card-badge-row">
-                            <span class="curated-badge">CURATED</span>
+                            @if (item.color) { <span class="curated-badge">{{ item.color }}</span> }
                             @if (item.talla) {
                               <span class="size-pill">Talla {{ item.talla }}</span>
                             }
@@ -264,8 +269,8 @@
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       </svg>
-                      <span>Acciones · {{ message.trace.length }} consultas</span>
-                      @if (message.durationMs) {
+                      <span>Acciones · {{ message.trace.length }} {{ message.trace.length === 1 ? 'consulta' : 'consultas' }}</span>
+                      @if (message.durationMs && isTraceExpanded(message.id)) {
                         <span class="trace-duration">({{ formatDuration(message.durationMs) }})</span>
                       }
                     </div>

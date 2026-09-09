@@ -29,6 +29,7 @@ export class OrdersComponent {
   readonly selectedOrderForPay = signal<Order | null>(null);
   readonly currentPayment = signal<Payment | null>(null);
   readonly payingMock = signal(false);
+  readonly paymentError = signal('');
 
   constructor() {
     effect(() => {
@@ -59,7 +60,7 @@ export class OrdersComponent {
     const transitions: Record<Order['estado'], string[]> = {
       PENDIENTE_PAGO: ['CANCELADO'],
       PAGADO: ['PREPARANDO'],
-      PREPARANDO: ['LISTO', 'CANCELADO'],
+      PREPARANDO: ['LISTO'],
       LISTO: ['ENVIADO', 'ENTREGADO'],
       ENVIADO: ['ENTREGADO'],
       ENTREGADO: [],
@@ -99,6 +100,7 @@ export class OrdersComponent {
   }
 
   openPaymentModal(order: Order): void {
+    this.paymentError.set('');
     this.selectedOrderForPay.set(order);
     this.payModalOpen.set(true);
     this.currentPayment.set(null);
@@ -110,9 +112,12 @@ export class OrdersComponent {
       }, `web-order-${order.id}-qr`)
       .subscribe({
         next: (payment) => {
+          if (this.selectedOrderForPay()?.id !== order.id || !this.payModalOpen()) return;
           this.currentPayment.set(payment);
         },
         error: (err) => {
+          if (this.selectedOrderForPay()?.id !== order.id || !this.payModalOpen()) return;
+          this.paymentError.set(err?.error?.detail || 'El pago no está disponible. Intenta nuevamente más tarde.');
           this.toast.show(err?.error?.detail || 'No se pudo generar el enlace de pago', 'error');
         },
       });

@@ -195,8 +195,12 @@
 
       <div class="qr-display-box">
         <p class="qr-info">
+          @if (paymentError()) {
+            <span role="alert">{{ paymentError() }}</span>
+          } @else {
           Estado: {{ currentPayment()?.estado || 'Consultando' }}.
           La aprobación se confirma en el servidor.
+          }
           @if (currentPayment()?.proveedor === 'MOCK') { Modo demostración: no se realizará un cobro bancario. }
         </p>
       </div>

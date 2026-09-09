@@ -1,8 +1,8 @@
 <section class="page-heading page-heading--split">
   <div>
     <p class="eyebrow">Apartados en tienda</p>
-    <h1>Reservas con tiempo.</h1>
-    <p class="page-lead">El stock se bloquea hasta la visita, cancelacion o vencimiento.</p>
+    <h1>Reservas de showroom</h1>
+    <p class="page-lead">De la selección al recojo: prepara cada visita sin perder el control de las prendas.</p>
   </div>
   <div class="reservation-total">
     <strong>{{ reservations().length }}</strong>
@@ -18,7 +18,7 @@
     </select></label>
     <label>Estado <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); load()">
       <option value="">Todos los estados</option>
-      @for (state of ['PENDIENTE','CONFIRMADA','EN_PREPARACION','LISTA','RETIRADA','CONVERTIDA','CANCELADA','VENCIDA']; track state) { <option [value]="state">{{ state }}</option> }
+      @for (state of ['PENDIENTE','CONFIRMADA','EN_PREPARACION','LISTA','RETIRADA','CONVERTIDA','CANCELADA','VENCIDA']; track state) { <option [value]="state">{{ stateLabel(state) }}</option> }
     </select></label>
   </div>
   <form class="qr-validator" (ngSubmit)="validateQr()">
@@ -30,17 +30,22 @@
       <span class="sr-only">Token QR</span>
       <input [formControl]="qrToken" placeholder="Pega o escanea el UUID de la reserva" />
     </label>
-    <button class="button button--accent" type="submit" [disabled]="validating()">
+    <button class="button button--accent" type="submit" [disabled]="validating() || qrToken.invalid">
       {{ validating() ? 'Validando' : 'Confirmar visita' }}
     </button>
   </form>
 }
 
-@if (loading()) {
+<label class="reservation-search">Buscar una reserva
+  <input type="search" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Número, referencia o comentario" />
+</label>
+@if (loadError()) {
+  <div class="request-error" role="alert"><p>{{ loadError() }}</p><button class="button" (click)="load()">Reintentar</button></div>
+} @else if (loading()) {
   <div class="loading-state"><span class="spinner"></span> Consultando reservas</div>
 } @else {
   <section class="reservation-list">
-    @for (reservation of reservations(); track reservation.id) {
+    @for (reservation of visibleReservations(); track reservation.id) {
       <article class="reservation-row">
         <div class="reservation-row__code">
           <span>Reserva</span>
@@ -48,9 +53,9 @@
         </div>
         <div>
           <span class="status-badge" [attr.data-status]="reservation.estado">{{
-            reservation.estado
+            stateLabel(reservation.estado)
           }}</span>
-          <p>Sucursal #{{ reservation.sucursal_id || '—' }} · {{ reservation.observacion || 'Sin observaciones' }}</p>
+          <p>{{ branchName(reservation.sucursal_id) }} · {{ reservation.observacion || 'Sin observaciones' }}</p>
         </div>
         <div class="reservation-time">
           <span>Creada {{ reservation.fecha_reserva | date: 'd MMM - HH:mm' }}</span>
@@ -61,17 +66,17 @@
           @if (auth.user()?.rol === 'CLIENTE') {
             @if (['PENDIENTE', 'CONFIRMADA', 'EN_PREPARACION', 'LISTA'].includes(reservation.estado)) {
               <button class="button button--small" type="button" (click)="showQr(reservation)">Ver QR</button>
-              <button class="button button--small button--danger" type="button" (click)="cancel(reservation)" [disabled]="actionId() === reservation.id">Cancelar</button>
+              <button class="button button--small button--danger" type="button" (click)="cancel(reservation)" [disabled]="actionId() !== null">Cancelar</button>
             }
           } @else {
             @if (canPrepare() && ['PENDIENTE', 'CONFIRMADA'].includes(reservation.estado)) {
-              <button class="button button--small" type="button" (click)="prepare(reservation)" [disabled]="actionId() === reservation.id">Preparar</button>
+              <button class="button button--small" type="button" (click)="prepare(reservation)" [disabled]="actionId() !== null">Preparar</button>
             }
             @if (canPrepare() && reservation.estado === 'EN_PREPARACION') {
-              <button class="button button--small button--accent" type="button" (click)="markReady(reservation)" [disabled]="actionId() === reservation.id">Marcar lista</button>
+              <button class="button button--small button--accent" type="button" (click)="markReady(reservation)" [disabled]="actionId() !== null">Marcar lista</button>
             }
             @if (canConvert() && ['CONFIRMADA', 'EN_PREPARACION', 'LISTA', 'RETIRADA'].includes(reservation.estado)) {
-              <button class="button button--small button--primary" type="button" (click)="convert(reservation)" [disabled]="actionId() === reservation.id">Convertir a compra</button>
+              <button class="button button--small button--primary" type="button" (click)="convert(reservation)" [disabled]="actionId() !== null">Convertir a compra</button>
             }
           }
         </div>
@@ -82,13 +87,21 @@
   </section>
 }
 
-@if (qrPreviewUrl(); as qrUrl) {
-  <button class="qr-scrim" type="button" aria-label="Cerrar QR" (click)="closeQr()"></button>
-  <section class="qr-modal" role="dialog" aria-modal="true" aria-label="QR de reserva">
-    <p class="eyebrow">Presenta en showroom</p>
-    <h2>Reserva #{{ qrReservation()?.id }}</h2>
+<dialog #qrDialog class="reservation-dialog" aria-labelledby="qr-heading" (cancel)="closeQr()">
+  @if (qrPreviewUrl(); as qrUrl) {
+    <p class="eyebrow">Tu pase de recojo</p>
+    <h2 id="qr-heading">Reserva #{{ qrReservation()?.id }}</h2>
     <img [src]="qrUrl" alt="Código QR de la reserva" />
-    <p>Válido hasta {{ qrReservation()?.vence_at | date: 'd MMM, HH:mm' }}</p>
+    <p>Válido hasta {{ qrReservation()?.vence_at | date: 'd MMM, HH:mm' }}. Muéstralo al personal; no lo compartas.</p>
     <button class="button button--primary button--wide" type="button" (click)="closeQr()">Cerrar</button>
-  </section>
-}
+  }
+</dialog>
+<dialog #cancelDialog class="reservation-dialog" aria-labelledby="cancel-heading">
+  <p class="eyebrow">Cancelar apartado</p>
+  <h2 id="cancel-heading">¿Liberar estas prendas?</h2>
+  <p>La reserva #{{ pendingCancel()?.id }} se cancelará y sus prendas volverán a estar disponibles.</p>
+  <div class="dialog-actions">
+    <button class="button" (click)="cancelDialog.close()">Conservar reserva</button>
+    <button class="button button--danger" (click)="confirmCancel()">Sí, cancelar</button>
+  </div>
+</dialog>

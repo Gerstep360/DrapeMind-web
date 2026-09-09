@@ -55,11 +55,18 @@ const server = http.createServer((req, res) => {
     await page.screenshot({ path: path.join(output, 'desktop-ideas.png') });
     await page.locator('.ideas-panel summary').click();
     await page.getByRole('textbox', { name: 'Mensaje para Altair' }).fill('Ayúdame a combinar texturas suaves');
-    await page.getByRole('button', { name: 'Enviar consulta', exact: true }).click();
+    await page.getByRole('button', { name: 'Enviar mensaje', exact: true }).click();
     await page.locator('.live-thinking-card').waitFor();
     await page.waitForFunction(() => document.querySelector('.live-thinking-card')?.textContent.includes('Pensando'));
     await page.screenshot({ path: path.join(output, 'desktop-thinking.png') });
     assert.ok(peer);
+    peer.send(JSON.stringify({ type: 'results', action_items: [
+      { id: 101, nombre: 'Camisa · prueba visual', precio: 210, talla: 'M', color: 'Azul', accion: 'AGREGAR' },
+      { id: 102, nombre: 'Pantalón · prueba visual', precio: 280, talla: '40', color: 'Arena', accion: 'AGREGAR' }
+    ] }));
+    await page.getByText('Camisa · prueba visual', { exact: true }).waitFor();
+    assert.ok(await page.locator('.live-thinking-card').isVisible());
+    await page.screenshot({ path: path.join(output, 'desktop-results-before-answer.png') });
     peer.send(JSON.stringify({ type: 'answer_snapshot', content: 'Podemos contrastar **lino y algodón** con una paleta suave.' }));
     await page.getByText('lino y algodón', { exact: false }).waitFor();
     peer.send(JSON.stringify({ type: 'done', tools: [], suggested_actions: [{ label: 'Explorar tejidos', prompt: 'Busca prendas de algodón' }] }));

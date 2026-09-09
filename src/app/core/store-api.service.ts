@@ -114,11 +114,34 @@ export class StoreApiService {
     variante_id: number,
     nuevo_stock_total: number,
     observacion: string,
+    sucursal_id?: number | null,
+    tipo?: 'ENTRADA' | 'AJUSTE' | null,
   ): Observable<unknown> {
     return this.http.post(`${this.runtime.apiUrl}/admin/inventory/adjustments`, {
       variante_id,
       nuevo_stock_total,
       observacion,
+      sucursal_id,
+      tipo,
+    });
+  }
+
+  adminInventoryMovements(
+    filters: {
+      tipo?: string;
+      sucursal_id?: number;
+      variante_id?: number;
+      limit?: number;
+    } = {},
+  ): Observable<InventoryMovement[]> {
+    let params = new HttpParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+    return this.http.get<InventoryMovement[]>(`${this.runtime.apiUrl}/admin/inventory/movements`, {
+      params,
     });
   }
 
@@ -294,7 +317,19 @@ export interface ProductVariantPayload {
 }
 
 export interface InventoryMovement {
-  id: number; variante_id: number; tipo: string; cantidad: number;
-  stock_total_anterior: number; stock_total_nuevo: number;
-  usuario_id: number; observacion: string; created_at: string;
+  id: number;
+  variante_id: number;
+  sku?: string;
+  producto?: string;
+  color?: string;
+  talla?: string;
+  sucursal_id?: number | null;
+  sucursal?: string | null;
+  tipo: string;
+  cantidad: number;
+  stock_total_anterior: number;
+  stock_total_nuevo: number;
+  usuario_id: number;
+  observacion: string;
+  created_at: string;
 }

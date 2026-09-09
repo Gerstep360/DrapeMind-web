@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
@@ -25,6 +25,16 @@ export class ReservationsComponent {
   readonly branchId = signal(0);
   readonly statusFilter = signal('');
   readonly loading = signal(true);
+  readonly loadError = signal('');
+  readonly query = signal('');
+  readonly visibleReservations = computed(() => this.reservations().filter(item =>
+    (!this.statusFilter() || item.estado === this.statusFilter()) &&
+    (!this.query().trim() || [item.id, item.codigo_publico, item.observacion, this.branchName(item.sucursal_id)]
+      .join(' ').toLowerCase().includes(this.query().trim().toLowerCase()))));
+  readonly pendingCancel = signal<Reservation | null>(null);
+  readonly cancelDialog = viewChild<ElementRef<HTMLDialogElement>>('cancelDialog');
+  readonly qrDialog = viewChild<ElementRef<HTMLDialogElement>>('qrDialog');
+  private requestVersion = 0;
   readonly qrToken = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly validating = signal(false);
   readonly actionId = signal<number | null>(null);
@@ -32,6 +42,7 @@ export class ReservationsComponent {
   readonly qrReservation = signal<Reservation | null>(null);
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.closeQr());
     if (this.auth.user()?.rol !== 'CLIENTE') {
       this.api.assignedBranches().subscribe({ next: (branches) => this.branches.set(branches) });
     }
@@ -43,14 +54,22 @@ export class ReservationsComponent {
   }
 
   load(): void {
+    const version = ++this.requestVersion;
+    this.loadError.set('');
+    this.loading.set(true);
     const request =
       this.auth.user()?.rol === 'CLIENTE' ? this.api.myReservations() : this.api.reservations(this.statusFilter(), this.branchId());
     request.subscribe({
       next: (items) => {
+        if (version !== this.requestVersion) return;
         this.reservations.set(items);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (version !== this.requestVersion) return;
+        this.loading.set(false);
+        this.loadError.set('No pudimos consultar las reservas. Tus datos no se han modificado.');
+      },
     });
   }
 
@@ -72,6 +91,7 @@ export class ReservationsComponent {
   }
 
   convert(reservation: Reservation): void {
+    if (this.actionId() !== null) return;
     this.actionId.set(reservation.id);
     this.api.convertReservation(reservation.id).subscribe({
       next: (order) => {
@@ -103,7 +123,14 @@ export class ReservationsComponent {
   }
 
   cancel(reservation: Reservation): void {
-    if (!window.confirm('¿Cancelar esta reserva y liberar sus prendas?')) return;
+    this.pendingCancel.set(reservation);
+    this.cancelDialog()?.nativeElement.showModal();
+  }
+
+  confirmCancel(): void {
+    const reservation = this.pendingCancel();
+    if (!reservation) return;
+    this.cancelDialog()?.nativeElement.close();
     this.runAction(
       reservation,
       this.api.cancelReservation(reservation.id),
@@ -117,12 +144,14 @@ export class ReservationsComponent {
         this.closeQr();
         this.qrPreviewUrl.set(URL.createObjectURL(blob));
         this.qrReservation.set(reservation);
+        this.qrDialog()?.nativeElement.showModal();
       },
       error: (error) => this.toast.show(error?.error?.detail ?? 'El QR ya no está activo', 'error'),
     });
   }
 
   closeQr(): void {
+    this.qrDialog()?.nativeElement.close();
     const current = this.qrPreviewUrl();
     if (current) URL.revokeObjectURL(current);
     this.qrPreviewUrl.set(null);
@@ -142,6 +171,7 @@ export class ReservationsComponent {
     request: ReturnType<StoreApiService['cancelReservation']>,
     message: string,
   ): void {
+    if (this.actionId() !== null) return;
     this.actionId.set(reservation.id);
     request.subscribe({
       next: () => {
@@ -160,6 +190,16 @@ export class ReservationsComponent {
     const start = new Date(reservation.fecha_reserva).getTime();
     const end = new Date(reservation.vence_at).getTime();
     const now = Date.now();
-    return Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100));
+    return end > start ? Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100)) : 100;
+  }
+
+  branchName(id: number | null): string {
+    return this.branches().find(branch => branch.id === id)?.nombre ?? (id ? 'Sucursal #' + id : 'Sin sucursal');
+  }
+
+  stateLabel(state: string): string {
+    return ({PENDIENTE: 'Por recibir', CONFIRMADA: 'Visita confirmada', EN_PREPARACION: 'En preparación',
+      LISTA: 'Lista para recojo', RETIRADA: 'Cliente atendido', CONVERTIDA: 'Convertida en compra',
+      CANCELADA: 'Cancelada', VENCIDA: 'Vencida'} as Record<string, string>)[state] ?? state;
   }
 }

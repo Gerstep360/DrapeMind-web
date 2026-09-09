@@ -8,12 +8,12 @@
   height: calc(100dvh - 4.5rem);
   width: 100%;
   color: #171a16;
-  background: #f3f1e9;
+  background: #fbfcfa;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  font-family: inherit;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* TOP HEADER */
@@ -181,7 +181,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  background: #f3f1e9;
+  background: #fbfcfa;
 }
 
 .conversation {
@@ -258,9 +258,9 @@
     }
 
     .message__bubble {
-      background: #14281d;
-      color: #ffffff;
-      border: 1px solid #14281d;
+      background: #edf2e9;
+      color: #18372a;
+      border: 1px solid #e2e9dc;
       border-radius: 22px 22px 5px 22px;
       width: fit-content;
       max-width: min(100%, 660px);
