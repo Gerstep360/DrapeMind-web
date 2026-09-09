@@ -110,7 +110,7 @@
                 <div class="live-thinking-header">
                   <div class="live-thinking-title">
                     <span class="pulse-dot"></span>
-                    <strong>Altair Razonando en Vivo</strong>
+                    <strong>{{ message.content ? 'Altair está respondiendo' : 'Pensando' }}</strong>
                   </div>
                   <span class="live-ticker-badge">{{ ai.thinkingElapsedFormatted() }}</span>
                 </div>
@@ -135,6 +135,9 @@
                   }
                 </div>
               </div>
+              @if (message.content) {
+                <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
+              }
             } @else {
               <!-- COMPLETED BUBBLE TEXT CONTENT -->
               @if (message.content) {
@@ -251,7 +254,7 @@
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       </svg>
-                      <span>Auditoría Atelier: {{ message.trace.length }} pasos verificados</span>
+                      <span>Acciones · {{ message.trace.length }} consultas</span>
                       @if (message.durationMs) {
                         <span class="trace-duration">({{ formatDuration(message.durationMs) }})</span>
                       }
@@ -276,7 +279,11 @@
                         <div class="trace-step-row">
                           <span class="trace-step-icon">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                              <polyline points="20 6 9 17 4 12"/>
+                              @if (step.state === 'done') {
+                                <polyline points="20 6 9 17 4 12"/>
+                              } @else {
+                                <path d="M12 4v10m0 4v2"/>
+                              }
                             </svg>
                           </span>
                           <span class="trace-step-name">{{ toolLabel(step.name) }}</span>

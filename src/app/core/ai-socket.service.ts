@@ -378,7 +378,7 @@ export class AiSocketService {
       if (this.responseStartedAt > 0) {
         this.thinkingElapsedMs.set(Date.now() - this.responseStartedAt);
       }
-    }, 100);
+    }, 1000);
   }
 
   private stopThinkingTicker(): void {
@@ -409,13 +409,11 @@ export class AiSocketService {
       return;
     }
 
-    if (event.type === 'thought') {
+    if (event.type === 'thought' || event.type === 'progress') {
       const text = event.content || event.text || '';
       if (text) {
         this.currentThought.set(text);
-        this.liveThoughtSteps.update((steps) => (steps.includes(text) ? steps : [...steps, text]));
-        this.startTrace(text);
-        this.finishTrace(text, 'Completado');
+        // Waiting is not an executed or verified tool action.
       }
       return;
     }
@@ -425,24 +423,21 @@ export class AiSocketService {
       if (event.session_id) {
         this.updateSessionBackendId(activeId, event.session_id);
       }
-      if (event.status === 'loading') {
-        this.startTrace('Altair iniciando razonamiento...');
-      } else {
-        this.finishTrace('Altair iniciando razonamiento...', 'Listo');
-      }
+      this.currentThought.set(event.status === 'loading' ? 'Preparando Altair…' : 'Pensando…');
       return;
     }
 
     if (event.type === 'tool_start' && event.name) {
-      const formatted = this.formatToolName(event.name);
+      const formatted = event.label || this.formatToolName(event.name);
       this.currentThought.set(formatted);
       this.startTrace(formatted);
       return;
     }
 
     if (event.type === 'tool_result' && event.name) {
-      const formatted = this.formatToolName(event.name);
-      this.finishTrace(formatted, this.resultSummary(event.result));
+      const formatted = event.label || this.formatToolName(event.name);
+      const failed = !!(event.result && typeof event.result === 'object' && 'error' in event.result);
+      this.finishTrace(formatted, failed ? 'La consulta devolvió un error' : this.resultSummary(event.result), failed);
       return;
     }
 
@@ -458,8 +453,12 @@ export class AiSocketService {
       return;
     }
 
+    if (event.type === 'answer_snapshot') {
+      this.updateLastMessage(activeId, (last) => ({ ...last, content: event.content || '' }));
+      return;
+    }
+
     if (event.type === 'token' && event.content) {
-      this.startTrace('compose_response');
       this.updateLastMessage(activeId, (last) => ({
         ...last,
         content: last.content + event.content,
@@ -469,7 +468,7 @@ export class AiSocketService {
 
     if (event.type === 'done') {
       this.stopThinkingTicker();
-      this.finishTrace('compose_response', 'Respuesta preparada');
+      // Only real tools belong in the action history.
       if (event.session_id) {
         this.updateSessionBackendId(activeId, event.session_id);
       }
@@ -503,7 +502,7 @@ export class AiSocketService {
 
       const trace = this.toolActivity().map((step) =>
         step.state === 'running'
-          ? { ...step, state: 'done' as const, summary: 'Proceso interrumpido' }
+? { ...step, state: 'error' as const, summary: 'Proceso interrumpido' }
           : { ...step },
       );
 
@@ -596,14 +595,14 @@ export class AiSocketService {
     ]);
   }
 
-  private finishTrace(name: string, summary: string): void {
+  private finishTrace(name: string, summary: string, failed = false): void {
     const now = Date.now();
     this.toolActivity.update((steps) =>
       steps.map((step) =>
         step.name === name && step.state === 'running'
           ? {
               ...step,
-              state: 'done',
+              state: failed ? 'error' : 'done',
               summary,
               durationMs: Math.max(0, now - step.startedAt),
             }

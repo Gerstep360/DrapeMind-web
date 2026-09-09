@@ -274,7 +274,7 @@ export interface AiSuggestedAction {
 
 export interface AgentTraceStep {
   name: string;
-  state: 'running' | 'done';
+  state: 'running' | 'done' | 'error';
   summary?: string;
   startedAt: number;
   durationMs?: number;
@@ -311,6 +311,8 @@ export interface AiSocketEvent {
   type:
     | 'connected'
     | 'thought'
+    | 'progress'
+    | 'answer_snapshot'
     | 'model_status'
     | 'tool_start'
     | 'tool_result'
@@ -325,6 +327,7 @@ export interface AiSocketEvent {
   message?: string;
   code?: string;
   name?: string;
+  label?: string;
   result?: unknown;
   session_id?: number;
   interaction_id?: number;
