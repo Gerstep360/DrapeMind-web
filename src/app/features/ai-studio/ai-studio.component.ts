@@ -39,6 +39,12 @@ export class AiStudioComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly runtime = inject(RuntimeConfigService);
 
+  private followLatest = true;
+  onConversationScroll(): void {
+    const el = this.conversation?.nativeElement;
+    if (el) this.followLatest = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  }
+
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
   readonly selectedGarment = signal<AiActionItem | null>(null);
@@ -93,7 +99,7 @@ export class AiStudioComponent implements OnInit {
     this.ai.connect();
     effect(() => {
       this.ai.messages();
-      window.setTimeout(() => this.scrollToBottom(), 0);
+      if (this.followLatest) window.setTimeout(() => this.scrollToBottom(), 0);
     });
   }
 
@@ -175,6 +181,7 @@ export class AiStudioComponent implements OnInit {
     if (!message || this.ai.isBusy()) return;
     this.ai.sendMessage(message);
     this.prompt.reset();
+    this.followLatest = true;
     window.setTimeout(() => this.scrollToBottom(), 60);
   }
 

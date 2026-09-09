@@ -72,7 +72,7 @@
 
   <!-- CHAT CONTAINER -->
   <div class="chat-container">
-    <div #conversation class="conversation" aria-live="polite">
+    <div #conversation class="conversation" aria-live="polite" (scroll)="onConversationScroll()">
       @if (ai.messages().length === 0) {
         <div class="chat-welcome-state">
           <div class="welcome-badge">
@@ -80,9 +80,10 @@
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
             </svg>
           </div>
-          <h2>Hola, {{ auth.user()?.nombre || 'Bienvenido a tu Atelier' }}</h2>
+          <span class="welcome-eyebrow">TU ESPACIO DE ESTILO</span>
+          <h2>Una idea. Un look.<br>Tu siguiente versión.</h2>
           <p>
-            Soy Altair, tu Personal Stylist. Pregúntame sobre prendas de alta costura, combinaciones de estilo, outfits para eventos o auditorías de tu perchero.
+            Cuéntale a Altair qué tienes en mente. Tu conversación, tus prendas y tus decisiones, en un mismo lugar.
           </p>
         </div>
       }
@@ -318,6 +319,8 @@
     </div>
 
     <!-- SUGGESTION PILLS (TOP OF COMPOSER) -->
+    <details class="ideas-panel">
+      <summary>Explorar ideas <span>Ejemplos para empezar · no son respuestas de Altair</span></summary>
     <div class="suggestions-bar">
       @for (sug of suggestions; track sug.text) {
         <button type="button" class="suggestion-pill" (click)="send(sug.text)">
@@ -326,13 +329,17 @@
       }
     </div>
 
+    </details>
+
     <!-- DOCKED BOTTOM COMPOSER -->
     <div class="composer-container">
       <div class="composer-box">
+        <span class="composer-spark" aria-hidden="true">✦</span>
         <textarea
           [formControl]="prompt"
-          placeholder="Consulta a Altair sobre combinaciones, percheros o eventos..."
-          rows="1"
+          placeholder="¿Qué tienes en mente?"
+          aria-label="Mensaje para Altair"
+          rows="2"
           (keydown)="onKeydown($event)"
           [disabled]="ai.isBusy()"
         ></textarea>
@@ -342,6 +349,7 @@
           [disabled]="prompt.invalid || ai.isBusy()"
           (click)="send()"
           title="Enviar consulta"
+          aria-label="Enviar consulta"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/>

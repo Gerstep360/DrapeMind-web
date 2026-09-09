@@ -61,16 +61,7 @@ export class AiSocketService {
       title: 'Asesoría Atelier',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      messages: [
-        {
-          id: 'welcome-0',
-          role: 'assistant',
-          content:
-            'Soy Altair, tu Personal Stylist & Asesor de Imagen en DrapeMind Atelier. ' +
-            'Puedo diseñar outfits a tu medida, evaluar armonías de color y verificar stock real en showroom.',
-          createdAt: new Date(),
-        },
-      ],
+      messages: [],
     };
   });
 
@@ -115,16 +106,7 @@ export class AiSocketService {
       title: 'Asesoría Atelier',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      messages: [
-        {
-          id: 'welcome-0',
-          role: 'assistant',
-          content:
-            'Soy Altair, tu Personal Stylist & Asesor de Imagen en DrapeMind Atelier. ' +
-            'Puedo diseñar outfits a tu medida, evaluar armonías de color y verificar stock real en showroom.',
-          createdAt: new Date(),
-        },
-      ],
+      messages: [],
     };
     this.sessions.set([initialSession]);
     this.activeSessionId.set(initialSession.id);
@@ -150,14 +132,7 @@ export class AiSocketService {
       title: title ?? `Conversación #${this.sessions().length + 1}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      messages: [
-        {
-          id: `welcome-${Date.now()}`,
-          role: 'assistant',
-          content: 'Nueva sesión de asesoría lista. ¿Qué look o prenda deseas explorar hoy?',
-          createdAt: new Date(),
-        },
-      ],
+      messages: [],
     };
     this.sessions.update((list) => [newSession, ...list]);
     this.activeSessionId.set(newSession.id);
@@ -196,14 +171,7 @@ export class AiSocketService {
               ...s,
               backendSessionId: null,
               updatedAt: new Date().toISOString(),
-              messages: [
-                {
-                  id: `welcome-${Date.now()}`,
-                  role: 'assistant',
-                  content: 'Nueva conversación lista. ¿Qué look deseas diseñar hoy?',
-                  createdAt: new Date(),
-                },
-              ],
+              messages: [],
             }
           : s,
       ),
