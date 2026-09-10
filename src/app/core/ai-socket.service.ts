@@ -572,6 +572,7 @@ export class AiSocketService {
           ? {
               ...last,
               content: `**[Error de Altair AI]**${codeMsg}: ${errorMsg}`,
+              actionItems: [],
               pending: false,
               error: true,
               trace,
