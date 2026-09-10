@@ -371,8 +371,8 @@ export class AiSocketService {
   }
 
   sendMessage(content: string): void {
-    const clean = content.trim();
-    if (!clean || this.isBusy()) return;
+    const clean = content;
+    if (!clean.trim() || this.isBusy()) return;
 
     const userMsgId = `user-${Date.now()}`;
     const assistantMsgId = `assistant-${Date.now()}`;
