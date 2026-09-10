@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AgentTraceStep, AiSocketEvent, ChatMessage, ChatSession } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
@@ -33,6 +33,10 @@ export class AiSocketService {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
   private remoteBusy = false;
+  private storageOwner: number | null = null;
+  private get storageKey(): string {
+    return AiSocketService.STORAGE_KEY + ':' + this.runtime.apiUrl + ':' + this.storageOwner;
+  }
 
   private socket: WebSocket | null = null;
   private reconnectTimer: number | null = null;
@@ -80,13 +84,28 @@ export class AiSocketService {
   });
 
   constructor() {
-    this.loadSessionsFromStorage();
+    effect(() => {
+      const owner = this.auth.user()?.id ?? null;
+      untracked(() => {
+        if (owner === this.storageOwner) return;
+        const reconnect = this.socket !== null;
+        this.disconnect();
+        this.queuedMessage = null;
+        this.sessions.set([]);
+        this.activeSessionId.set('');
+        this.storageOwner = owner;
+        if (owner !== null) {
+          this.loadSessionsFromStorage();
+          if (reconnect) this.connect();
+        }
+      });
+    });
   }
 
   // --- MULTI-SESSION 24H STORAGE ---
   private loadSessionsFromStorage(): void {
     try {
-      const raw = localStorage.getItem(AiSocketService.STORAGE_KEY);
+      const raw = localStorage.getItem(this.storageKey);
       if (raw) {
         const parsed = JSON.parse(raw) as ChatSession[];
         const now = Date.now();
@@ -126,7 +145,7 @@ export class AiSocketService {
         const updatedTime = new Date(s.updatedAt || s.createdAt).getTime();
         return now - updatedTime < AiSocketService.TTL_MS;
       });
-      localStorage.setItem(AiSocketService.STORAGE_KEY, JSON.stringify(valid));
+      if (this.storageOwner !== null) localStorage.setItem(this.storageKey, JSON.stringify(valid));
     } catch {
       // localStorage no disponible o quota excedida
     }
@@ -238,15 +257,23 @@ export class AiSocketService {
     this.authRejected = false;
     this.status.set('connecting');
     this.socket = new WebSocket(this.runtime.wsUrl('ai'));
+    const connection = this.socket;
 
     this.socket.onopen = () => {
+      if (this.socket !== connection) return;
       this.socket?.send(JSON.stringify({ type: 'auth', token }));
       this.startHeartbeat();
     };
 
     this.socket.onmessage = (event) => {
+      if (this.socket !== connection) return;
       try {
         const data = JSON.parse(String(event.data)) as AiSocketEvent;
+        if (data.code === 'AUTH_INVALID' && this.auth.token() !== token) {
+          this.disconnect();
+          this.connect();
+          return;
+        }
         this.handleEvent(data);
       } catch {
         // Ignorar evento no JSON
@@ -254,6 +281,7 @@ export class AiSocketService {
     };
 
     this.socket.onerror = (err) => {
+      if (this.socket !== connection) return;
       console.error('[Altair WebSocket Error]', err);
       this.status.set('error');
       this.stopThinkingTicker();
@@ -272,6 +300,13 @@ export class AiSocketService {
     };
 
     this.socket.onclose = (event) => {
+      if (this.socket !== connection) return;
+      if (event.code === 4401 && this.auth.token() !== token) {
+        this.socket = null;
+        this.stopHeartbeat();
+        this.connect();
+        return;
+      }
       this.socket = null;
       this.stopHeartbeat();
       this.stopThinkingTicker();
@@ -554,6 +589,11 @@ export class AiSocketService {
     }
 
     if (event.type === 'error') {
+      if (event.code === 'CHAT_NOT_FOUND') {
+        this.sessions.update((list) => list.map((session) =>
+          session.id === activeId ? { ...session, backendSessionId: null } : session));
+        this.toast.show('Este chat ya no existe en el servidor. La próxima consulta iniciará un contexto nuevo.', 'error');
+      }
       this.stopThinkingTicker();
       this.status.set('error');
       this.currentThought.set(null);

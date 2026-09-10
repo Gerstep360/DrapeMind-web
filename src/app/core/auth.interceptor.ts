@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     : request;
   return next(authorized).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && token) {
+      if (error.status === 401 && token && auth.token() === token) {
         auth.logout();
       }
       return throwError(() => error);

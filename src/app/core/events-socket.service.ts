@@ -24,10 +24,13 @@ export class EventsSocketService {
     this.manualDisconnect = false;
     this.authRejected = false;
     this.socket = new WebSocket(this.runtime.wsUrl('events'));
+    const connection = this.socket;
     this.socket.onopen = () => {
+      if (this.socket !== connection) return;
       this.socket?.send(JSON.stringify({ type: 'auth', token }));
     };
     this.socket.onmessage = (message) => {
+      if (this.socket !== connection) return;
       const event = JSON.parse(String(message.data)) as RealtimeEvent;
       if (event.type === 'connected') {
         this.retry = 0;
@@ -36,6 +39,11 @@ export class EventsSocketService {
       }
       if (event.type === 'pong') return;
       if (event.type === 'error' && event.code === 'AUTH_INVALID') {
+        if (this.auth.token() !== token) {
+          this.disconnect(false);
+          this.connect();
+          return;
+        }
         this.authRejected = true;
         this.disconnect(false);
         this.auth.logout();
@@ -45,8 +53,13 @@ export class EventsSocketService {
       this.toast.show(this.eventMessage(event), 'info');
     };
     this.socket.onclose = (event) => {
+      if (this.socket !== connection) return;
       this.socket = null;
       this.connected.set(false);
+      if (event.code === 4401 && this.auth.token() !== token) {
+        this.connect();
+        return;
+      }
       if (this.authRejected || event.code === 4401) {
         if (this.auth.token()) this.auth.logout();
         return;

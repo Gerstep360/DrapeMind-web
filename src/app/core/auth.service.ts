@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, firstValueFrom, switchMap, tap, timeout } from 'rxjs';
 import { TokenResponse, User } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 
@@ -14,6 +14,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly runtime = inject(RuntimeConfigService);
   private expiryTimer: number | null = null;
+  private refreshPending: Promise<void> | null = null;
   private readonly tokenState = signal<string | null>(this.readStoredToken());
   readonly user = signal<User | null>(this.tokenState() ? this.readUser() : null);
   readonly isAuthenticated = computed(() => Boolean(this.tokenState()));
@@ -91,13 +92,14 @@ export class AuthService {
 
   private scheduleExpiry(token: string): void {
     this.clearExpiryTimer();
-    const delay = this.tokenExpiryMs(token) - Date.now() - 2_000;
-    if (delay <= 0) {
-      this.logout(false);
+    const remaining = this.tokenExpiryMs(token) - Date.now();
+    const delay = Math.max(5_000, remaining - 60_000);
+    if (remaining <= 5_000) {
+      this.logout();
       return;
     }
     this.expiryTimer = window.setTimeout(
-      () => this.logout(),
+      () => void this.renewSession(),
       Math.min(delay, 2_147_000_000),
     );
   }
@@ -107,6 +109,28 @@ export class AuthService {
       window.clearTimeout(this.expiryTimer);
       this.expiryTimer = null;
     }
+  }
+
+  private renewSession(): Promise<void> {
+    if (this.refreshPending) return this.refreshPending;
+    const previous = this.tokenState();
+    if (!previous || this.tokenExpiryMs(previous) <= Date.now() + 5_000) {
+      this.logout();
+      return Promise.resolve();
+    }
+    this.refreshPending = firstValueFrom(
+      this.http.post<TokenResponse>(this.runtime.apiUrl + '/auth/refresh', {}).pipe(timeout(10_000)),
+    ).then((response) => {
+      if (this.tokenState() !== previous) return;
+      sessionStorage.setItem(TOKEN_KEY, response.access_token);
+      this.tokenState.set(response.access_token);
+      this.scheduleExpiry(response.access_token);
+    }).catch(() => {
+      if (this.tokenState() !== previous) return;
+      this.clearExpiryTimer();
+      this.expiryTimer = window.setTimeout(() => void this.renewSession(), 5_000);
+    }).finally(() => { this.refreshPending = null; });
+    return this.refreshPending;
   }
 
   private tokenExpiryMs(token: string): number {
