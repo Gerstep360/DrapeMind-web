@@ -245,11 +245,14 @@
                             <button
                               type="button"
                               class="quick-add-btn"
-                              (click)="$event.stopPropagation(); addToCart(item)"
-                              title="Añadir a Perchero"
+                              (click)="$event.stopPropagation(); item.accion === 'AGREGAR' ? addToCart(item) : openGarmentDetail(item)"
+                              [title]="item.accion === 'AGREGAR' ? 'Añadir a Perchero' : 'Revisar prenda y opciones'"
+                              [attr.aria-label]="item.accion === 'AGREGAR' ? 'Añadir ' + item.nombre : 'Revisar ' + item.nombre"
                             >
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                @if (item.accion === 'AGREGAR') {
+                                  <line x1="12" y1="5" x2="12" y2="19"/>
+                                }
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                               </svg>
                             </button>

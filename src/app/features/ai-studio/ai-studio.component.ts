@@ -250,7 +250,8 @@ export class AiStudioComponent implements OnInit {
   }
 
   addToCart(item: AiActionItem): void {
-    const variantId = item.variante_id || item.id;
+    if (item.accion !== 'AGREGAR' || !item.variante_id) return;
+    const variantId = item.variante_id;
     this.cart.addItem(variantId, 1, `Prenda "${item.nombre}" agregada a tu perchero`);
     this.closeGarmentDetail();
   }
