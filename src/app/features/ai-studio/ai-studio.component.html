@@ -1,510 +1,516 @@
 <section class="ai-page" [class.ai-page--empty]="ai.messages().length === 0">
-  <!-- TOP HEADER -->
-  <header class="ai-heading">
-    <div class="ai-heading__title">
-      <div class="title-row">
-        <span class="atelier-gem-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- CONVERSATION CANVAS (INFINITE SCROLL) -->
+  <div #conversation class="conversation" aria-live="polite" (scroll)="onConversationScroll()">
+    <!-- EMPTY STATE (DISAPPEARS AS SOON AS FIRST MESSAGE IS SENT) -->
+    @if (ai.messages().length === 0) {
+      <div class="chat-welcome-state">
+        <div class="welcome-sparkle-mark">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
           </svg>
-        </span>
-        <div>
-          <h1>Altair</h1>
-          <p class="ai-subheading">{{ ai.currentSession().title }}</p>
         </div>
-      </div>
-    </div>
+        <h2>¿Qué armamos hoy?</h2>
+        <p class="welcome-lead">
+          Pregúntame por prendas, combinaciones, outfits completos o asesoría para tu estilo.
+        </p>
 
-    <div class="ai-heading__actions">
-      <!-- 24h Chat History -->
-      <button type="button" class="action-btn" (click)="toggleSessions()" title="Historial de conversaciones (24h)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <span>Historial 24h</span>
-      </button>
-
-      <!-- New Chat (+) -->
-      <button type="button" class="action-btn action-btn--primary" (click)="ai.createNewSession()" title="Nueva conversación">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"/>
-          <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        <span>Nuevo Chat</span>
-      </button>
-
-      <!-- Custom Questionnaire -->
-      <button type="button" class="action-btn" (click)="toggleConfigurator()" title="Cuestionario de Medidas">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
-        <span>Cuestionario a Medida</span>
-      </button>
-
-      <!-- Cart Drawer -->
-      <button type="button" class="action-btn" (click)="openCartDrawer()" title="Ver Perchero">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        <span>Perchero ({{ cart.totalItems() }})</span>
-      </button>
-
-      <!-- Live Status / Stopwatch -->
-      <div class="model-state" [attr.data-state]="ai.isBusy() ? 'thinking' : ai.status()">
-        <span class="live-dot" [class.live-dot--active]="ai.isBusy()"></span>
-        <span class="model-label">
-          @if (ai.isBusy()) {
-            Razonando · {{ ai.thinkingElapsedFormatted() }}
-          } @else {
-            {{ statusLabel() }}
-          }
-        </span>
-      </div>
-    </div>
-  </header>
-
-  <!-- CHAT CONTAINER -->
-  <div class="chat-container">
-    <div #conversation class="conversation" aria-live="polite" (scroll)="onConversationScroll()">
-      @if (ai.messages().length === 0) {
-        <div class="chat-welcome-state">
-          <div class="welcome-badge">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <div class="welcome-pill-grid">
+          <button type="button" class="welcome-prompt-pill" (click)="send('Arma un outfit elegante con presupuesto de Bs 700')">
+            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
             </svg>
-          </div>
-          <span class="welcome-eyebrow">TU ESPACIO DE ESTILO</span>
-          <h2>¿Qué vamos a descubrir hoy?</h2>
-          <p>
-            Explora prendas, combina tu perchero o encuentra tu próximo look.
-          </p>
-          <div class="welcome-actions">
-            <button type="button" (click)="openCartDrawer()"><span>Tu selección</span><strong>Explorar mi perchero ↗</strong></button>
-            <button type="button" (click)="toggleConfigurator()"><span>A tu medida</span><strong>Preparar mi asesoría ↗</strong></button>
-          </div>
+            <span>Armar un outfit</span>
+          </button>
+          <button type="button" class="welcome-prompt-pill" (click)="send('Mira mi perchero y dime qué puedo combinar o mejorar')">
+            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+            </svg>
+            <span>Mejorar mi perchero</span>
+          </button>
+          <button type="button" class="welcome-prompt-pill" (click)="send('Dime opciones casuales y económicas por menos de Bs 300')">
+            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Look económico</span>
+          </button>
+          <button type="button" class="welcome-prompt-pill" (click)="handleOpenQuestionnaire()">
+            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/>
+              <path d="m14.5 12.5 2-2"/>
+              <path d="m11.5 9.5 2-2"/>
+              <path d="m8.5 6.5 2-2"/>
+            </svg>
+            <span>Cuestionario a medida</span>
+          </button>
         </div>
-      }
+      </div>
+    }
 
-      @for (message of ai.messages(); track message.id) {
-        <article
-          class="message"
-          [class.message--user]="message.role === 'user'"
-          [class.message--error]="message.error"
-        >
-          <div class="message__avatar">
-            @if (message.role === 'user') {
-              <span>TÚ</span>
-            } @else {
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-              </svg>
-            }
-          </div>
+    <!-- MESSAGE THREAD -->
+    @for (message of ai.messages(); track message.id) {
+      <article
+        class="message"
+        [class.message--user]="message.role === 'user'"
+        [class.message--error]="message.error"
+      >
+        <div class="message__avatar">
+          @if (message.role === 'user') {
+            <span>TÚ</span>
+          } @else {
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+          }
+        </div>
 
-          <div class="message__bubble">
-            <!-- LIVE THINKING CARD DURANTE RAZONAMIENTO (CUANDO PENDING) -->
-            @if (message.pending && message.role === 'assistant') {
-              <div class="live-thinking-card">
-                <div class="live-thinking-header">
-                  <div class="live-thinking-title">
-                    <span class="pulse-dot"></span>
-                    <strong>{{ message.content ? 'Altair está respondiendo' : 'Pensando' }}</strong>
-                  </div>
-                  <div class="live-thinking-actions">
-                    <span class="live-ticker-badge">{{ ai.thinkingElapsedFormatted() }}</span>
-                    <button type="button" class="btn-cancel-inline" (click)="cancel()" title="Cancelar esta consulta">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="6"/>
+        <div class="message__bubble">
+          <!-- LIVE THINKING CARD DURING INFERENCE -->
+          @if (message.pending && message.role === 'assistant') {
+            <div class="live-thinking-card">
+              <div class="live-thinking-header">
+                <div class="live-thinking-title">
+                  <span class="pulse-dot"></span>
+                  <strong>{{ message.content ? 'Altair está respondiendo' : 'Pensando' }}</strong>
+                </div>
+                <div class="live-thinking-actions">
+                  <span class="live-ticker-badge">{{ ai.thinkingElapsedFormatted() }}</span>
+                  <button type="button" class="btn-cancel-inline" (click)="cancel()" title="Cancelar esta consulta">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="6"/>
+                    </svg>
+                    <span>Cancelar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Thought Steps List -->
+              <div class="live-thought-steps">
+                @for (step of ai.liveThoughtSteps(); track $index) {
+                  <div class="thought-step-item">
+                    <span class="thought-check-icon">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
                       </svg>
-                      <span>Cancelar</span>
-                    </button>
+                    </span>
+                    <span class="thought-step-text">{{ step }}</span>
+                  </div>
+                }
+                @if (ai.currentThought()) {
+                  <div class="thought-step-item thought-step-item--active">
+                    <span class="step-spinner"></span>
+                    <span class="thought-step-text">{{ ai.currentThought() }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (!message.pending || message.content || message.actionItems?.length) {
+            <!-- COMPLETED BUBBLE TEXT CONTENT -->
+            @if (message.content) {
+              <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
+            }
+
+            <!-- NOTICES (INFO / WARNING) -->
+            @if (message.notices && message.notices.length > 0) {
+              <div class="notices-list">
+                @for (notice of message.notices; track $index) {
+                  <div class="notice-box notice-box--{{ notice.type }}">
+                    <strong>{{ notice.title }}</strong>: {{ notice.message }}
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- OUTFIT RECEIPT SUMMARY -->
+            @if (message.responseMeta && message.responseMeta.kind === 'outfit') {
+              <div class="outfit-receipt">
+                <div class="receipt-header">
+                  <div>
+                    <span class="receipt-tag">SELECCIÓN {{ (message.responseMeta.occasion || 'ATELIER') | uppercase }}</span>
+                    <p class="receipt-subtitle">{{ message.responseMeta.item_count || 0 }} piezas con stock y talla verificados</p>
+                  </div>
+                  <div class="receipt-total">
+                    Bs {{ (message.responseMeta.total_bob || 0) | number:'1.2-2' }}
                   </div>
                 </div>
 
-                <!-- Thought Steps List -->
-                <div class="live-thought-steps">
-                  @for (step of ai.liveThoughtSteps(); track $index) {
-                    <div class="thought-step-item">
-                      <span class="thought-check-icon">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                      </span>
-                      <span class="thought-step-text">{{ step }}</span>
-                    </div>
-                  }
-                  @if (ai.currentThought()) {
-                    <div class="thought-step-item thought-step-item--active">
-                      <span class="step-spinner"></span>
-                      <span class="thought-step-text">{{ ai.currentThought() }}</span>
+                @if (message.responseMeta.budget_bob) {
+                  <div class="receipt-budget-row">
+                    <span>Presupuesto: Bs {{ message.responseMeta.budget_bob | number:'1.0-0' }}</span>
+                    @if (message.responseMeta.budget_remaining_bob !== null && message.responseMeta.budget_remaining_bob !== undefined) {
+                      <span class="budget-available">Disponible: Bs {{ message.responseMeta.budget_remaining_bob | number:'1.0-0' }}</span>
+                    }
+                  </div>
+                }
+
+                @if (message.responseMeta.can_add_all && message.actionItems && message.actionItems.length > 0) {
+                  <button type="button" class="btn-use-outfit" (click)="replaceCartWithOutfit(message.actionItems)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                      <line x1="3" y1="6" x2="21" y2="6"/>
+                      <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <span>Usar esta selección en mi perchero</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- PRODUCT PICKER CHIPS -->
+            @if (message.responseMeta?.product_picker?.length) {
+              <div class="action-items-section" role="group" aria-label="Seleccionar una prenda">
+                @for (option of message.responseMeta!.product_picker!; track option.id) {
+                  <button class="button" type="button" [disabled]="ai.isBusy()" (click)="ai.selectProduct(option.id)">{{ option.label }}</button>
+                }
+              </div>
+            }
+
+            <!-- GARMENT CARDS GRID -->
+            @if (message.actionItems && message.actionItems.length > 0) {
+              <div class="action-items-section">
+                <div class="action-items-title">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  </svg>
+                  <span>{{ message.responseTitle || 'Resultados de tu consulta' }}</span>
+                </div>
+
+                <div class="action-cards-grid">
+                  @for (item of message.actionItems; track item.id) {
+                    <div class="action-card" (click)="openGarmentDetail(item)">
+                      <div class="action-card__img">
+                        @if (cardImageUrl(item)) {
+                          <img [src]="cardImageUrl(item)" [alt]="item.nombre" loading="lazy" />
+                        } @else {
+                          <div class="action-card__placeholder">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                            </svg>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="action-card__body">
+                        <div class="card-badge-row">
+                          @if (item.color) { <span class="curated-badge">{{ item.color }}</span> }
+                          @if (item.talla) {
+                            <span class="size-pill">Talla {{ item.talla }}</span>
+                          }
+                        </div>
+
+                        <h4 class="card-name">{{ item.nombre }}</h4>
+
+                        <div class="card-footer-row">
+                          <span class="card-price">Bs {{ item.precio | number:'1.2-2' }}</span>
+                          <button
+                            type="button"
+                            class="quick-add-btn"
+                            (click)="$event.stopPropagation(); item.accion === 'AGREGAR' ? addToCart(item) : openGarmentDetail(item)"
+                            [title]="item.accion === 'AGREGAR' ? 'Añadir a Perchero' : 'Revisar prenda y opciones'"
+                            [attr.aria-label]="item.accion === 'AGREGAR' ? 'Añadir ' + item.nombre : 'Revisar ' + item.nombre"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              @if (item.accion === 'AGREGAR') {
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                              }
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   }
                 </div>
               </div>
             }
-            @if (!message.pending || message.content || message.actionItems?.length) {
-              <!-- COMPLETED BUBBLE TEXT CONTENT -->
-              @if (message.content) {
-                <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
-              }
 
-              <!-- NOTICES (INFO / WARNING) -->
-              @if (message.notices && message.notices.length > 0) {
-                <div class="notices-list">
-                  @for (notice of message.notices; track $index) {
-                    <div class="notice-box notice-box--{{ notice.type }}">
-                      <strong>{{ notice.title }}</strong>: {{ notice.message }}
-                    </div>
-                  }
-                </div>
-              }
-
-              <!-- OUTFIT RECEIPT SUMMARY -->
-              @if (message.responseMeta && message.responseMeta.kind === 'outfit') {
-                <div class="outfit-receipt">
-                  <div class="receipt-header">
-                    <div>
-                      <span class="receipt-tag">SELECCIÓN {{ (message.responseMeta.occasion || 'ATELIER') | uppercase }}</span>
-                      <p class="receipt-subtitle">{{ message.responseMeta.item_count || 0 }} piezas con stock y talla verificados</p>
-                    </div>
-                    <div class="receipt-total">
-                      Bs {{ (message.responseMeta.total_bob || 0) | number:'1.2-2' }}
-                    </div>
-                  </div>
-
-                  @if (message.responseMeta.budget_bob) {
-                    <div class="receipt-budget-row">
-                      <span>Presupuesto: Bs {{ message.responseMeta.budget_bob | number:'1.0-0' }}</span>
-                      @if (message.responseMeta.budget_remaining_bob !== null && message.responseMeta.budget_remaining_bob !== undefined) {
-                        <span class="budget-available">Disponible: Bs {{ message.responseMeta.budget_remaining_bob | number:'1.0-0' }}</span>
-                      }
-                    </div>
-                  }
-
-                  @if (message.responseMeta.can_add_all && message.actionItems && message.actionItems.length > 0) {
-                    <button type="button" class="btn-use-outfit" (click)="replaceCartWithOutfit(message.actionItems)">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                      </svg>
-                      <span>Usar esta selección en mi perchero</span>
-                    </button>
-                  }
-                </div>
-              }
-
-              <!-- ACTION ITEMS / GARMENT CARDS -->
-              @if (message.responseMeta?.product_picker?.length) {
-                <div class="action-items-section" role="group" aria-label="Seleccionar una prenda">
-                  @for (option of message.responseMeta!.product_picker!; track option.id) {
-                    <button class="button" type="button" [disabled]="ai.isBusy()" (click)="ai.selectProduct(option.id)">{{ option.label }}</button>
-                  }
-                </div>
-              }
-              @if (message.actionItems && message.actionItems.length > 0) {
-                <div class="action-items-section">
-                  <div class="action-items-title">
+            <!-- AUDIT TRACE EXPANDABLE SECTION -->
+            @if (message.trace && message.trace.length > 0) {
+              <div class="audit-trace-container">
+                <button type="button" class="audit-trace-toggle" (click)="toggleTrace(message.id)">
+                  <div class="trace-toggle-left">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
-                    <span>{{ message.responseTitle || 'Resultados de tu consulta' }}</span>
+                    <span>Acciones · {{ message.trace.length }} {{ message.trace.length === 1 ? 'consulta' : 'consultas' }}</span>
+                    @if (message.durationMs && isTraceExpanded(message.id)) {
+                      <span class="trace-duration">({{ formatDuration(message.durationMs) }})</span>
+                    }
                   </div>
+                  <svg
+                    class="trace-chevron"
+                    [class.trace-chevron--open]="isTraceExpanded(message.id)"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
 
-                  <div class="action-cards-grid">
-                    @for (item of message.actionItems; track item.id) {
-                      <div class="action-card" (click)="openGarmentDetail(item)">
-                        <div class="action-card__img">
-                          @if (cardImageUrl(item)) {
-                            <img [src]="cardImageUrl(item)" [alt]="item.nombre" loading="lazy" />
-                          } @else {
-                            <div class="action-card__placeholder">
-                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
-                              </svg>
-                            </div>
-                          }
-                        </div>
-
-                        <div class="action-card__body">
-                          <div class="card-badge-row">
-                            @if (item.color) { <span class="curated-badge">{{ item.color }}</span> }
-                            @if (item.talla) {
-                              <span class="size-pill">Talla {{ item.talla }}</span>
+                @if (isTraceExpanded(message.id)) {
+                  <div class="audit-trace-details">
+                    @for (step of message.trace; track $index) {
+                      <div class="trace-step-row">
+                        <span class="trace-step-icon">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            @if (step.state === 'done') {
+                              <polyline points="20 6 9 17 4 12"/>
+                            } @else {
+                              <path d="M12 4v10m0 4v2"/>
                             }
-                          </div>
-
-                          <h4 class="card-name">{{ item.nombre }}</h4>
-
-                          <div class="card-footer-row">
-                            <span class="card-price">Bs {{ item.precio | number:'1.2-2' }}</span>
-                            <button
-                              type="button"
-                              class="quick-add-btn"
-                              (click)="$event.stopPropagation(); item.accion === 'AGREGAR' ? addToCart(item) : openGarmentDetail(item)"
-                              [title]="item.accion === 'AGREGAR' ? 'Añadir a Perchero' : 'Revisar prenda y opciones'"
-                              [attr.aria-label]="item.accion === 'AGREGAR' ? 'Añadir ' + item.nombre : 'Revisar ' + item.nombre"
-                            >
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                @if (item.accion === 'AGREGAR') {
-                                  <line x1="12" y1="5" x2="12" y2="19"/>
-                                }
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
+                          </svg>
+                        </span>
+                        <span class="trace-step-name">{{ toolLabel(step.name) }}</span>
+                        <span class="trace-step-status">{{ step.summary || 'Completado' }}</span>
+                        @if (step.durationMs) {
+                          <span class="trace-step-time">{{ formatDuration(step.durationMs) }}</span>
+                        }
                       </div>
                     }
                   </div>
-                </div>
-              }
-
-              <!-- AUDIT TRACE EXPANDABLE SECTION -->
-              @if (message.trace && message.trace.length > 0) {
-                <div class="audit-trace-container">
-                  <button type="button" class="audit-trace-toggle" (click)="toggleTrace(message.id)">
-                    <div class="trace-toggle-left">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                      </svg>
-                      <span>Acciones · {{ message.trace.length }} {{ message.trace.length === 1 ? 'consulta' : 'consultas' }}</span>
-                      @if (message.durationMs && isTraceExpanded(message.id)) {
-                        <span class="trace-duration">({{ formatDuration(message.durationMs) }})</span>
-                      }
-                    </div>
-                    <svg
-                      class="trace-chevron"
-                      [class.trace-chevron--open]="isTraceExpanded(message.id)"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                    >
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                  </button>
-
-                  @if (isTraceExpanded(message.id)) {
-                    <div class="audit-trace-details">
-                      @for (step of message.trace; track $index) {
-                        <div class="trace-step-row">
-                          <span class="trace-step-icon">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                              @if (step.state === 'done') {
-                                <polyline points="20 6 9 17 4 12"/>
-                              } @else {
-                                <path d="M12 4v10m0 4v2"/>
-                              }
-                            </svg>
-                          </span>
-                          <span class="trace-step-name">{{ toolLabel(step.name) }}</span>
-                          <span class="trace-step-status">{{ step.summary || 'Completado' }}</span>
-                          @if (step.durationMs) {
-                            <span class="trace-step-time">{{ formatDuration(step.durationMs) }}</span>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-
-              <!-- DYNAMIC SUGGESTED ACTION CHIPS (ALTAIR) -->
-              @if (message.suggestedActions && message.suggestedActions.length > 0) {
-                <div class="suggested-actions-row">
-                  @for (act of message.suggestedActions; track $index) {
-                    <button type="button" class="suggested-chip" (click)="send(act.prompt)">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                      </svg>
-                      <span>{{ act.prompt }}</span>
-                    </button>
-                  }
-                </div>
-              }
+                }
+              </div>
             }
-          </div>
-        </article>
+
+            <!-- DYNAMIC SUGGESTED ACTION CHIPS (ALTAIR) -->
+            @if (message.suggestedActions && message.suggestedActions.length > 0) {
+              <div class="suggested-actions-row">
+                @for (act of message.suggestedActions; track $index) {
+                  <button type="button" class="suggested-chip" (click)="send(act.prompt)">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                    </svg>
+                    <span>{{ act.prompt }}</span>
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+      </article>
+    }
+  </div>
+
+  <!-- FLOATING COMPOSER ZONE (CHATGPT STYLE SINGLE CARD) -->
+  <div class="ai-composer-zone" role="region" aria-label="Escribir a Altair">
+    <div class="composer-card" [class.composer-card--busy]="ai.isBusy()">
+      <!-- TOP: TEXTAREA -->
+      <div class="composer-input-row">
+        <textarea
+          [formControl]="prompt"
+          placeholder="Pregunta a Altair sobre prendas, outfits o estilo..."
+          aria-label="Mensaje para Altair"
+          rows="1"
+          (keydown)="onKeydown($event)"
+          [disabled]="ai.isBusy()"
+        ></textarea>
+      </div>
+
+      <!-- POPOVER MENU FOR '+' BUTTON -->
+      @if (isPlusMenuOpen()) {
+        <div class="composer-popover plus-popover" (click)="$event.stopPropagation()">
+          <button type="button" class="popover-item" (click)="handleOpenQuestionnaire()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/>
+                <path d="m14.5 12.5 2-2"/>
+                <path d="m11.5 9.5 2-2"/>
+                <path d="m8.5 6.5 2-2"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Medidas y preferencias</strong>
+              <small>Cuestionario personalizado</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="handleOpenCart()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Mi perchero · {{ cart.totalItems() }}</strong>
+              <small>Prendas en tu selección actual</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="handleNewChat()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Nueva conversación</strong>
+              <small>Iniciar chat limpio</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="handleOpenSessions()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Historial de chats</strong>
+              <small>Conversaciones de las últimas 24h</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="selectTool('Arma un outfit elegante para una cena con presupuesto de Bs 700'); closePlusMenu()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Diseñar un outfit</strong>
+              <small>Combinación guiada por Altair</small>
+            </div>
+          </button>
+        </div>
       }
-    </div>
 
-    <!-- SUGGESTION PILLS (TOP OF COMPOSER) -->
-    <details class="ideas-panel">
-      <summary>Explorar ideas <span>Ejemplos para empezar · no son respuestas de Altair</span></summary>
-    <div class="suggestions-bar">
-      @for (sug of suggestions; track sug.text) {
-        <button type="button" class="suggestion-pill" (click)="send(sug.text)">
-          <span>{{ sug.text }}</span>
-        </button>
+      <!-- POPOVER MENU FOR 'ATELIER' MODE CHIP -->
+      @if (isModeMenuOpen()) {
+        <div class="composer-popover mode-popover" (click)="$event.stopPropagation()">
+          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'stylist'" (click)="selectMode('stylist')">
+            <span class="popover-check">
+              @if (activeMode() === 'stylist') {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              }
+            </span>
+            <div class="popover-copy">
+              <strong>Personal Stylist</strong>
+              <small>Consultas de moda, siluetas y tendencias</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'outfit'" (click)="selectMode('outfit')">
+            <span class="popover-check">
+              @if (activeMode() === 'outfit') {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              }
+            </span>
+            <div class="popover-copy">
+              <strong>Outfit completo</strong>
+              <small>Combinaciones con presupuesto y stock</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'cart'" (click)="selectMode('cart')">
+            <span class="popover-check">
+              @if (activeMode() === 'cart') {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              }
+            </span>
+            <div class="popover-copy">
+              <strong>Analizar mi perchero</strong>
+              <small>Evaluación de prendas guardadas</small>
+            </div>
+          </button>
+        </div>
       }
-    </div>
 
-    </details>
+      <!-- INTEGRATED BOTTOM TOOLBAR -->
+      <div class="composer-toolbar">
+        <div class="composer-toolbar__left">
+          <!-- [+] ACTION BUTTON -->
+          <button
+            type="button"
+            class="composer-btn-plus"
+            [class.composer-btn-plus--active]="isPlusMenuOpen()"
+            (click)="togglePlusMenu()"
+            title="Herramientas y opciones de Altair"
+            aria-label="Abrir menú de herramientas"
+          >
+            <span class="plus-sign">+</span>
+          </button>
 
-    <!-- DOCKED BOTTOM COMPOSER (ESTILO CHATGPT / CLAUDE FLOATING CARD) -->
-    <div class="composer-container" role="region" aria-label="Escribir a Altair">
-      <div class="composer-card" [class.composer-card--busy]="ai.isBusy()">
-        <!-- TOP: TEXTAREA -->
-        <div class="composer-input-row">
-          <textarea
-            [formControl]="prompt"
-            placeholder="Pregunta a Altair sobre prendas, outfits, estilo o tallas..."
-            aria-label="Mensaje para Altair"
-            rows="2"
-            (keydown)="onKeydown($event)"
-            [disabled]="ai.isBusy()"
-          ></textarea>
+          <!-- [Atelier ▾] MODE SELECTOR CHIP -->
+          <button
+            type="button"
+            class="composer-mode-chip"
+            [class.composer-mode-chip--active]="isModeMenuOpen()"
+            (click)="toggleModeMenu()"
+            title="Cambiar modo de Altair"
+          >
+            <svg class="sparkle" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            <span>Atelier</span>
+            <span class="chevron">▾</span>
+          </button>
         </div>
 
-        <!-- POPUP TOOLS MENU (FLOATING ABOVE TOOLBAR) -->
-        @if (isToolsMenuOpen()) {
-          <div class="tools-popup" (click)="$event.stopPropagation()">
-            <div class="tools-popup__header">
-              <span class="tools-popup__title">Herramientas del Asistente</span>
-              <button type="button" class="tools-popup__close" (click)="closeToolsMenu()">✕</button>
-            </div>
-            <div class="tools-popup__list">
-              @for (tool of availableTools; track tool.id) {
-                <button type="button" class="tools-popup__item" (click)="selectTool(tool.prompt)">
-                  <div class="tool-item-icon">
-                    @if (tool.id === 'search') {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    } @else if (tool.id === 'outfit') {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                    } @else if (tool.id === 'arrivals') {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    } @else if (tool.id === 'advice') {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
-                    } @else {
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    }
-                  </div>
-                  <div class="tool-item-info">
-                    <span class="tool-item-label">{{ tool.label }}</span>
-                    <span class="tool-item-desc">{{ tool.desc }}</span>
-                  </div>
-                  <span class="tool-item-arrow">→</span>
-                </button>
-              }
-            </div>
-          </div>
-        }
+        <div class="composer-toolbar__right">
+          <!-- VOICE / PROMPT TRIGGER -->
+          <button
+            type="button"
+            class="composer-btn-icon"
+            (click)="prompt.setValue('Hola Altair, ¿qué me recomiendas hoy según mi estilo?'); send()"
+            title="Pregunta sugerida"
+            aria-label="Pregunta de voz"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </button>
 
-        <!-- BOTTOM TOOLBAR (EXACTO AL DISEÑO) -->
-        <div class="composer-toolbar">
-          <!-- LEFT SIDE: TOOLS & MODE PILLS -->
-          <div class="composer-toolbar__left">
+          <!-- CIRCULAR SEND BUTTON (LIME WHEN ACTIVE / STOP WHEN BUSY) -->
+          @if (ai.isBusy()) {
             <button
               type="button"
-              class="toolbar-pill-btn toolbar-pill-btn--icon"
-              (click)="toggleConfigurator()"
-              title="Configurar outfit a medida"
+              class="composer-circle-send composer-circle-send--stop"
+              (click)="cancel()"
+              title="Detener respuesta de Altair"
+              aria-label="Detener respuesta"
             >
-              <span class="pill-plus-icon">+</span>
-            </button>
-
-            <button
-              type="button"
-              class="toolbar-pill-btn toolbar-pill-btn--tools"
-              [class.toolbar-pill-btn--active]="isToolsMenuOpen()"
-              (click)="toggleToolsMenu()"
-              title="Menú de herramientas del agente"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14"/>
-                <line x1="4" y1="10" x2="4" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12" y2="3"/>
-                <line x1="20" y1="21" x2="20" y2="16"/>
-                <line x1="20" y1="12" x2="20" y2="3"/>
-                <line x1="1" y1="14" x2="7" y2="14"/>
-                <line x1="9" y1="8" x2="15" y2="8"/>
-                <line x1="17" y1="16" x2="23" y2="16"/>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <rect width="18" height="18" x="3" y="3" rx="3"/>
               </svg>
-              <span>Tools</span>
-              <span class="pill-chevron" [class.pill-chevron--open]="isToolsMenuOpen()">▾</span>
             </button>
-
-            <div class="toolbar-pill-badge">
-              <span class="pill-feather">🪶</span>
-              <span>Asesor Atelier</span>
-            </div>
-          </div>
-
-          <!-- RIGHT SIDE: CANCEL & SEND BUTTONS -->
-          <div class="composer-toolbar__right">
-            @if (ai.isBusy()) {
-              <!-- BOTON CANCELAR EXPLICITO SI EL USUARIO SE ARREPIENTE -->
-              <button
-                type="button"
-                class="btn-cancel-generation"
-                (click)="cancel()"
-                title="Detener respuesta de Altair"
-                aria-label="Cancelar generación"
-              >
-                <span class="stop-icon-square"></span>
-                <span>Detener respuesta</span>
-              </button>
-            } @else {
-              <button
-                type="button"
-                class="toolbar-pill-btn toolbar-pill-btn--ghost"
-                (click)="prompt.setValue('Hola Altair, ¿qué me recomiendas hoy?'); send()"
-                title="Sugerencia rápida"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                  <line x1="12" y1="19" x2="12" y2="22"/>
-                </svg>
-                <span>Voice</span>
-              </button>
-            }
-
-            <!-- BOTÓN CIRCULAR: FLECHA ARRIBA (IDLE) O STOP (BUSY) -->
-            @if (ai.isBusy()) {
-              <button
-                type="button"
-                class="action-circle-btn action-circle-btn--stop"
-                (click)="cancel()"
-                title="Detener respuesta de Altair"
-                aria-label="Detener respuesta"
-              >
-                <span class="stop-square-mark">■</span>
-              </button>
-            } @else {
-              <button
-                type="button"
-                class="action-circle-btn action-circle-btn--send"
-                [disabled]="prompt.invalid"
-                (click)="send()"
-                title="Enviar mensaje (Enter)"
-                aria-label="Enviar mensaje"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5"/>
-                  <polyline points="5 12 12 5 19 12"/>
-                </svg>
-              </button>
-            }
-          </div>
+          } @else {
+            <button
+              type="button"
+              class="composer-circle-send"
+              [class.composer-circle-send--active]="prompt.valid && prompt.value.trim().length > 0"
+              [disabled]="prompt.invalid || !prompt.value.trim()"
+              (click)="send()"
+              title="Enviar mensaje (Enter)"
+              aria-label="Enviar mensaje"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </button>
+          }
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SESSIONS DRAWER / MODAL (HISTORIAL 24 HORAS) -->
+  <!-- SESSIONS DRAWER (HISTORIAL 24 HORAS) -->
   @if (isSessionsOpen()) {
     <div class="modal-backdrop" (click)="toggleSessions()">
       <div class="sessions-drawer" (click)="$event.stopPropagation()">
@@ -517,9 +523,9 @@
             <h3>Historial de Asesorías (24h)</h3>
           </div>
           <button type="button" class="close-btn" (click)="toggleSessions()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="6"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
@@ -553,9 +559,9 @@
                 (click)="$event.stopPropagation(); ai.deleteSession(session.id)"
                 title="Eliminar conversación"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
@@ -565,16 +571,16 @@
     </div>
   }
 
-  <!-- GARMENT DETAIL QUICK VIEW MODAL -->
+  <!-- GARMENT DETAIL MODAL -->
   @if (selectedGarment()) {
     <div class="modal-backdrop" (click)="closeGarmentDetail()">
       <div class="garment-modal" (click)="$event.stopPropagation()">
         <div class="modal-handle"></div>
 
         <button type="button" class="modal-close-btn" (click)="closeGarmentDetail()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="6"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
 
@@ -652,9 +658,9 @@
             <h3>CUESTIONARIO DE MEDIDAS & OUTFIT</h3>
           </div>
           <button type="button" class="close-btn" (click)="toggleConfigurator()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="6"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>

@@ -164,7 +164,7 @@ export class CartDrawerComponent {
                 this.processing.set(false);
                 this.step.set('SUCCESS');
                 this.cart.loadCart();
-                this.toast.show('¡Pedido generado exitosamente! 🎉', 'success');
+                this.toast.show('¡Pedido generado exitosamente!', 'success');
               },
               error: () => {
                 this.processing.set(false);
@@ -192,7 +192,7 @@ export class CartDrawerComponent {
           this.lastOrder.set({ ...this.lastOrder()!, estado: 'PAGADO' });
         }
         this.payingMock.set(false);
-        this.toast.show('¡Pago aprobado y confirmado en tiempo real! ✨', 'success');
+        this.toast.show('¡Pago aprobado y confirmado en tiempo real!', 'success');
       },
       error: (err) => {
         this.payingMock.set(false);

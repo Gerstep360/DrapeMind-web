@@ -48,8 +48,65 @@ export class AiStudioComponent implements OnInit {
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
   readonly isToolsMenuOpen = signal(false);
+  readonly isPlusMenuOpen = signal(false);
+  readonly isModeMenuOpen = signal(false);
+  readonly activeMode = signal<'stylist' | 'outfit' | 'cart'>('stylist');
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
+
+  togglePlusMenu(): void {
+    this.isPlusMenuOpen.update((v) => !v);
+    if (this.isPlusMenuOpen()) {
+      this.isModeMenuOpen.set(false);
+      this.isToolsMenuOpen.set(false);
+    }
+  }
+
+  closePlusMenu(): void {
+    this.isPlusMenuOpen.set(false);
+  }
+
+  toggleModeMenu(): void {
+    this.isModeMenuOpen.update((v) => !v);
+    if (this.isModeMenuOpen()) {
+      this.isPlusMenuOpen.set(false);
+      this.isToolsMenuOpen.set(false);
+    }
+  }
+
+  closeModeMenu(): void {
+    this.isModeMenuOpen.set(false);
+  }
+
+  selectMode(mode: 'stylist' | 'outfit' | 'cart'): void {
+    this.activeMode.set(mode);
+    this.closeModeMenu();
+    if (mode === 'outfit') {
+      this.prompt.setValue('Arma un outfit completo y elegante con piezas del showroom');
+    } else if (mode === 'cart') {
+      this.prompt.setValue('Analiza las prendas de mi perchero y recomiéndame combinaciones');
+    }
+  }
+
+  handleNewChat(): void {
+    this.ai.createNewSession();
+    this.closePlusMenu();
+  }
+
+  handleOpenQuestionnaire(): void {
+    this.closePlusMenu();
+    this.isConfiguratorOpen.set(true);
+  }
+
+  handleOpenCart(): void {
+    this.closePlusMenu();
+    this.cart.open();
+  }
+
+  handleOpenSessions(): void {
+    this.closePlusMenu();
+    this.isSessionsOpen.set(true);
+  }
 
   readonly availableTools = [
     {

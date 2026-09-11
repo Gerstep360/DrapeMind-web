@@ -185,15 +185,40 @@
         </div>
       </article>
     } @empty {
-      <div class="empty-state product-grid__empty">
-        <div class="empty-icon-box">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+      <div class="catalog-not-found">
+        <div class="not-found-visual">
+          <div class="garment-art-card">
+            <svg class="garment-hanger-svg" width="60" height="60" viewBox="0 0 48 48" fill="none">
+              <!-- Soft background geometric badge -->
+              <rect width="48" height="48" rx="16" fill="var(--dm-lime-soft, #EEFF9D)" fill-opacity="0.5"/>
+              <!-- Hanger top hook -->
+              <path d="M24 11a3 3 0 0 0-3 3c0 2 2 3 3 4" stroke="var(--dm-ink, #10110F)" stroke-width="2.2" stroke-linecap="round"/>
+              <!-- Garment hanger body -->
+              <path d="M12 24 24 18l12 6" stroke="var(--dm-ink, #10110F)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 24h20" stroke="var(--dm-ink, #10110F)" stroke-width="2.2" stroke-linecap="round"/>
+              <!-- Silhouette of dress / jacket dangling -->
+              <path d="M16 24v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V24" stroke="var(--dm-ink, #10110F)" stroke-width="2" stroke-dasharray="3 3"/>
+              <!-- Delicate lapel lines -->
+              <path d="M21 24v5M27 24v5" stroke="var(--dm-ink, #10110F)" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="not-found-badge">0 PRENDAS ENCONTRADAS</span>
         </div>
-        <strong>No encontramos prendas con esos filtros.</strong>
-        <span>Prueba una búsqueda más amplia o ajusta el presupuesto seleccionado.</span>
+
+        <div class="not-found-copy">
+          <h3 class="not-found-title">No encontramos prendas con esos filtros</h3>
+          <p class="not-found-subtitle">
+            Prueba quitando una categoría, cambiando el presupuesto o limpiando los filtros de búsqueda para ver todo el perchero.
+          </p>
+        </div>
+
+        <button type="button" class="btn-clear-filters" (click)="resetFilters()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <span>Limpiar filtros</span>
+        </button>
       </div>
     }
   </section>

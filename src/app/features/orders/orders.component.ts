@@ -164,7 +164,7 @@ export class OrdersComponent {
     this.api.mockConfirmPayment(payment.id).subscribe({
       next: () => {
         this.payingMock.set(false);
-        this.toast.show('¡Pago completado exitosamente! 💳', 'success');
+        this.toast.show('¡Pago completado exitosamente!', 'success');
         this.closePaymentModal();
         this.load();
       },

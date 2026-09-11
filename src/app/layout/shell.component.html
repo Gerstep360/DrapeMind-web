@@ -103,9 +103,63 @@
         >
           <span></span><span></span>
         </button>
-        <div class="topbar-context">
-          <span class="topbar-context__line"></span>
-          <span>DrapeMind Haute Couture</span>
+        <!-- SUCURSAL SELECTOR (REEMPLAZO DE 'DrapeMind Haute Couture') -->
+        <div class="branch-selector-wrapper">
+          <button
+            type="button"
+            class="branch-selector-trigger"
+            (click)="toggleBranchDropdown()"
+            [attr.aria-expanded]="isBranchDropdownOpen()"
+            title="Elegir sucursal DrapeMind"
+          >
+            <span class="branch-pin-dot"></span>
+            <div class="branch-trigger-texts">
+              <span class="branch-tiny-label">SUCURSAL</span>
+              <strong class="branch-current-name">
+                {{ branchService.selectedBranch()?.nombre || 'Elegir sucursal' }}
+              </strong>
+            </div>
+            <svg class="branch-chevron-icon" [class.branch-chevron-icon--open]="isBranchDropdownOpen()" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- DROPDOWN LIST -->
+          @if (isBranchDropdownOpen()) {
+            <div class="branch-menu-scrim" (click)="isBranchDropdownOpen.set(false)"></div>
+            <div class="branch-dropdown-card" (click)="$event.stopPropagation()">
+              <div class="branch-card-header">
+                <span class="branch-card-title">ELEGIR SUCURSAL</span>
+                <span class="branch-card-caption">Disponibilidad física en tiempo real</span>
+              </div>
+              <div class="branch-items-list">
+                @for (branch of branchService.branches(); track branch.id) {
+                  <button
+                    type="button"
+                    class="branch-menu-item"
+                    [class.branch-menu-item--active]="branch.id === branchService.selectedBranch()?.id"
+                    (click)="chooseBranch(branch)"
+                  >
+                    <div class="branch-item-text">
+                      <strong class="branch-name">{{ branch.nombre }}</strong>
+                      <span class="branch-address">{{ branch.direccion || 'Showroom DrapeMind' }}{{ branch.ciudad ? ' · ' + branch.ciudad : '' }}</span>
+                    </div>
+                    @if (branch.id === branchService.selectedBranch()?.id) {
+                      <span class="branch-active-check">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </span>
+                    }
+                  </button>
+                } @empty {
+                  <div class="branch-empty">
+                    <span>No se encontraron sucursales activas.</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
       </div>
 
@@ -153,6 +207,50 @@
 
   <!-- DRAWER DE CARRITO GLOBAL -->
   <app-cart-drawer />
+
+  <!-- MODAL ELEGIR SUCURSAL (DESPUÉS DEL LOGIN O DESDE TOPBAR) -->
+  @if (branchService.showSelectorModal()) {
+    <div class="branch-modal-scrim" (click)="branchService.closeSelectorModal()"></div>
+    <div class="branch-modal-card" role="dialog" aria-label="Elegir sucursal">
+      <header class="branch-modal-header">
+        <div class="branch-modal-title-group">
+          <span class="branch-modal-eyebrow">SHOWROOMS &amp; ATELIER</span>
+          <h2 class="branch-modal-title">Elegir Sucursal DrapeMind</h2>
+        </div>
+        <button class="branch-modal-close" type="button" (click)="branchService.closeSelectorModal()" aria-label="Cerrar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <p class="branch-modal-desc">
+        Selecciona tu sucursal para sincronizar la disponibilidad física de prendas y coordinar recojo presencial en showroom.
+      </p>
+
+      <div class="branch-modal-grid">
+        @for (branch of branchService.branches(); track branch.id) {
+          <button
+            type="button"
+            class="branch-choice-card"
+            [class.branch-choice-card--selected]="branch.id === branchService.selectedBranch()?.id"
+            (click)="chooseBranch(branch)"
+          >
+            <div class="branch-choice-head">
+              <span class="branch-choice-code">{{ branch.codigo || 'SUC' }}</span>
+              @if (branch.id === branchService.selectedBranch()?.id) {
+                <span class="branch-choice-active-pill">SELECCIONADA</span>
+              }
+            </div>
+            <strong class="branch-choice-name">{{ branch.nombre }}</strong>
+            <span class="branch-choice-city">{{ branch.ciudad || 'Bolivia' }}</span>
+            <p class="branch-choice-address">{{ branch.direccion }}</p>
+          </button>
+        }
+      </div>
+    </div>
+  }
 
   <!-- TOASTS -->
   <section class="toast-stack" aria-live="polite" aria-label="Notificaciones">

@@ -64,7 +64,7 @@ export class CartService {
       next: (cart) => {
         this.cart.set(cart);
         this.loading.set(false);
-        this.toast.show(customMessage || 'Prenda agregada a tu carrito ✨', 'success');
+        this.toast.show(customMessage || 'Prenda agregada a tu carrito', 'success');
       },
       error: (err) => {
         this.loading.set(false);

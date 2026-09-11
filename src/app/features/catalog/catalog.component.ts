@@ -181,6 +181,14 @@ export class CatalogComponent {
       });
   }
 
+  resetFilters(): void {
+    this.search.setValue('', { emitEvent: false });
+    this.selectedGender.set('TODOS');
+    this.selectedCategory.set(null);
+    this.maxPriceFilter.set(null);
+    this.loadProducts();
+  }
+
   chooseCategory(id: number | null): void {
     this.selectedCategory.set(id);
     this.loadProducts();

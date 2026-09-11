@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { BranchService } from '../../core/branch.service';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,7 @@ import { AuthService } from '../../core/auth.service';
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
 
   readonly mode = signal<'login' | 'register' | 'forgot'>('login');
@@ -67,7 +69,10 @@ export class LoginComponent {
         })
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
-          next: () => void this.router.navigate(['/dashboard']),
+          next: () => {
+            this.branchService.openSelectorModal();
+            void this.router.navigate(['/dashboard']);
+          },
           error: (error) => {
             if (error?.status === 409) {
               this.error.set('Este correo ya está registrado en el atelier. Inicia sesión directamente o recupera tu contraseña si la olvidaste.');
@@ -98,7 +103,10 @@ export class LoginComponent {
         .login(email.trim().toLowerCase(), password)
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
-          next: () => void this.router.navigate(['/dashboard']),
+          next: () => {
+            this.branchService.openSelectorModal();
+            void this.router.navigate(['/dashboard']);
+          },
           error: (error) =>
             this.error.set(error?.error?.detail ?? 'Credenciales incorrectas. Revisa tu correo y contraseña.'),
         });

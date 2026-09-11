@@ -8,6 +8,9 @@ import { UserRole } from '../core/models';
 import { ToastService } from '../core/toast.service';
 import { CartDrawerComponent } from './cart-drawer/cart-drawer.component';
 
+import { BranchService } from '../core/branch.service';
+import { Branch } from '../core/models';
+
 export type NavIcon =
   | 'dashboard'
   | 'catalog'
@@ -36,8 +39,10 @@ export class ShellComponent {
   readonly cart = inject(CartService);
   readonly events = inject(EventsSocketService);
   readonly toasts = inject(ToastService);
+  readonly branchService = inject(BranchService);
   private readonly ai = inject(AiSocketService);
   readonly menuOpen = signal(false);
+  readonly isBranchDropdownOpen = signal(false);
 
   private readonly allNav: NavItem[] = [
     {
@@ -91,6 +96,21 @@ export class ShellComponent {
 
   constructor() {
     this.events.connect();
+    this.branchService.loadBranches();
+  }
+
+  toggleBranchDropdown(): void {
+    this.isBranchDropdownOpen.set(!this.isBranchDropdownOpen());
+  }
+
+  chooseBranch(branch: Branch): void {
+    this.branchService.selectBranch(branch);
+    this.isBranchDropdownOpen.set(false);
+  }
+
+  openBranchSelectorModal(): void {
+    this.isBranchDropdownOpen.set(false);
+    this.branchService.openSelectorModal();
   }
 
   logout(): void {
