@@ -50,6 +50,19 @@ export class CartDrawerComponent {
     telefono_contacto: [''],
   });
 
+  hasRealImage(url: string | null | undefined): boolean {
+    return !!url && !url.includes('placeholder');
+  }
+
+  getGarmentType(name: string): 'top' | 'bottom' | 'shoes' | 'accessory' | 'atelier' {
+    const n = (name || '').toLowerCase();
+    if (n.includes('polera') || n.includes('camisa') || n.includes('blusa') || n.includes('polo') || n.includes('top') || n.includes('hoodie') || n.includes('chaleco') || n.includes('casaca') || n.includes('remera')) return 'top';
+    if (n.includes('pantalon') || n.includes('pantalón') || n.includes('jean') || n.includes('denim') || n.includes('cargo') || n.includes('falda') || n.includes('short') || n.includes('bermuda') || n.includes('palazzo') || n.includes('chino')) return 'bottom';
+    if (n.includes('zapato') || n.includes('calzado') || n.includes('sneaker') || n.includes('bota') || n.includes('sandalia') || n.includes('mocasin') || n.includes('mocasín') || n.includes('tacon') || n.includes('tacón')) return 'shoes';
+    if (n.includes('accesorio') || n.includes('cinturon') || n.includes('cinturón') || n.includes('cartera') || n.includes('bolso') || n.includes('gorra') || n.includes('joya') || n.includes('reloj') || n.includes('lentes')) return 'accessory';
+    return 'atelier';
+  }
+
   constructor() {
     effect(() => {
       if (this.cart.isOpen()) {

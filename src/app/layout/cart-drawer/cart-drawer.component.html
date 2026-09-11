@@ -45,10 +45,40 @@
             @for (item of cart.items(); track item.id) {
               <article class="cart-item-card">
                 <div class="cart-item-card__visual">
-                  @if (item.imagen) {
+                  @if (hasRealImage(item.imagen)) {
                     <img [src]="runtime.resolveImageUrl(item.imagen)" [alt]="item.nombre" />
                   } @else {
-                    <span class="cart-item-monogram">{{ item.nombre.slice(0, 2).toUpperCase() }}</span>
+                    <div class="cart-item-editorial-placeholder" [attr.data-type]="getGarmentType(item.nombre)">
+                      @switch (getGarmentType(item.nombre)) {
+                        @case ('top') {
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                          </svg>
+                        }
+                        @case ('bottom') {
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16v3l-2 13h-4l-2-9-2 9H6L4 7V4Z"/>
+                          </svg>
+                        }
+                        @case ('shoes') {
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 17h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2Z"/>
+                            <path d="M3 17V8a4 4 0 0 1 4-4h2l2 4 4 3 6 1v5H3Z"/>
+                          </svg>
+                        }
+                        @case ('accessory') {
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="7"/>
+                            <polyline points="12 9 12 12 13.5 13.5"/>
+                          </svg>
+                        }
+                        @default {
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                          </svg>
+                        }
+                      }
+                    </div>
                   }
                 </div>
 

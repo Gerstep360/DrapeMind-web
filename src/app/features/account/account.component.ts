@@ -161,6 +161,9 @@ export class AccountComponent {
   imageUrl(product: Product): string | null {
     const first = product.imagenes?.[0];
     const raw = typeof first === 'string' ? first : first?.url;
+    if (!raw || raw.toLowerCase().includes('placeholder')) {
+      return null;
+    }
     return this.runtime.resolveImageUrl(raw);
   }
 }

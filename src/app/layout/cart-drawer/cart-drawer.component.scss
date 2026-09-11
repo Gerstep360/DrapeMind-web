@@ -149,6 +149,48 @@
     &:hover img {
       transform: scale(1.05);
     }
+
+    .cart-item-editorial-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #F8F9F2 0%, #EAECE2 100%);
+      color: var(--dm-ink, #10110F);
+      position: relative;
+
+      svg {
+        opacity: 0.72;
+        transition: transform 250ms ease, opacity 250ms ease;
+      }
+
+      &[data-type="top"] {
+        color: #2F3E46;
+        background: linear-gradient(145deg, #F3F6F2 0%, #E3E9E2 100%);
+      }
+      &[data-type="bottom"] {
+        color: #354F52;
+        background: linear-gradient(145deg, #F0F4F4 0%, #DFE7E7 100%);
+      }
+      &[data-type="shoes"] {
+        color: #52796F;
+        background: linear-gradient(145deg, #F5F7F3 0%, #E5ECE7 100%);
+      }
+      &[data-type="accessory"] {
+        color: #84A98C;
+        background: linear-gradient(145deg, #FAF8F2 0%, #EFEBE0 100%);
+      }
+      &[data-type="atelier"] {
+        color: #10110F;
+        background: linear-gradient(145deg, #F9FAF5 0%, #E8EBE0 100%);
+      }
+
+      &:hover svg {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
   }
 
   &__info {

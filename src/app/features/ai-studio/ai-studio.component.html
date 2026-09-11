@@ -228,13 +228,43 @@
                   @for (item of message.actionItems; track item.id) {
                     <div class="action-card" (click)="openGarmentDetail(item)">
                       <div class="action-card__img">
-                        @if (cardImageUrl(item)) {
-                          <img [src]="cardImageUrl(item)" [alt]="item.nombre" loading="lazy" />
+                        @if (cardImageUrl(item); as img) {
+                          <img [src]="img" [alt]="item.nombre" loading="lazy" />
                         } @else {
-                          <div class="action-card__placeholder">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
-                            </svg>
+                          <div class="action-editorial-placeholder" [attr.data-type]="getGarmentType(item.nombre)">
+                            <div class="editorial-icon-badge">
+                              @switch (getGarmentType(item.nombre)) {
+                                @case ('top') {
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                                  </svg>
+                                }
+                                @case ('bottom') {
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16v3l-2 13h-4l-2-9-2 9H6L4 7V4Z"/>
+                                  </svg>
+                                }
+                                @case ('shoes') {
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 17h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2Z"/>
+                                    <path d="M3 17V8a4 4 0 0 1 4-4h2l2 4 4 3 6 1v5H3Z"/>
+                                  </svg>
+                                }
+                                @case ('accessory') {
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="7"/>
+                                    <polyline points="12 9 12 12 13.5 13.5"/>
+                                  </svg>
+                                }
+                                @default {
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                  </svg>
+                                }
+                              }
+                            </div>
+                            <span class="action-cat-tag">{{ getGarmentLabel(item.nombre) }}</span>
+                            <span class="action-prep-notice">Showroom</span>
                           </div>
                         }
                       </div>
@@ -683,13 +713,44 @@
 
         <div class="garment-modal-content">
           <div class="garment-modal-img">
-            @if (cardImageUrl(selectedGarment()!)) {
-              <img [src]="cardImageUrl(selectedGarment()!)" [alt]="selectedGarment()!.nombre" />
+            @if (cardImageUrl(selectedGarment()!); as img) {
+              <img [src]="img" [alt]="selectedGarment()!.nombre" />
             } @else {
-              <div class="img-fallback">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
-                </svg>
+              <div class="modal-editorial-placeholder" [attr.data-type]="getGarmentType(selectedGarment()!.nombre)">
+                <div class="editorial-icon-badge">
+                  @switch (getGarmentType(selectedGarment()!.nombre)) {
+                    @case ('top') {
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                      </svg>
+                    }
+                    @case ('bottom') {
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16v3l-2 13h-4l-2-9-2 9H6L4 7V4Z"/>
+                      </svg>
+                    }
+                    @case ('shoes') {
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 17h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2Z"/>
+                        <path d="M3 17V8a4 4 0 0 1 4-4h2l2 4 4 3 6 1v5H3Z"/>
+                      </svg>
+                    }
+                    @case ('accessory') {
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="7"/>
+                        <polyline points="12 9 12 12 13.5 13.5"/>
+                      </svg>
+                    }
+                    @default {
+                      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                      </svg>
+                    }
+                  }
+                </div>
+                <span class="editorial-cat-tag">{{ getGarmentLabel(selectedGarment()!.nombre) }}</span>
+                <span class="editorial-prep-notice">Fotografía en preparación</span>
+                <span class="editorial-showroom-pill">Muestra en showroom</span>
               </div>
             }
           </div>
