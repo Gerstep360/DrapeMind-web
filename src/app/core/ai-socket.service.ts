@@ -116,7 +116,15 @@ export class AiSocketService {
         });
 
         if (valid.length > 0) {
-          this.sessions.set(valid);
+          // Restoring a snapshot does not restore its WebSocket request.
+          this.sessions.set(valid.map((session) => ({
+            ...session,
+            messages: session.messages.map((message) => message.pending ? {
+              ...message, pending: false, error: true,
+              content: (message.content || '') + '\n\nLa conexión anterior se interrumpió. Puedes enviar tu consulta de nuevo.',
+            } : message),
+          })));
+          this.saveSessionsToStorage();
           this.activeSessionId.set(valid[0].id);
           return;
         }
@@ -351,6 +359,15 @@ export class AiSocketService {
   }
 
   disconnect(): void {
+    this.queuedMessage = null;
+    this.sessions.update((sessions) => sessions.map((session) => ({
+      ...session,
+      messages: session.messages.map((message) => message.pending ? {
+        ...message, pending: false, error: true,
+        content: (message.content || '') + '\n\nRespuesta interrumpida al cerrar la conexión.',
+      } : message),
+    })));
+    this.saveSessionsToStorage();
     this.manualDisconnect = true;
     this.clearReconnect();
     this.stopHeartbeat();

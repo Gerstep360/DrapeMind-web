@@ -1,4 +1,4 @@
-<section class="ai-page">
+<section class="ai-page" [class.ai-page--empty]="ai.messages().length === 0">
   <!-- TOP HEADER -->
   <header class="ai-heading">
     <div class="ai-heading__title">
@@ -81,9 +81,9 @@
             </svg>
           </div>
           <span class="welcome-eyebrow">TU ESPACIO DE ESTILO</span>
-          <h2>Una idea. Un look.<br>Tu siguiente versión.</h2>
+          <h2>¿Qué vamos a descubrir hoy?</h2>
           <p>
-            Cuéntale a Altair qué tienes en mente. Tu conversación, tus prendas y tus decisiones, en un mismo lugar.
+            Explora prendas, combina tu perchero o encuentra tu próximo look.
           </p>
         </div>
       }
@@ -349,7 +349,7 @@
     </details>
 
     <!-- DOCKED BOTTOM COMPOSER (ESTILO CHATGPT / CLAUDE FLOATING CARD) -->
-    <div class="composer-container">
+    <div class="composer-container" role="region" aria-label="Escribir a Altair">
       <div class="composer-card" [class.composer-card--busy]="ai.isBusy()">
         <!-- TOP: TEXTAREA -->
         <div class="composer-input-row">

@@ -42,6 +42,17 @@
   }
 }
 .composer-spark { color: #72836a; font-size: 1.35rem; }
+.ai-page--empty {
+  .chat-container { justify-content: center; }
+  .conversation { flex: 0 1 auto; overflow-y: auto; }
+  .chat-welcome-state { padding: 1.5rem 1rem; max-width: 40rem; }
+  .composer-container { order: 1; background: transparent; }
+  .ideas-panel { order: 2; margin-bottom: 2rem; }
+}
+.ai-page :is(button, summary):focus-visible {
+  outline: 2px solid #385f49;
+  outline-offset: 3px;
+}
 @keyframes thinking-shimmer {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -187,10 +198,10 @@
 .conversation {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem max(1rem, calc((100% - 980px) / 2));
+  padding: 1.5rem max(1rem, calc((100% - 850px) / 2));
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   min-height: 0;
 }
 
@@ -224,8 +235,8 @@
   }
 
   h2 {
-    font-size: 1.4rem;
-    font-weight: 850;
+    font-size: clamp(24px, 3vw, 34px);
+    font-weight: 600;
     color: #14281d;
     margin: 0 0 0.5rem;
   }
@@ -261,7 +272,7 @@
       background: #edf2e9;
       color: #18372a;
       border: 1px solid #e2e9dc;
-      border-radius: 22px 22px 5px 22px;
+      border-radius: 22px;
       width: fit-content;
       max-width: min(100%, 660px);
     }
@@ -295,10 +306,10 @@
   }
 
   &__bubble {
-    padding: 1.1rem 1.3rem;
+    padding: .85rem 1rem;
     width: calc(100% - 45px);
     max-width: 100%;
-    font-size: 1rem;
+    font-size: 16px;
     line-height: 1.75;
     min-width: 0;
     overflow-wrap: anywhere;
@@ -852,7 +863,7 @@
         border: none;
         outline: none;
         resize: none;
-        font-size: 0.95rem;
+        font-size: 16px;
         line-height: 1.5;
         font-family: inherit;
         color: #171a16;
