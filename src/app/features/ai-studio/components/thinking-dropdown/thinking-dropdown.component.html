@@ -1,0 +1,74 @@
+<div class="thinking-dropdown" [class.thinking-dropdown--active]="pending">
+  <div class="thinking-dropdown__bar">
+    <button
+      type="button"
+      class="thinking-dropdown__trigger"
+      (click)="onToggle()"
+      [attr.aria-expanded]="isOpen"
+      title="Ver/ocultar proceso de razonamiento"
+    >
+      <span class="thinking-sparkle" [class.thinking-sparkle--pulse]="pending">
+        @if (pending) {
+          <span class="pulse-dot"></span>
+        } @else {
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        }
+      </span>
+
+      <span class="thinking-label">
+        @if (pending) {
+          {{ hasContent ? 'Escribiendo respuesta…' : (currentThought || 'Pensando…') }}
+          <span class="thinking-timer">{{ thinkingElapsedFormatted }}</span>
+        } @else {
+          Pensado durante {{ thinkingTime || thinkingElapsedFormatted || '2s' }}
+        }
+      </span>
+
+      <span class="thinking-chevron" [class.thinking-chevron--open]="isOpen">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </span>
+    </button>
+
+    @if (pending) {
+      <button
+        type="button"
+        class="thinking-cancel-btn"
+        (click)="onCancel($event)"
+        title="Cancelar consulta"
+      >
+        Cancelar
+      </button>
+    }
+  </div>
+
+  <!-- DROPDOWN ACCORDION BODY WITH LEFT RAIL -->
+  @if (isOpen) {
+    <div class="thinking-dropdown__content">
+      @if (thoughtSteps && thoughtSteps.length > 0) {
+        @for (step of thoughtSteps; track step) {
+          <div class="thought-step-line">
+            <span class="thought-step-bullet">✓</span>
+            <span class="thought-step-text">{{ step }}</span>
+          </div>
+        }
+      } @else if (trace && trace.length > 0) {
+        @for (step of trace; track step.name) {
+          <div class="thought-step-line">
+            <span class="thought-step-bullet">✓</span>
+            <span class="thought-step-text">{{ step.summary || step.name }}</span>
+          </div>
+        }
+      }
+      @if (pending && currentThought) {
+        <div class="thought-step-line thought-step-line--current">
+          <span class="step-spinner"></span>
+          <span class="thought-step-text">{{ currentThought }}</span>
+        </div>
+      }
+    </div>
+  }
+</div>

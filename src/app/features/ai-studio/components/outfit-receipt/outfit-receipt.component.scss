@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.outfit-receipt {
+  background: var(--dm-surface-soft, #F8F9F2);
+  border: 1px solid var(--dm-border, #E1E3DA);
+  border-radius: var(--dm-radius-md, 20px);
+  padding: 1.25rem 1.45rem;
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  .receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .receipt-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--dm-text-muted, #7B7F75);
+    margin-bottom: 0.2rem;
+  }
+
+  .receipt-subtitle {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--dm-gray-700, #40433D);
+  }
+
+  .receipt-total {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--dm-ink, #10110F);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .receipt-budget-row {
+    font-size: 0.78rem;
+    color: var(--dm-text-muted, #7B7F75);
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed var(--dm-border, #E1E3DA);
+  }
+
+  .receipt-actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .receipt-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--dm-ink, #10110F);
+    color: #FFFFFF;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.55rem 1.15rem;
+    border-radius: var(--dm-radius-pill, 999px);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--dm-shadow-xs);
+    transition: all var(--dm-fast, 150ms) ease;
+    width: 100%;
+
+    &:hover {
+      background: #252622;
+      transform: translateY(-1px);
+      box-shadow: var(--dm-shadow-sm);
+    }
+  }
+
+  .receipt-restrictions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+
+    .restriction-chip {
+      font-size: 0.7rem;
+      background: rgba(16, 17, 15, 0.04);
+      color: var(--dm-gray-700, #40433D);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--dm-radius-pill, 999px);
+      line-height: 1.4;
+    }
+  }
+}

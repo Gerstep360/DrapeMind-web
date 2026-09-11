@@ -1,0 +1,129 @@
+<div class="modal-backdrop" (click)="onClose()">
+  <div class="questionnaire-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+        <h3>CUESTIONARIO DE MEDIDAS & OUTFIT</h3>
+      </div>
+      <button type="button" class="close-btn" (click)="onClose()" aria-label="Cerrar modal">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="modal-intro">Configura tus preferencias para que Altair diseñe un look exacto y verificado en showroom.</p>
+
+    <form [formGroup]="configForm" (ngSubmit)="onSubmit()" class="questionnaire-form">
+      <!-- Ocasión -->
+      <div class="form-group">
+        <label>OCASIÓN</label>
+        <div class="chip-select-row">
+          @for (occ of occasions; track occ.id) {
+            <button
+              type="button"
+              class="choice-chip"
+              [class.choice-chip--selected]="configForm.get('occasion')?.value === occ.id"
+              (click)="configForm.get('occasion')?.setValue(occ.id)"
+            >
+              {{ occ.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Superior (Tipo y Talla) -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>PRENDA SUPERIOR</label>
+          <select formControlName="topType">
+            <option value="">Cualquiera</option>
+            <option value="polera">POLERA</option>
+            <option value="camisa">CAMISA</option>
+            <option value="blusa">BLUSA</option>
+            <option value="polo">POLO</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>TALLA SUPERIOR</label>
+          <select formControlName="topSize">
+            <option value="">Cualquiera</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inferior (Tipo y Talla) -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>PRENDA INFERIOR</label>
+          <select formControlName="bottomType">
+            <option value="">Cualquiera</option>
+            <option value="pantalon">PANTALÓN</option>
+            <option value="jean">JEAN</option>
+            <option value="falda">FALDA</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>TALLA INFERIOR</label>
+          <select formControlName="bottomSize">
+            <option value="">Cualquiera</option>
+            <option value="28">28</option>
+            <option value="30">30</option>
+            <option value="32">32</option>
+            <option value="34">34</option>
+            <option value="36">36</option>
+            <option value="38">38</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Calzado y Presupuesto -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>TALLA DE CALZADO</label>
+          <select formControlName="shoeSize">
+            <option value="">Cualquiera</option>
+            <option value="39">39</option>
+            <option value="40">40</option>
+            <option value="41">41</option>
+            <option value="42">42</option>
+            <option value="43">43</option>
+            <option value="44">44</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>PRESUPUESTO MÁXIMO (BS)</label>
+          <input type="number" formControlName="budget" placeholder="Ej: 750" />
+        </div>
+      </div>
+
+      <!-- Detalle personalizado -->
+      <div class="form-group">
+        <label>DETALLES ADICIONALES (OPCIONAL)</label>
+        <input type="text" formControlName="customDetail" placeholder="Ej: Prefiero tonos neutros y lino" />
+      </div>
+
+      <button type="submit" class="btn-submit-questionnaire">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+        <span>DISEÑAR OUTFIT A MEDIDA</span>
+      </button>
+    </form>
+  </div>
+</div>

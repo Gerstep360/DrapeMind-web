@@ -1,17 +1,14 @@
-import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnInit,
   ViewChild,
-  computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AiSocketService } from '../../core/ai-socket.service';
 import { AuthService } from '../../core/auth.service';
 import { CartService } from '../../core/cart.service';
@@ -19,14 +16,27 @@ import { AgentTraceStep, AiActionItem, ChatMessage, ChatSession } from '../../co
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { ToastService } from '../../core/toast.service';
 
-export interface SuggestionItem {
-  text: string;
-  icon: 'cart' | 'outfit' | 'tshirt' | 'gem' | 'clock';
-}
+import { GarmentCardComponent } from './components/garment-card/garment-card.component';
+import { ThinkingDropdownComponent } from './components/thinking-dropdown/thinking-dropdown.component';
+import { OutfitReceiptComponent } from './components/outfit-receipt/outfit-receipt.component';
+import { ChatComposerComponent, ComposerSubmitEvent } from './components/chat-composer/chat-composer.component';
+import { GarmentModalComponent } from './components/garment-modal/garment-modal.component';
+import {
+  OutfitConfiguratorModalComponent,
+  OutfitConfigResult,
+} from './components/outfit-configurator-modal/outfit-configurator-modal.component';
 
 @Component({
   selector: 'app-ai-studio',
-  imports: [ReactiveFormsModule, DecimalPipe, UpperCasePipe, RouterLink],
+  standalone: true,
+  imports: [
+    GarmentCardComponent,
+    ThinkingDropdownComponent,
+    OutfitReceiptComponent,
+    ChatComposerComponent,
+    GarmentModalComponent,
+    OutfitConfiguratorModalComponent,
+  ],
   templateUrl: './ai-studio.component.html',
   styleUrl: './ai-studio.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,7 +49,7 @@ export class AiStudioComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly runtime = inject(RuntimeConfigService);
 
-  @ViewChild('promptTextarea') promptTextarea?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('conversation') conversation?: ElementRef<HTMLElement>;
 
   private followLatest = true;
   onConversationScroll(): void {
@@ -49,318 +59,10 @@ export class AiStudioComponent implements OnInit {
 
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
-  readonly isToolsMenuOpen = signal(false);
-  readonly isPlusMenuOpen = signal(false);
-  readonly isModeMenuOpen = signal(false);
   readonly activeModel = signal<'mini' | 'dynamic' | 'gemma'>(this.readStoredModel());
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
   readonly openThoughts = signal<Set<string>>(new Set());
-
-  readonly activeCommand = signal<string | null>(null);
-  readonly isSlashMenuOpen = signal<boolean>(false);
-
-  readonly slashCommands = [
-    {
-      label: 'Look por Presupuesto',
-      desc: 'Recomienda outfit por presupuesto máximo en Bs',
-      template: 'Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.',
-    },
-    {
-      label: 'Analizar Perchero',
-      desc: 'Revisa prendas del perchero y sugiere combinaciones',
-      template: 'Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.',
-    },
-    {
-      label: 'Explorar Catálogo',
-      desc: 'Descubre piezas exclusivas y novedades',
-      template: 'Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.',
-    },
-    {
-      label: 'Diseñar Outfit a Medida',
-      desc: 'Diseña un look completo según criterio estético y ocasión',
-      template: 'Diseña un outfit completo según ocasión, corte y tallas.',
-    },
-  ];
-
-  clearActiveCommand(): void {
-    this.activeCommand.set(null);
-  }
-
-  selectSlashCommand(cmd: { label: string; desc: string; template: string }): void {
-    this.activeCommand.set(cmd.label);
-    this.prompt.setValue(cmd.template);
-    this.isSlashMenuOpen.set(false);
-    this.focusPrompt();
-  }
-
-  onInputChange(): void {
-    const val = (this.prompt.value || '').trim();
-    if (val === '/' && !this.activeCommand()) {
-      this.isSlashMenuOpen.set(true);
-    } else if (!val.startsWith('/')) {
-      this.isSlashMenuOpen.set(false);
-    }
-  }
-
-  focusPrompt(): void {
-    setTimeout(() => {
-      this.promptTextarea?.nativeElement?.focus();
-    }, 50);
-  }
-
-  readonly isListening = signal(false);
-  private speechRecognition: any = null;
-
-  toggleVoiceRecognition(): void {
-    if (typeof window === 'undefined') return;
-    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRec) {
-      this.toast.show('Tu navegador no admite dictado de voz nativo.', 'info');
-      return;
-    }
-
-    if (this.isListening() && this.speechRecognition) {
-      try { this.speechRecognition.stop(); } catch {}
-      this.isListening.set(false);
-      return;
-    }
-
-    try {
-      this.speechRecognition = new SpeechRec();
-      this.speechRecognition.lang = 'es-BO';
-      this.speechRecognition.continuous = false;
-      this.speechRecognition.interimResults = true;
-
-      this.speechRecognition.onstart = () => {
-        this.isListening.set(true);
-      };
-
-      this.speechRecognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        if (transcript.trim()) {
-          this.prompt.setValue(transcript.trim());
-        }
-      };
-
-      this.speechRecognition.onerror = (err: any) => {
-        this.isListening.set(false);
-        if (err?.error !== 'no-speech') {
-          this.toast.show('Error al acceder al micrófono. Verifica los permisos.', 'info');
-        }
-      };
-
-      this.speechRecognition.onend = () => {
-        this.isListening.set(false);
-      };
-
-      this.speechRecognition.start();
-    } catch {
-      this.isListening.set(false);
-      this.toast.show('No se pudo iniciar el dictado por voz.', 'info');
-    }
-  }
-
-  isThinkingOpen(messageId: string): boolean {
-    return this.openThoughts().has(messageId);
-  }
-
-  toggleThinking(messageId: string): void {
-    this.openThoughts.update((set) => {
-      const next = new Set(set);
-      if (next.has(messageId)) {
-        next.delete(messageId);
-      } else {
-        next.add(messageId);
-      }
-      return next;
-    });
-  }
-
-  formatUserQuery(message: ChatMessage): string {
-    if (!message.isCommand || !message.commandLabel) return message.content;
-    const prefix = `/${message.commandLabel}`.toLowerCase();
-    if (message.content.toLowerCase().startsWith(prefix)) {
-      return message.content.slice(prefix.length).trim();
-    }
-    return message.content;
-  }
-
-  togglePlusMenu(): void {
-    this.isPlusMenuOpen.update((v) => !v);
-    if (this.isPlusMenuOpen()) {
-      this.isModeMenuOpen.set(false);
-      this.isToolsMenuOpen.set(false);
-    }
-  }
-
-  closePlusMenu(): void {
-    this.isPlusMenuOpen.set(false);
-  }
-
-  toggleModeMenu(): void {
-    this.isModeMenuOpen.update((v) => !v);
-    if (this.isModeMenuOpen()) {
-      this.isPlusMenuOpen.set(false);
-      this.isToolsMenuOpen.set(false);
-    }
-  }
-
-  closeModeMenu(): void {
-    this.isModeMenuOpen.set(false);
-  }
-
-  selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {
-    this.activeModel.set(model);
-    this.closeModeMenu();
-    try {
-      localStorage.setItem('drapemind_altair_model', model);
-    } catch {
-      // ignore storage error
-    }
-  }
-
-  private readStoredModel(): 'mini' | 'dynamic' | 'gemma' {
-    try {
-      const val = localStorage.getItem('drapemind_altair_model');
-      if (val === 'mini' || val === 'dynamic' || val === 'gemma') return val;
-    } catch {
-      // ignore storage error
-    }
-    return 'dynamic';
-  }
-
-  handleNewChat(): void {
-    this.ai.createNewSession();
-    this.closePlusMenu();
-  }
-
-  handleOpenSessions(): void {
-    this.closePlusMenu();
-    this.isSessionsOpen.set(true);
-  }
-
-  handleOpenQuestionnaire(): void {
-    this.closePlusMenu();
-    this.isConfiguratorOpen.set(true);
-  }
-
-  handleOpenCart(): void {
-    this.closePlusMenu();
-    this.cart.open();
-  }
-
-  executeOutfitBuilder(): void {
-    this.closePlusMenu();
-    this.isConfiguratorOpen.set(true);
-  }
-
-  executeClosetAnalysis(): void {
-    this.closePlusMenu();
-    this.activeCommand.set('Analizar Perchero');
-    this.prompt.setValue('Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.');
-    this.focusPrompt();
-  }
-
-  executeBudgetLook(): void {
-    this.closePlusMenu();
-    this.activeCommand.set('Look por Presupuesto');
-    this.prompt.setValue('Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.');
-    this.focusPrompt();
-  }
-
-  executeCatalogExplore(): void {
-    this.closePlusMenu();
-    this.activeCommand.set('Explorar Catálogo');
-    this.prompt.setValue('Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.');
-    this.focusPrompt();
-  }
-
-  readonly availableTools = [
-    {
-      id: 'search',
-      icon: 'search',
-      label: 'Buscar prendas',
-      desc: 'Por color, ocasión, tipo o precio',
-      prompt: 'Busca prendas disponibles para ',
-    },
-    {
-      id: 'outfit',
-      icon: 'outfit',
-      label: 'Generar outfit',
-      desc: 'Combinación completa con presupuesto',
-      prompt: 'Arma un outfit elegante con presupuesto de Bs 600',
-    },
-    {
-      id: 'arrivals',
-      icon: 'arrivals',
-      label: 'Novedades Atelier',
-      desc: 'Últimas piezas exclusivas en catálogo',
-      prompt: '¿Qué novedades y piezas recién llegadas tienen en el showroom?',
-    },
-    {
-      id: 'advice',
-      icon: 'advice',
-      label: 'Asesoría de estilo',
-      desc: 'Telas, siluetas y combinaciones',
-      prompt: 'Explícame qué cortes y telas me favorecen para una ocasión especial',
-    },
-    {
-      id: 'stock',
-      icon: 'stock',
-      label: 'Consultar stock y tallas',
-      desc: 'Disponibilidad real en tienda',
-      prompt: '¿Tienen stock y tallas disponibles de ',
-    },
-  ];
-
-  readonly configForm = new FormGroup({
-    occasion: new FormControl('dinamico'),
-    topType: new FormControl(''),
-    topSize: new FormControl(''),
-    bottomType: new FormControl(''),
-    bottomSize: new FormControl(''),
-    shoeSize: new FormControl(''),
-    budget: new FormControl<number | null>(null),
-    customDetail: new FormControl(''),
-  });
-
-  readonly prompt = new FormControl('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(2000)],
-  });
-
-  readonly suggestions: SuggestionItem[] = [
-    {
-      text: 'Mira mi carrito y dime qué puedo combinar o mejorar en mi elección',
-      icon: 'cart',
-    },
-    {
-      text: 'Arma un outfit elegante para una cena con presupuesto de Bs 700',
-      icon: 'outfit',
-    },
-    {
-      text: 'Dime 4 poleras bonitas que no superen los 750 Bs',
-      icon: 'tshirt',
-    },
-    {
-      text: 'Muestra las piezas más exclusivas y de tendencia del atelier',
-      icon: 'gem',
-    },
-    {
-      text: 'Qué hay de nuevo para mí sin repetir lo que ya me mostraste',
-      icon: 'gem',
-    },
-    {
-      text: 'Qué reservas tengo activas y cuándo vencen',
-      icon: 'clock',
-    },
-  ];
-
-  @ViewChild('conversation') conversation?: ElementRef<HTMLElement>;
 
   constructor() {
     this.ai.connect();
@@ -376,6 +78,37 @@ export class AiStudioComponent implements OnInit {
         setTimeout(() => this.send(params['autoQuery']), 250);
       }
     });
+  }
+
+  private readStoredModel(): 'mini' | 'dynamic' | 'gemma' {
+    try {
+      const val = localStorage.getItem('drapemind_altair_model');
+      if (val === 'mini' || val === 'dynamic' || val === 'gemma') return val;
+    } catch {
+      // ignore storage error
+    }
+    return 'dynamic';
+  }
+
+  selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {
+    this.activeModel.set(model);
+    try {
+      localStorage.setItem('drapemind_altair_model', model);
+    } catch {
+      // ignore storage error
+    }
+  }
+
+  handleNewChat(): void {
+    this.ai.createNewSession();
+  }
+
+  handleOpenSessions(): void {
+    this.isSessionsOpen.set(true);
+  }
+
+  handleOpenQuestionnaire(): void {
+    this.isConfiguratorOpen.set(true);
   }
 
   toggleConfigurator(): void {
@@ -394,6 +127,22 @@ export class AiStudioComponent implements OnInit {
     this.selectedGarment.set(null);
   }
 
+  isThinkingOpen(messageId: string): boolean {
+    return this.openThoughts().has(messageId);
+  }
+
+  toggleThinking(messageId: string): void {
+    this.openThoughts.update((set) => {
+      const next = new Set(set);
+      if (next.has(messageId)) {
+        next.delete(messageId);
+      } else {
+        next.add(messageId);
+      }
+      return next;
+    });
+  }
+
   toggleTrace(messageId: string): void {
     this.expandedTraces.update((traces) => ({
       ...traces,
@@ -405,56 +154,21 @@ export class AiStudioComponent implements OnInit {
     return !!this.expandedTraces()[messageId];
   }
 
-  submitConfiguredOutfit(): void {
-    const vals = this.configForm.value;
-    const parts: string[] = [];
-    if (vals.occasion && vals.occasion !== 'dinamico') {
-      parts.push(`Arma un outfit para ocasión ${vals.occasion}`);
-    } else {
-      parts.push('Diseña un outfit completo según criterio estético y contexto');
+  formatUserQuery(message: ChatMessage): string {
+    if (!message.isCommand || !message.commandLabel) return message.content;
+    const prefix = `/${message.commandLabel}`.toLowerCase();
+    if (message.content.toLowerCase().startsWith(prefix)) {
+      return message.content.slice(prefix.length).trim();
     }
-
-    if (vals.topType && vals.topSize) {
-      parts.push(`${vals.topType} en talla ${vals.topSize}`);
-    } else if (vals.topType) {
-      parts.push(`prenda superior tipo ${vals.topType}`);
-    } else if (vals.topSize) {
-      parts.push(`talla superior ${vals.topSize}`);
-    }
-
-    if (vals.bottomType && vals.bottomSize) {
-      parts.push(`${vals.bottomType} en talla ${vals.bottomSize}`);
-    } else if (vals.bottomType) {
-      parts.push(`prenda inferior tipo ${vals.bottomType}`);
-    } else if (vals.bottomSize) {
-      parts.push(`pantalón talla ${vals.bottomSize}`);
-    }
-
-    if (vals.shoeSize) {
-      parts.push(`calzado talla ${vals.shoeSize}`);
-    }
-
-    if (vals.budget && vals.budget > 0) {
-      parts.push(`presupuesto máximo de Bs ${vals.budget}`);
-    }
-
-    if (vals.customDetail?.trim()) {
-      parts.push(vals.customDetail.trim());
-    }
-
-    this.send(parts.join(', '), {
-      isCommand: true,
-      commandLabel: 'Diseñar Outfit a Medida',
-    });
-    this.isConfiguratorOpen.set(false);
+    return message.content;
   }
 
-  send(value?: string, options?: { isCommand?: boolean; commandLabel?: string }): void {
-    const raw = (value ?? this.prompt.value ?? '').trim();
-    if (!raw && !this.activeCommand()) return;
+  send(value: string, options?: { isCommand?: boolean; commandLabel?: string }): void {
+    const raw = (value ?? '').trim();
+    if (!raw) return;
     if (this.ai.isBusy()) return;
 
-    const cmdLabel = options?.commandLabel || this.activeCommand();
+    const cmdLabel = options?.commandLabel;
     const isCmd = options?.isCommand ?? !!cmdLabel;
 
     let fullContent = raw;
@@ -471,37 +185,27 @@ export class AiStudioComponent implements OnInit {
       mode: this.activeModel(),
     });
 
-    this.prompt.reset();
-    this.activeCommand.set(null);
-    this.isSlashMenuOpen.set(false);
-    this.closePlusMenu();
     this.followLatest = true;
     window.setTimeout(() => this.scrollToBottom(), 60);
   }
 
-  toggleToolsMenu(): void {
-    this.isToolsMenuOpen.update((v) => !v);
+  onComposerSend(event: ComposerSubmitEvent): void {
+    this.send(event.text, {
+      isCommand: !!event.commandLabel,
+      commandLabel: event.commandLabel,
+    });
   }
 
-  closeToolsMenu(): void {
-    this.isToolsMenuOpen.set(false);
-  }
-
-  selectTool(promptText: string): void {
-    this.prompt.setValue(promptText);
-    this.isToolsMenuOpen.set(false);
+  onOutfitConfigSubmit(result: OutfitConfigResult): void {
+    this.send(result.text, {
+      isCommand: true,
+      commandLabel: result.commandLabel,
+    });
+    this.isConfiguratorOpen.set(false);
   }
 
   cancel(): void {
     this.ai.cancelGeneration();
-  }
-
-  onKeydown(event: Event): void {
-    const keyboard = event as KeyboardEvent;
-    if (keyboard.key === 'Enter' && !keyboard.shiftKey) {
-      keyboard.preventDefault();
-      this.send();
-    }
   }
 
   addToCart(item: AiActionItem): void {
@@ -526,22 +230,6 @@ export class AiStudioComponent implements OnInit {
       variants,
       `Carrito reemplazado por una selección de ${variants.length} prendas`,
     );
-  }
-
-  openCartDrawer(): void {
-    this.cart.open();
-  }
-
-  statusLabel(): string {
-    const labels = {
-      offline: 'Estilista Desconectado',
-      connecting: 'Estableciendo Conexión',
-      connected: 'En línea',
-      loading: 'Altair Razonando...',
-      ready: 'Personal Stylist Listo',
-      error: 'Reintentando Conexión',
-    };
-    return labels[this.ai.status()] || 'En Espera';
   }
 
   toolLabel(name: string): string {
@@ -573,32 +261,6 @@ export class AiStudioComponent implements OnInit {
     return `${(durationMs / 1000).toFixed(1)} s`;
   }
 
-  cardImageUrl(item: AiActionItem): string | null {
-    if (!item.imagen || item.imagen.includes('placeholder')) return null;
-    return this.runtime.resolveImageUrl(item.imagen);
-  }
-
-  getGarmentType(name: string): 'top' | 'bottom' | 'shoes' | 'accessory' | 'atelier' {
-    const n = (name || '').toLowerCase();
-    if (n.includes('polera') || n.includes('camisa') || n.includes('blusa') || n.includes('polo') || n.includes('top') || n.includes('hoodie') || n.includes('chaleco') || n.includes('casaca') || n.includes('remera')) return 'top';
-    if (n.includes('pantalon') || n.includes('pantalón') || n.includes('jean') || n.includes('denim') || n.includes('cargo') || n.includes('falda') || n.includes('short') || n.includes('bermuda') || n.includes('palazzo') || n.includes('chino')) return 'bottom';
-    if (n.includes('zapato') || n.includes('calzado') || n.includes('sneaker') || n.includes('bota') || n.includes('sandalia') || n.includes('mocasin') || n.includes('mocasín') || n.includes('tacon') || n.includes('tacón')) return 'shoes';
-    if (n.includes('accesorio') || n.includes('cinturon') || n.includes('cinturón') || n.includes('cartera') || n.includes('bolso') || n.includes('gorra') || n.includes('joya') || n.includes('reloj') || n.includes('lentes')) return 'accessory';
-    return 'atelier';
-  }
-
-  getGarmentLabel(name: string): string {
-    const type = this.getGarmentType(name);
-    const map = {
-      top: 'PRENDA SUPERIOR',
-      bottom: 'PRENDA INFERIOR',
-      shoes: 'CALZADO ATELIER',
-      accessory: 'ACCESORIO DE ESTILO',
-      atelier: 'PIEZA ATELIER',
-    };
-    return map[type];
-  }
-
   formatRelativeTime(isoDate: string | Date): string {
     const d = typeof isoDate === 'string' ? new Date(isoDate) : isoDate;
     const diffMs = Date.now() - d.getTime();
@@ -608,13 +270,6 @@ export class AiStudioComponent implements OnInit {
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `Hace ${diffHours} h`;
     return 'Hoy';
-  }
-
-  cleanEmoji(text: string): string {
-    return text.replace(
-      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B06}\u{2194}-\u{21AA}]/gu,
-      '',
-    );
   }
 
   parseMarkdown(raw: string): string {
@@ -636,7 +291,7 @@ export class AiStudioComponent implements OnInit {
       if (line.startsWith('|') && line.endsWith('|')) {
         const cells = line.split('|').map((c) => c.trim()).slice(1, -1);
         if (cells.every((c) => /^[-:]+$/.test(c))) {
-          continue; // fila separadora |---|---|
+          continue;
         }
         if (!inTable) {
           inTable = true;

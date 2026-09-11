@@ -1,0 +1,43 @@
+<div class="outfit-receipt">
+  <div class="receipt-header">
+    <div>
+      <span class="receipt-tag">SELECCIÓN {{ (responseMeta.occasion || 'ATELIER') | uppercase }}</span>
+      <p class="receipt-subtitle">{{ responseMeta.item_count || 0 }} piezas con stock y talla verificados</p>
+    </div>
+    <div class="receipt-total">
+      Bs {{ (responseMeta.total_bob || 0) | number:'1.2-2' }}
+    </div>
+  </div>
+
+  @if (responseMeta.budget_bob) {
+    <div class="receipt-budget-row">
+      <span>Presupuesto: Bs {{ responseMeta.budget_bob | number:'1.0-0' }}</span>
+    </div>
+  }
+
+  @if (actionItems && actionItems.length > 0) {
+    <div class="receipt-actions">
+      <button
+        type="button"
+        class="receipt-btn-primary"
+        (click)="onApply()"
+        title="Reemplazar carrito con este outfit"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span>Usar esta selección en mi perchero</span>
+      </button>
+    </div>
+  }
+
+  @if (responseMeta.restrictions && responseMeta.restrictions.length > 0) {
+    <div class="receipt-restrictions">
+      @for (rest of responseMeta.restrictions; track rest) {
+        <span class="restriction-chip">ℹ {{ rest }}</span>
+      }
+    </div>
+  }
+</div>
