@@ -53,6 +53,32 @@ export class AiStudioComponent implements OnInit {
   readonly activeModel = signal<'mini' | 'dynamic' | 'gemma'>(this.readStoredModel());
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
+  readonly openThoughts = signal<Set<string>>(new Set());
+
+  isThinkingOpen(messageId: string): boolean {
+    return this.openThoughts().has(messageId);
+  }
+
+  toggleThinking(messageId: string): void {
+    this.openThoughts.update((set) => {
+      const next = new Set(set);
+      if (next.has(messageId)) {
+        next.delete(messageId);
+      } else {
+        next.add(messageId);
+      }
+      return next;
+    });
+  }
+
+  formatUserQuery(message: ChatMessage): string {
+    if (!message.isCommand || !message.commandLabel) return message.content;
+    const prefix = `/${message.commandLabel}`.toLowerCase();
+    if (message.content.toLowerCase().startsWith(prefix)) {
+      return message.content.slice(prefix.length).trim();
+    }
+    return message.content;
+  }
 
   togglePlusMenu(): void {
     this.isPlusMenuOpen.update((v) => !v);

@@ -296,6 +296,8 @@ export interface ChatMessage {
   responseMeta?: AiResponseMeta;
   suggestedActions?: AiSuggestedAction[];
   durationMs?: number;
+  thoughtSteps?: string[];
+  thinkingTime?: string;
   isCommand?: boolean;
   commandLabel?: string;
   modelMode?: 'mini' | 'dynamic' | 'gemma';

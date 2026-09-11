@@ -429,6 +429,16 @@ export class AiSocketService {
     const clean = content;
     if (!clean.trim() || this.isBusy()) return;
 
+    let isCommand = options?.isCommand ?? false;
+    let commandLabel = options?.commandLabel;
+    if (!isCommand && clean.startsWith('/')) {
+      const match = clean.match(/^\/([^\s\[\]\n]+(?:\s+[^\s\[\]\n]+)*)(.*)/);
+      if (match && match[1]) {
+        isCommand = true;
+        commandLabel = match[1].trim();
+      }
+    }
+
     const userMsgId = `user-${Date.now()}`;
     const assistantMsgId = `assistant-${Date.now()}`;
     const activeId = this.activeSessionId();
@@ -451,8 +461,8 @@ export class AiSocketService {
               id: userMsgId,
               role: 'user',
               content: clean,
-              isCommand: options?.isCommand,
-              commandLabel: options?.commandLabel,
+              isCommand,
+              commandLabel,
               modelMode: options?.mode,
               createdAt: new Date(),
             },
@@ -621,6 +631,8 @@ export class AiSocketService {
         responseMeta: event.response_meta || last.responseMeta,
         suggestedActions: event.suggested_actions || last.suggestedActions,
         durationMs: duration,
+        thoughtSteps: [...this.liveThoughtSteps()],
+        thinkingTime: `${(duration / 1000).toFixed(1)}s`,
       }));
       this.saveSessionsToStorage();
       return;
