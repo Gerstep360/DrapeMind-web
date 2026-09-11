@@ -50,7 +50,7 @@ export class AiStudioComponent implements OnInit {
   readonly isToolsMenuOpen = signal(false);
   readonly isPlusMenuOpen = signal(false);
   readonly isModeMenuOpen = signal(false);
-  readonly activeMode = signal<'stylist' | 'outfit' | 'cart'>('stylist');
+  readonly activeModel = signal<'mini' | 'dynamic' | 'gemma'>(this.readStoredModel());
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
 
@@ -78,19 +78,34 @@ export class AiStudioComponent implements OnInit {
     this.isModeMenuOpen.set(false);
   }
 
-  selectMode(mode: 'stylist' | 'outfit' | 'cart'): void {
-    this.activeMode.set(mode);
+  selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {
+    this.activeModel.set(model);
     this.closeModeMenu();
-    if (mode === 'outfit') {
-      this.prompt.setValue('Arma un outfit completo y elegante con piezas del showroom');
-    } else if (mode === 'cart') {
-      this.prompt.setValue('Analiza las prendas de mi perchero y recomiéndame combinaciones');
+    try {
+      localStorage.setItem('drapemind_altair_model', model);
+    } catch {
+      // ignore storage error
     }
+  }
+
+  private readStoredModel(): 'mini' | 'dynamic' | 'gemma' {
+    try {
+      const val = localStorage.getItem('drapemind_altair_model');
+      if (val === 'mini' || val === 'dynamic' || val === 'gemma') return val;
+    } catch {
+      // ignore storage error
+    }
+    return 'dynamic';
   }
 
   handleNewChat(): void {
     this.ai.createNewSession();
     this.closePlusMenu();
+  }
+
+  handleOpenSessions(): void {
+    this.closePlusMenu();
+    this.isSessionsOpen.set(true);
   }
 
   handleOpenQuestionnaire(): void {
@@ -103,9 +118,33 @@ export class AiStudioComponent implements OnInit {
     this.cart.open();
   }
 
-  handleOpenSessions(): void {
+  executeOutfitBuilder(): void {
     this.closePlusMenu();
-    this.isSessionsOpen.set(true);
+    this.isConfiguratorOpen.set(true);
+  }
+
+  executeClosetAnalysis(): void {
+    this.closePlusMenu();
+    this.send('Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.', {
+      isCommand: true,
+      commandLabel: 'Analizar Perchero',
+    });
+  }
+
+  executeBudgetLook(): void {
+    this.closePlusMenu();
+    this.send('Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.', {
+      isCommand: true,
+      commandLabel: 'Look por Presupuesto',
+    });
+  }
+
+  executeCatalogExplore(): void {
+    this.closePlusMenu();
+    this.send('Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.', {
+      isCommand: true,
+      commandLabel: 'Explorar Catálogo',
+    });
   }
 
   readonly availableTools = [
@@ -147,7 +186,7 @@ export class AiStudioComponent implements OnInit {
   ];
 
   readonly configForm = new FormGroup({
-    occasion: new FormControl('cena'),
+    occasion: new FormControl('dinamico'),
     topType: new FormControl(''),
     topSize: new FormControl(''),
     bottomType: new FormControl(''),
@@ -237,8 +276,11 @@ export class AiStudioComponent implements OnInit {
   submitConfiguredOutfit(): void {
     const vals = this.configForm.value;
     const parts: string[] = [];
-    const occLabel = vals.occasion || 'cena';
-    parts.push(`Arma un outfit para ocasión ${occLabel}`);
+    if (vals.occasion && vals.occasion !== 'dinamico') {
+      parts.push(`Arma un outfit para ocasión ${vals.occasion}`);
+    } else {
+      parts.push('Diseña un outfit completo según criterio estético y contexto');
+    }
 
     if (vals.topType && vals.topSize) {
       parts.push(`${vals.topType} en talla ${vals.topSize}`);
@@ -268,14 +310,21 @@ export class AiStudioComponent implements OnInit {
       parts.push(vals.customDetail.trim());
     }
 
-    this.send(parts.join(', '));
+    this.send(parts.join(', '), {
+      isCommand: true,
+      commandLabel: 'Diseñar Outfit a Medida',
+    });
     this.isConfiguratorOpen.set(false);
   }
 
-  send(value?: string): void {
+  send(value?: string, options?: { isCommand?: boolean; commandLabel?: string }): void {
     const message = (value ?? this.prompt.value).trim();
     if (!message || this.ai.isBusy()) return;
-    this.ai.sendMessage(message);
+    this.ai.sendMessage(message, {
+      isCommand: options?.isCommand,
+      commandLabel: options?.commandLabel,
+      mode: this.activeModel(),
+    });
     this.prompt.reset();
     this.followLatest = true;
     window.setTimeout(() => this.scrollToBottom(), 60);

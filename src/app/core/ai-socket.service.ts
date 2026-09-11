@@ -40,10 +40,10 @@ export class AiSocketService {
 
   private socket: WebSocket | null = null;
   private reconnectTimer: number | null = null;
+  private reconnectAttempt = 0;
   private heartbeat: number | null = null;
   private tickerTimer: number | null = null;
-  private reconnectAttempt = 0;
-  private queuedMessage: string | null = null;
+  private queuedMessage: { content: string; mode?: 'mini' | 'dynamic' | 'gemma' } | null = null;
   private responseStartedAt = 0;
   private authRejected = false;
   private manualDisconnect = false;
@@ -422,7 +422,10 @@ export class AiSocketService {
     }, 150);
   }
 
-  sendMessage(content: string): void {
+  sendMessage(
+    content: string,
+    options?: { isCommand?: boolean; commandLabel?: string; mode?: 'mini' | 'dynamic' | 'gemma' },
+  ): void {
     const clean = content;
     if (!clean.trim() || this.isBusy()) return;
 
@@ -444,7 +447,15 @@ export class AiSocketService {
           updatedAt: new Date().toISOString(),
           messages: [
             ...s.messages,
-            { id: userMsgId, role: 'user', content: clean, createdAt: new Date() },
+            {
+              id: userMsgId,
+              role: 'user',
+              content: clean,
+              isCommand: options?.isCommand,
+              commandLabel: options?.commandLabel,
+              modelMode: options?.mode,
+              createdAt: new Date(),
+            },
             {
               id: assistantMsgId,
               role: 'assistant',
@@ -470,9 +481,9 @@ export class AiSocketService {
       this.socket?.readyState === WebSocket.OPEN &&
       ['connected', 'ready'].includes(this.status())
     ) {
-      this.sendChat(clean);
+      this.sendChat(clean, options?.mode);
     } else {
-      this.queuedMessage = clean;
+      this.queuedMessage = { content: clean, mode: options?.mode };
       this.connect();
     }
   }
@@ -493,10 +504,15 @@ export class AiSocketService {
     }
   }
 
-  private sendChat(content: string): void {
+  private sendChat(content: string, mode: string = 'dynamic'): void {
     const backendSessionId = this.currentSession().backendSessionId;
     this.socket?.send(
-      JSON.stringify({ type: 'chat', message: content, session_id: backendSessionId }),
+      JSON.stringify({
+        type: 'chat',
+        message: content,
+        session_id: backendSessionId,
+        mode: mode || 'dynamic',
+      }),
     );
   }
 
@@ -507,9 +523,9 @@ export class AiSocketService {
       this.reconnectAttempt = 0;
       this.status.set('connected');
       if (this.queuedMessage) {
-        const message = this.queuedMessage;
+        const item = this.queuedMessage;
         this.queuedMessage = null;
-        this.sendChat(message);
+        this.sendChat(item.content, item.mode);
       }
       return;
     }

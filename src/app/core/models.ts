@@ -296,6 +296,9 @@ export interface ChatMessage {
   responseMeta?: AiResponseMeta;
   suggestedActions?: AiSuggestedAction[];
   durationMs?: number;
+  isCommand?: boolean;
+  commandLabel?: string;
+  modelMode?: 'mini' | 'dynamic' | 'gemma';
   createdAt: string | Date;
 }
 

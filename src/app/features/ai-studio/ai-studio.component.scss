@@ -17,6 +17,58 @@
 }
 
 /* ==========================================================================
+   FLOATING CORNER ACTIONS (Discrete session tools)
+   ========================================================================== */
+
+.chat-corner-actions {
+  position: absolute;
+  top: 1rem;
+  right: clamp(1rem, 3vw, 2rem);
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+.corner-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  border-radius: var(--dm-radius-pill, 999px);
+  background: var(--dm-surface, #FFFFFF);
+  border: 1px solid var(--dm-border, #E1E3DA);
+  color: var(--dm-ink, #10110F);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--dm-shadow-xs, 0 2px 6px rgba(16, 17, 15, 0.04));
+  transition: all var(--dm-fast, 150ms) cubic-bezier(0.22, 1, 0.36, 1);
+
+  svg {
+    flex-shrink: 0;
+    color: var(--dm-ink, #10110F);
+  }
+
+  &:hover {
+    background: var(--dm-ink, #10110F);
+    color: #FFFFFF;
+    border-color: var(--dm-ink, #10110F);
+    transform: translateY(-1px);
+    box-shadow: var(--dm-shadow-sm, 0 4px 12px rgba(16, 17, 15, 0.08));
+
+    svg {
+      color: #FFFFFF;
+    }
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* ==========================================================================
    CONVERSATION CANVAS (Infinite Thread, Centered Reading Width)
    ========================================================================== */
 
@@ -155,6 +207,26 @@
     }
   }
 
+  &--command {
+    .message__avatar {
+      background: var(--dm-ink, #10110F);
+      color: var(--dm-lime, #DFFF3F);
+      border: 1.5px solid var(--dm-lime, #DFFF3F);
+      box-shadow: 0 0 12px var(--dm-lime-glow, rgba(223, 255, 63, 0.4));
+    }
+
+    .message__bubble {
+      background: #141512 !important;
+      color: #F4F5EA !important;
+      border: 1.5px solid var(--dm-lime, #DFFF3F) !important;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 0 14px rgba(223, 255, 63, 0.18) !important;
+
+      .message__markdown strong {
+        color: var(--dm-lime, #DFFF3F);
+      }
+    }
+  }
+
   &:not(.message--user) {
     .message__avatar {
       background: var(--dm-lime, #DFFF3F);
@@ -194,6 +266,27 @@
     &:has(.action-items-section),
     &:has(.outfit-receipt) {
       max-width: 100%;
+    }
+  }
+
+  .command-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.26rem 0.68rem;
+    border-radius: var(--dm-radius-pill, 999px);
+    background: rgba(223, 255, 63, 0.16);
+    border: 1px solid var(--dm-lime, #DFFF3F);
+    color: var(--dm-lime, #DFFF3F);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    width: fit-content;
+    margin-bottom: 0.35rem;
+
+    svg {
+      flex-shrink: 0;
     }
   }
 
@@ -848,12 +941,12 @@
 
 .plus-popover {
   left: 0.75rem;
-  min-width: 260px;
+  min-width: 280px;
 }
 
 .mode-popover {
   left: 3.5rem;
-  min-width: 250px;
+  min-width: 310px;
 }
 
 .popover-item {
@@ -882,6 +975,22 @@
     }
   }
 
+  .mode-icon--mini {
+    color: #929900;
+  }
+
+  .mode-icon--dynamic {
+    color: #A3AA00;
+  }
+
+  .mode-icon--gemma {
+    color: #5E5080;
+  }
+
+  .icon-lime {
+    color: #8E9600;
+  }
+
   .popover-check {
     width: 16px;
     height: 16px;
@@ -889,11 +998,19 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
+    margin-left: auto;
   }
 
   .popover-copy {
     display: flex;
     flex-direction: column;
+    flex: 1;
+
+    .popover-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
 
     strong {
       font-size: 0.82rem;
@@ -907,10 +1024,43 @@
     }
   }
 
+  .badge-mini {
+    display: inline-block;
+    padding: 0.1rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(223, 255, 63, 0.25);
+    border: 1px solid rgba(181, 191, 0, 0.4);
+    color: #555A00;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .badge-recommended {
+    display: inline-block;
+    padding: 0.1rem 0.42rem;
+    border-radius: 999px;
+    background: var(--dm-lime, #DFFF3F);
+    color: var(--dm-ink, #10110F);
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   &:hover,
   &--active {
     background: var(--dm-surface-soft, #F8F9F2);
   }
+}
+
+.mode-svg--mini {
+  color: #929900 !important;
+}
+
+.mode-svg--gemma {
+  color: #5E5080 !important;
 }
 
 /* ==========================================================================

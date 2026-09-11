@@ -1,4 +1,34 @@
 <section class="ai-page" [class.ai-page--empty]="ai.messages().length === 0">
+  <!-- FLOATING DISCRETE CORNER ACTIONS (NUEVO CHAT & HISTORIAL) -->
+  <div class="chat-corner-actions" role="toolbar" aria-label="Acciones de sesión">
+    <button
+      type="button"
+      class="corner-action-btn"
+      (click)="handleNewChat()"
+      title="Iniciar una nueva conversación limpia"
+      aria-label="Nuevo chat"
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      <span>Nuevo chat</span>
+    </button>
+
+    <button
+      type="button"
+      class="corner-action-btn"
+      (click)="handleOpenSessions()"
+      title="Ver historial de conversaciones de las últimas 24h"
+      aria-label="Historial de chats"
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>Historial</span>
+    </button>
+  </div>
+
   <!-- CONVERSATION CANVAS (INFINITE SCROLL) -->
   <div #conversation class="conversation" aria-live="polite" (scroll)="onConversationScroll()">
     <!-- EMPTY STATE (DISAPPEARS AS SOON AS FIRST MESSAGE IS SENT) -->
@@ -52,11 +82,18 @@
       <article
         class="message"
         [class.message--user]="message.role === 'user'"
+        [class.message--command]="message.isCommand"
         [class.message--error]="message.error"
       >
         <div class="message__avatar">
           @if (message.role === 'user') {
-            <span>TÚ</span>
+            @if (message.isCommand) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            } @else {
+              <span>TÚ</span>
+            }
           } @else {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
@@ -64,7 +101,16 @@
           }
         </div>
 
-        <div class="message__bubble">
+        <div class="message__bubble" [class.message__bubble--command]="message.isCommand">
+          <!-- COMMAND BADGE (VISUALLY DISTINGUISHED) -->
+          @if (message.isCommand) {
+            <div class="command-pill-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>COMANDO: {{ message.commandLabel || 'Acción guiada' }}</span>
+            </div>
+          }
           <!-- LIVE THINKING CARD DURING INFERENCE -->
           @if (message.pending && message.role === 'assistant') {
             <div class="live-thinking-card">
@@ -313,9 +359,59 @@
         ></textarea>
       </div>
 
-      <!-- POPOVER MENU FOR '+' BUTTON -->
+      <!-- POPOVER MENU FOR '+' BUTTON (ALTAIR FUNCTIONAL CAPABILITIES) -->
       @if (isPlusMenuOpen()) {
         <div class="composer-popover plus-popover" (click)="$event.stopPropagation()">
+          <button type="button" class="popover-item" (click)="executeOutfitBuilder()">
+            <span class="popover-icon icon-lime">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Diseñar outfit a medida</strong>
+              <small>Llenar cuestionario guiado de ocasión y tallas</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="executeClosetAnalysis()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Analizar mi perchero</strong>
+              <small>Revisión y combinaciones de tus guardados</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="executeBudgetLook()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Look por presupuesto</strong>
+              <small>Outfit optimizado por menos de Bs 400</small>
+            </div>
+          </button>
+
+          <button type="button" class="popover-item" (click)="executeCatalogExplore()">
+            <span class="popover-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <strong>Explorar catálogo</strong>
+              <small>Piezas exclusivas y novedades de showroom</small>
+            </div>
+          </button>
+
           <button type="button" class="popover-item" (click)="handleOpenQuestionnaire()">
             <span class="popover-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -326,105 +422,94 @@
               </svg>
             </span>
             <div class="popover-copy">
-              <strong>Medidas y preferencias</strong>
+              <strong>Medidas y silueta</strong>
               <small>Cuestionario personalizado</small>
-            </div>
-          </button>
-
-          <button type="button" class="popover-item" (click)="handleOpenCart()">
-            <span class="popover-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
-              </svg>
-            </span>
-            <div class="popover-copy">
-              <strong>Mi perchero · {{ cart.totalItems() }}</strong>
-              <small>Prendas en tu selección actual</small>
-            </div>
-          </button>
-
-          <button type="button" class="popover-item" (click)="handleNewChat()">
-            <span class="popover-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-            </span>
-            <div class="popover-copy">
-              <strong>Nueva conversación</strong>
-              <small>Iniciar chat limpio</small>
-            </div>
-          </button>
-
-          <button type="button" class="popover-item" (click)="handleOpenSessions()">
-            <span class="popover-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-            </span>
-            <div class="popover-copy">
-              <strong>Historial de chats</strong>
-              <small>Conversaciones de las últimas 24h</small>
-            </div>
-          </button>
-
-          <button type="button" class="popover-item" (click)="selectTool('Arma un outfit elegante para una cena con presupuesto de Bs 700'); closePlusMenu()">
-            <span class="popover-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-              </svg>
-            </span>
-            <div class="popover-copy">
-              <strong>Diseñar un outfit</strong>
-              <small>Combinación guiada por Altair</small>
             </div>
           </button>
         </div>
       }
 
-      <!-- POPOVER MENU FOR 'ATELIER' MODE CHIP -->
+      <!-- POPOVER MENU FOR REAL MODEL SELECTION -->
       @if (isModeMenuOpen()) {
         <div class="composer-popover mode-popover" (click)="$event.stopPropagation()">
-          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'stylist'" (click)="selectMode('stylist')">
-            <span class="popover-check">
-              @if (activeMode() === 'stylist') {
+          <button
+            type="button"
+            class="popover-item"
+            [class.popover-item--active]="activeModel() === 'mini'"
+            (click)="selectModel('mini')"
+          >
+            <span class="popover-icon mode-icon--mini">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <div class="popover-title-row">
+                <strong>Altair Mini</strong>
+                <span class="badge-mini">Ultrarrápido</span>
+              </div>
+              <small>Solo modelo Scout · Respuestas inmediatas en ~1-2s</small>
+            </div>
+            @if (activeModel() === 'mini') {
+              <span class="popover-check">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-              }
-            </span>
-            <div class="popover-copy">
-              <strong>Personal Stylist</strong>
-              <small>Consultas de moda, siluetas y tendencias</small>
-            </div>
+              </span>
+            }
           </button>
 
-          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'outfit'" (click)="selectMode('outfit')">
-            <span class="popover-check">
-              @if (activeMode() === 'outfit') {
+          <button
+            type="button"
+            class="popover-item"
+            [class.popover-item--active]="activeModel() === 'dynamic'"
+            (click)="selectModel('dynamic')"
+          >
+            <span class="popover-icon mode-icon--dynamic">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <div class="popover-title-row">
+                <strong>Dinámico</strong>
+                <span class="badge-recommended">Recomendado</span>
+              </div>
+              <small>Scout rápido con delegación profunda a Gemma si se requiere</small>
+            </div>
+            @if (activeModel() === 'dynamic') {
+              <span class="popover-check">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-              }
-            </span>
-            <div class="popover-copy">
-              <strong>Outfit completo</strong>
-              <small>Combinaciones con presupuesto y stock</small>
-            </div>
+              </span>
+            }
           </button>
 
-          <button type="button" class="popover-item" [class.popover-item--active]="activeMode() === 'cart'" (click)="selectMode('cart')">
-            <span class="popover-check">
-              @if (activeMode() === 'cart') {
+          <button
+            type="button"
+            class="popover-item"
+            [class.popover-item--active]="activeModel() === 'gemma'"
+            (click)="selectModel('gemma')"
+          >
+            <span class="popover-icon mode-icon--gemma">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93l-.75 2.07h2a2 2 0 0 1 2 2v6H8v-6a2 2 0 0 1 2-2h2l-.75-2.07A4.002 4.002 0 0 1 12 2Z"/>
+              </svg>
+            </span>
+            <div class="popover-copy">
+              <div class="popover-title-row">
+                <strong>Altair (Solo Gemma)</strong>
+              </div>
+              <small>Razonamiento exhaustivo Gemma 9B (~110s)</small>
+            </div>
+            @if (activeModel() === 'gemma') {
+              <span class="popover-check">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-              }
-            </span>
-            <div class="popover-copy">
-              <strong>Analizar mi perchero</strong>
-              <small>Evaluación de prendas guardadas</small>
-            </div>
+              </span>
+            }
           </button>
         </div>
       }
@@ -444,18 +529,30 @@
             <span class="plus-sign">+</span>
           </button>
 
-          <!-- [Atelier ▾] MODE SELECTOR CHIP -->
+          <!-- MODEL SELECTOR CHIP -->
           <button
             type="button"
             class="composer-mode-chip"
             [class.composer-mode-chip--active]="isModeMenuOpen()"
             (click)="toggleModeMenu()"
-            title="Cambiar modo de Altair"
+            title="Cambiar modelo de Altair"
           >
-            <svg class="sparkle" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-            </svg>
-            <span>Atelier</span>
+            @if (activeModel() === 'mini') {
+              <svg class="sparkle mode-svg--mini" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>Altair Mini</span>
+            } @else if (activeModel() === 'gemma') {
+              <svg class="sparkle mode-svg--gemma" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93l-.75 2.07h2a2 2 0 0 1 2 2v6H8v-6a2 2 0 0 1 2-2h2l-.75-2.07A4.002 4.002 0 0 1 12 2Z"/>
+              </svg>
+              <span>Altair (Gemma)</span>
+            } @else {
+              <svg class="sparkle" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Dinámico</span>
+            }
             <span class="chevron">▾</span>
           </button>
         </div>
@@ -672,14 +769,22 @@
           <div class="form-group">
             <label>OCASIÓN</label>
             <div class="chip-select-row">
-              @for (occ of ['cena', 'fiesta', 'casual', 'trabajo', 'boda', 'gala']; track occ) {
+              @for (occ of [
+                { id: 'dinamico', label: 'DINÁMICO / CONTEXTO' },
+                { id: 'casual', label: 'CASUAL' },
+                { id: 'cena', label: 'CENA' },
+                { id: 'fiesta', label: 'FIESTA' },
+                { id: 'trabajo', label: 'TRABAJO' },
+                { id: 'boda', label: 'BODA' },
+                { id: 'gala', label: 'GALA' }
+              ]; track occ.id) {
                 <button
                   type="button"
                   class="choice-chip"
-                  [class.choice-chip--selected]="configForm.get('occasion')?.value === occ"
-                  (click)="configForm.get('occasion')?.setValue(occ)"
+                  [class.choice-chip--selected]="configForm.get('occasion')?.value === occ.id"
+                  (click)="configForm.get('occasion')?.setValue(occ.id)"
                 >
-                  {{ occ | uppercase }}
+                  {{ occ.label }}
                 </button>
               }
             </div>
