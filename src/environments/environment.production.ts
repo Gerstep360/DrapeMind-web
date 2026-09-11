@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   backendUrl: '',
-  apiPrefix: '/api/v1',
+  apiPrefix: '/DrapeMind/api/v1',
 };

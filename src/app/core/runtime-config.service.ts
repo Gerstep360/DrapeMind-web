@@ -34,15 +34,30 @@ export class RuntimeConfigService {
     return configured.replace(/\/$/, '');
   }
 
+  private normalizePrefix(prefix: string): string {
+    if (!this.backendUrl && typeof document !== 'undefined') {
+      const base = document.querySelector('base')?.getAttribute('href') || '/';
+      const cleanBase = base.endsWith('/') ? base : `${base}/`;
+      const trimmedBase = cleanBase.replace(/^\/|\/$/g, '');
+      if (trimmedBase && !prefix.includes(trimmedBase)) {
+        const cleanPrefix = prefix.startsWith('/') ? prefix : `/${prefix}`;
+        return `/${trimmedBase}${cleanPrefix}`;
+      }
+    }
+    return prefix;
+  }
+
   get apiUrl(): string {
-    const prefix = this.config.apiPrefix ?? environment.apiPrefix;
+    const rawPrefix = this.config.apiPrefix ?? environment.apiPrefix;
+    const prefix = this.normalizePrefix(rawPrefix);
     return `${this.backendUrl}${prefix}`;
   }
 
   wsUrl(channel: 'ai' | 'events'): string {
     const base = this.backendUrl || window.location.origin;
     const socketBase = base.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
-    const prefix = this.config.apiPrefix ?? environment.apiPrefix;
+    const rawPrefix = this.config.apiPrefix ?? environment.apiPrefix;
+    const prefix = this.normalizePrefix(rawPrefix);
     return `${socketBase}${prefix}/ws/${channel}`;
   }
 
