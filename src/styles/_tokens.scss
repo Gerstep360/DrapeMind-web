@@ -1,0 +1,96 @@
+/* ==========================================================================
+   DRAPEMIND FLOW UI — DESIGN SYSTEM TOKENS
+   Direction: AI Fashion Commerce + Soft Futurism + Editorial Minimal
+   ========================================================================== */
+
+:root {
+  /* --- Brand & Accents --- */
+  --dm-lime: #DFFF3F;
+  --dm-lime-hover: #D2F632;
+  --dm-lime-soft: #EEFF9D;
+  --dm-lime-glow: rgba(223, 255, 63, 0.35);
+
+  --dm-cyan: #C9EEF0;
+  --dm-cyan-soft: #E7F7F7;
+  --dm-cyan-border: #BCE2E4;
+
+  /* --- Backgrounds & Surfaces --- */
+  --dm-bg: #F4F5EA;
+  --dm-surface: #FFFFFF;
+  --dm-surface-soft: #F8F9F2;
+  --dm-surface-glass: rgba(255, 255, 255, 0.84);
+
+  /* --- Typography & Inks --- */
+  --dm-ink: #10110F;
+  --dm-text: #22231F;
+  --dm-text-muted: #7B7F75;
+  --dm-gray-100: #F0F1EB;
+  --dm-gray-200: #E1E3DA;
+  --dm-gray-500: #7B7F75;
+  --dm-gray-700: #40433D;
+
+  /* --- Borders --- */
+  --dm-border: #E1E3DA;
+  --dm-border-strong: #CDD0C5;
+  --dm-border-subtle: rgba(16, 17, 15, 0.08);
+
+  /* --- Semantic States --- */
+  --dm-success: #57A773;
+  --dm-success-soft: #E4F4EA;
+  --dm-danger: #E85D5D;
+  --dm-danger-soft: #FDE8E8;
+  --dm-warning: #E4B84D;
+  --dm-warning-soft: #FCF4DF;
+
+  /* --- Radii --- */
+  --dm-radius-xs: 10px;
+  --dm-radius-sm: 14px;
+  --dm-radius-md: 20px;
+  --dm-radius-lg: 26px;
+  --dm-radius-xl: 34px;
+  --dm-radius-pill: 999px;
+
+  /* --- Elevation & Shadows --- */
+  --dm-shadow-xs: 0 2px 8px rgba(16, 17, 15, 0.04);
+  --dm-shadow-sm: 0 6px 18px rgba(16, 17, 15, 0.06);
+  --dm-shadow-md: 0 14px 36px rgba(16, 17, 15, 0.08);
+  --dm-shadow-lg: 0 24px 64px rgba(16, 17, 15, 0.12);
+  --dm-shadow-float: 0 20px 48px -12px rgba(16, 17, 15, 0.14);
+
+  /* --- Layout & Grid --- */
+  --dm-page-max: 1440px;
+  --dm-page-padding: clamp(16px, 3vw, 44px);
+  --sidebar-width: 14.5rem;
+
+  /* --- Typography Families --- */
+  --font-display: 'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+
+  /* --- Transitions & Motion --- */
+  --dm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dm-fast: 150ms;
+  --dm-normal: 260ms;
+  --dm-slow: 480ms;
+
+  /* ==========================================================================
+     Backward Compatibility Aliases (Seamless integration with existing templates)
+     ========================================================================== */
+  --ink: var(--dm-ink);
+  --forest: var(--dm-ink);
+  --paper: var(--dm-bg);
+  --paper-strong: var(--dm-surface);
+  --acid: var(--dm-lime);
+  --sand: #E6E8DB;
+  --sage: #D5DFD0;
+  --clay-soft: #E2D7CF;
+  --blue-soft: var(--dm-cyan);
+  --rust: #BD5338;
+  --danger: var(--dm-danger);
+  --danger-soft: var(--dm-danger-soft);
+  --muted: var(--dm-text-muted);
+  --muted-strong: var(--dm-gray-700);
+  --line: var(--dm-border);
+  --line-strong: var(--dm-border-strong);
+  --shadow: var(--dm-shadow-md);
+}
