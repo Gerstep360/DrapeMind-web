@@ -387,7 +387,7 @@ export class AiStudioComponent implements OnInit {
     const labels = {
       offline: 'Estilista Desconectado',
       connecting: 'Estableciendo Conexión',
-      connected: 'Atelier En Línea',
+      connected: 'En línea',
       loading: 'Altair Razonando...',
       ready: 'Personal Stylist Listo',
       error: 'Reintentando Conexión',

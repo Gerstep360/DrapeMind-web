@@ -338,7 +338,8 @@ export interface AiSocketEvent {
   interaction_id?: number;
   tools?: string[];
   action_items?: AiActionItem[];
-  mode?: AiPresentationMode;
+  mode?: AiPresentationMode | string;
+  model_role?: string;
   title?: string;
   card_count?: number;
   presentation_mode?: AiPresentationMode;

@@ -1498,3 +1498,263 @@
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE STYLES (DrapeMind Design System)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .ai-page {
+    height: calc(100dvh - 3.8rem);
+  }
+
+  .chat-corner-actions {
+    top: 0.6rem;
+    right: 0.75rem;
+    gap: 0.35rem;
+
+    .corner-action-btn {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.7rem;
+      gap: 0.35rem;
+    }
+  }
+
+  .conversation {
+    padding: 3.2rem 0.65rem 135px;
+    gap: 1rem;
+  }
+
+  .message {
+    gap: 0.5rem;
+
+    &__avatar {
+      width: 28px;
+      height: 28px;
+      font-size: 0.65rem;
+
+      svg {
+        width: 13px;
+        height: 13px;
+      }
+    }
+
+    &__bubble {
+      padding: 0.85rem 1rem;
+      border-radius: 18px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+  }
+
+  .ai-composer-zone {
+    padding: 0.5rem 0.65rem 0.75rem;
+  }
+
+  .composer-card {
+    border-radius: 20px;
+    padding: 0.65rem 0.85rem 0.55rem;
+  }
+
+  .composer-input-row textarea {
+    font-size: 0.88rem;
+    min-height: 2.2rem;
+    max-height: 7.5rem;
+  }
+
+  .composer-toolbar {
+    &__left,
+    &__right {
+      gap: 0.4rem;
+    }
+  }
+
+  .composer-btn-plus {
+    width: 28px;
+    height: 28px;
+
+    .plus-sign {
+      font-size: 1.1rem;
+    }
+  }
+
+  .composer-mode-chip {
+    padding: 0.28rem 0.65rem;
+    font-size: 0.7rem;
+    gap: 0.35rem;
+  }
+
+  .composer-btn-icon {
+    width: 28px;
+    height: 28px;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .composer-circle-send {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  /* Popovers fit neatly on mobile without horizontal clipping */
+  .composer-popover {
+    left: 0 !important;
+    right: 0 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 18px;
+    bottom: calc(100% + 8px);
+  }
+
+  .plus-popover,
+  .mode-popover {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .popover-item {
+    padding: 0.55rem 0.75rem;
+    gap: 0.6rem;
+
+    .popover-copy {
+      strong {
+        font-size: 0.78rem;
+      }
+      small {
+        font-size: 0.66rem;
+      }
+    }
+  }
+
+  /* Compact thinking progress on phones */
+  .live-thinking-card {
+    padding: 0.75rem 0.9rem;
+    border-radius: 16px;
+  }
+
+  .live-thinking-header {
+    gap: 0.5rem;
+  }
+
+  .live-thinking-title strong {
+    font-size: 0.78rem;
+  }
+
+  .live-ticker-badge {
+    font-size: 0.66rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .btn-cancel-inline {
+    font-size: 0.66rem;
+    padding: 0.2rem 0.45rem;
+    gap: 0.3rem;
+  }
+
+  /* Modals on mobile devices */
+  .garment-modal-card,
+  .sessions-drawer-card,
+  .questionnaire-modal-card {
+    width: 95% !important;
+    max-height: 90dvh !important;
+    border-radius: 20px !important;
+    padding: 1.25rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* 2-column e-commerce grid for garment suggestions on phones */
+  .action-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.55rem;
+  }
+
+  .action-card {
+    border-radius: 14px;
+
+    &__body {
+      padding: 0.55rem 0.65rem;
+      gap: 0.2rem;
+    }
+
+    .card-name {
+      font-size: 0.76rem;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer-row {
+      margin-top: 0.25rem;
+
+      .card-price {
+        font-size: 0.82rem;
+      }
+
+      .quick-add-btn {
+        width: 24px;
+        height: 24px;
+
+        svg {
+          width: 12px;
+          height: 12px;
+        }
+      }
+    }
+
+    .curated-badge,
+    .size-pill {
+      font-size: 0.56rem;
+      padding: 0.1rem 0.35rem;
+    }
+
+    .action-cat-tag {
+      font-size: 0.52rem;
+    }
+  }
+
+  .chat-welcome-state {
+    padding: 1.5rem 0.5rem;
+
+    .welcome-sparkle-mark {
+      width: 3.2rem;
+      height: 3.2rem;
+      margin-bottom: 0.85rem;
+
+      svg {
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .welcome-lead {
+      font-size: 0.84rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .welcome-pill-grid {
+      gap: 0.45rem;
+    }
+
+    .welcome-prompt-pill {
+      padding: 0.55rem 0.95rem;
+      font-size: 0.76rem;
+    }
+  }
+}

@@ -81,11 +81,29 @@
     </nav>
 
     <div class="sidebar-foot">
-      <div class="live-state">
-        <span class="status-dot" [class.status-dot--live]="events.connected()"></span>
-        <span>{{ events.connected() ? 'Atelier en línea' : 'Sincronizando' }}</span>
+      <div class="sidebar-user-card">
+        <div class="sidebar-user-info">
+          <span class="avatar">{{ auth.user()?.nombre?.charAt(0) }}</span>
+          <div class="sidebar-user-copy">
+            <strong class="sidebar-user-name">{{ auth.user()?.nombre }}</strong>
+            <span class="role-badge" [attr.data-role]="auth.user()?.rol">{{ auth.user()?.rol }}</span>
+          </div>
+        </div>
+        <button
+          class="sidebar-logout-btn"
+          type="button"
+          (click)="logout()"
+          title="Cerrar sesión"
+          aria-label="Cerrar sesión"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" x2="9" y1="12" y2="12"/>
+          </svg>
+          <span>Cerrar sesión</span>
+        </button>
       </div>
-      <p class="foot-caption">Colección Verano 2026</p>
     </div>
   </aside>
 
@@ -182,8 +200,8 @@
           }
         </button>
 
-        <!-- PERFIL & SESIÓN -->
-        <div class="account">
+        <!-- PERFIL & SESIÓN (Desktop) -->
+        <div class="account account--topbar">
           <span class="avatar">{{ auth.user()?.nombre?.charAt(0) }}</span>
           <div class="account__copy">
             <strong>{{ auth.user()?.nombre }}</strong>

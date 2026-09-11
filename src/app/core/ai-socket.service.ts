@@ -1,6 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from './auth.service';
-import { AgentTraceStep, AiSocketEvent, ChatMessage, ChatSession } from './models';
+import { AgentTraceStep, AiPresentationMode, AiSocketEvent, ChatMessage, ChatSession } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -544,7 +544,12 @@ export class AiSocketService {
       if (event.session_id) {
         this.updateSessionBackendId(activeId, event.session_id);
       }
-      this.currentThought.set(event.status === 'loading' ? 'Preparando Altair…' : 'Pensando…');
+      const isMini = event.mode === 'mini' || event.model_role === 'scout';
+      this.currentThought.set(
+        event.status === 'loading'
+          ? (isMini ? 'Preparando Altair Mini…' : 'Preparando Altair…')
+          : (isMini ? 'Pensando con Altair Mini…' : 'Pensando…')
+      );
       return;
     }
 
@@ -570,7 +575,7 @@ export class AiSocketService {
     if (event.type === 'presentation') {
       this.updateLastMessage(activeId, (last) => ({
         ...last,
-        presentationMode: event.mode || event.presentation_mode || last.presentationMode,
+        presentationMode: (event.mode as AiPresentationMode) || event.presentation_mode || last.presentationMode,
         responseTitle: event.title || event.response_title || last.responseTitle,
         notices: event.notices || last.notices,
         responseMeta: event.response_meta || last.responseMeta,
