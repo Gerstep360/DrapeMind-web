@@ -210,20 +210,15 @@
   &--command {
     .message__avatar {
       background: var(--dm-ink, #10110F);
-      color: var(--dm-lime, #DFFF3F);
-      border: 1.5px solid var(--dm-lime, #DFFF3F);
-      box-shadow: 0 0 12px var(--dm-lime-glow, rgba(223, 255, 63, 0.4));
+      color: #FFFFFF;
     }
 
     .message__bubble {
-      background: #141512 !important;
-      color: #F4F5EA !important;
-      border: 1.5px solid var(--dm-lime, #DFFF3F) !important;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 0 14px rgba(223, 255, 63, 0.18) !important;
-
-      .message__markdown strong {
-        color: var(--dm-lime, #DFFF3F);
-      }
+      background: var(--dm-cyan, #C9EEF0);
+      color: var(--dm-ink, #10110F);
+      border-radius: 22px 22px 6px 22px;
+      box-shadow: var(--dm-shadow-xs);
+      border: 1px solid var(--dm-cyan-border, #BCE2E4);
     }
   }
 
@@ -583,13 +578,13 @@
 .action-card {
   background: var(--dm-surface, #FFFFFF);
   border: 1px solid var(--dm-border, #E1E3DA);
-  border-radius: var(--dm-radius-md, 20px);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: var(--dm-shadow-xs);
+  box-shadow: 0 4px 18px rgba(16, 17, 15, 0.05);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  animation: cardEntranceStagger 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cardEntranceStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition:
     transform var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     border-color var(--dm-normal, 280ms) ease,
@@ -597,39 +592,126 @@
 
   @for $i from 1 through 12 {
     &:nth-child(#{$i}) {
-      animation-delay: #{$i * 0.08}s;
+      animation-delay: #{$i * 0.07}s;
     }
   }
 
   &:hover {
-    transform: translateY(-6px) scale(1.02);
+    transform: translateY(-6px);
     border-color: var(--dm-lime, #DFFF3F);
-    box-shadow: 0 16px 36px rgba(16, 17, 15, 0.12), 0 0 0 2px var(--dm-lime, #DFFF3F);
+    box-shadow: 0 16px 36px rgba(16, 17, 15, 0.1), 0 0 0 2px var(--dm-lime, #DFFF3F);
+
+    .quick-add-btn {
+      background: var(--dm-lime, #DFFF3F);
+      transform: scale(1.1);
+    }
   }
 
   &__img {
     aspect-ratio: 4 / 4.8;
     background: var(--dm-gray-100, #F0F1EB);
     overflow: hidden;
+    position: relative;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 400ms ease;
+      transition: transform 450ms var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
     }
 
     &:hover img {
-      transform: scale(1.05);
+      transform: scale(1.06);
     }
   }
 
-  &__placeholder {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    place-items: center;
-    color: var(--dm-text-muted, #7B7F75);
+  &__body {
+    padding: 0.95rem 1.15rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    flex: 1;
+    justify-content: space-between;
+    background: var(--dm-surface, #FFFFFF);
+  }
+
+  .card-badge-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.15rem;
+  }
+
+  .curated-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--dm-radius-pill, 999px);
+    background: var(--dm-lime-soft, #EEFF9D);
+    color: #353B00;
+    border: 1px solid rgba(181, 191, 0, 0.3);
+    letter-spacing: -0.01em;
+  }
+
+  .size-pill {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--dm-radius-pill, 999px);
+    background: var(--dm-cyan-soft, #E7F7F7);
+    color: #174246;
+    border: 1px solid #C9EEF0;
+    letter-spacing: -0.01em;
+  }
+
+  .card-name {
+    margin: 0.2rem 0;
+    font-size: 0.94rem;
+    font-weight: 800;
+    line-height: 1.35;
+    color: var(--dm-ink, #10110F);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.4rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--dm-gray-100, #F0F1EB);
+
+    .card-price {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--dm-ink, #10110F);
+      letter-spacing: -0.01em;
+    }
+
+    .quick-add-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--dm-surface-soft, #F8F9F2);
+      color: var(--dm-ink, #10110F);
+      box-shadow: 0 1px 4px rgba(16, 17, 15, 0.08);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all var(--dm-fast, 150ms) ease;
+
+      &:hover {
+        background: var(--dm-lime, #DFFF3F);
+        color: #10110F;
+        transform: scale(1.15);
+        box-shadow: 0 3px 10px rgba(223, 255, 63, 0.5);
+      }
+    }
   }
 }
 
@@ -641,33 +723,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.85rem 0.65rem;
-  background: linear-gradient(150deg, #FAFBF5 0%, #F4F5EA 60%, #ECEEE2 100%);
+  padding: 1.25rem 0.85rem;
+  background: linear-gradient(145deg, #FAFBF5 0%, #F1F3E9 100%);
   position: relative;
   overflow: hidden;
   text-align: center;
   box-sizing: border-box;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 6px;
-    border: 1px dashed #E1E3DA;
-    border-radius: 14px;
-    pointer-events: none;
-  }
-
   .editorial-icon-badge {
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: #FFFFFF;
     border: 1px solid #E1E3DA;
-    box-shadow: 0 3px 10px rgba(16, 17, 15, 0.05);
+    box-shadow: 0 4px 14px rgba(16, 17, 15, 0.07);
     display: grid;
     place-items: center;
     color: var(--dm-ink, #10110F);
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.65rem;
     position: relative;
     z-index: 1;
 
@@ -677,88 +750,27 @@
   }
 
   .action-cat-tag {
-    font-size: 0.58rem;
+    font-size: 0.62rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--dm-text-muted, #7B7F75);
-    margin-bottom: 0.2rem;
+    color: var(--dm-gray-700, #40433D);
+    margin-bottom: 0.35rem;
     position: relative;
     z-index: 1;
   }
 
   .action-prep-notice {
-    font-size: 0.62rem;
+    font-size: 0.64rem;
     font-weight: 800;
-    color: #434800;
-    background: rgba(223, 255, 63, 0.35);
-    border: 1px solid rgba(181, 191, 0, 0.4);
+    color: #353B00;
+    background: var(--dm-lime-soft, #EEFF9D);
+    border: 1px solid rgba(181, 191, 0, 0.35);
     border-radius: var(--dm-radius-pill, 999px);
-    padding: 0.12rem 0.5rem;
+    padding: 0.16rem 0.65rem;
     position: relative;
     z-index: 1;
-  }
-
-  &__body {
-    padding: 0.85rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .card-badge-row {
-    display: flex;
-    gap: 0.35rem;
-  }
-
-  .curated-badge,
-  .size-pill {
-    font-size: 0.64rem;
-    font-weight: 700;
-    padding: 0.15rem 0.5rem;
-    border-radius: var(--dm-radius-pill, 999px);
-    background: var(--dm-surface-soft, #F8F9F2);
-    border: 1px solid var(--dm-border, #E1E3DA);
-    color: var(--dm-text, #22231F);
-  }
-
-  .card-name {
-    margin: 0;
-    font-size: 0.86rem;
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--dm-ink, #10110F);
-  }
-
-  .card-footer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 0.35rem;
-
-    .card-price {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--dm-ink, #10110F);
-    }
-
-    .quick-add-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 1px solid var(--dm-border, #E1E3DA);
-      background: var(--dm-surface-soft, #F8F9F2);
-      color: var(--dm-ink, #10110F);
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      transition: all var(--dm-fast, 150ms) ease;
-
-      &:hover {
-        background: var(--dm-ink, #10110F);
-        color: #FFFFFF;
-      }
-    }
+    letter-spacing: 0.02em;
   }
 }
 
@@ -1131,6 +1143,29 @@
   &:hover {
     color: var(--dm-ink, #10110F);
     border-color: var(--dm-ink, #10110F);
+  }
+}
+
+.composer-btn-mic {
+  position: relative;
+
+  &--active {
+    background: #E85D5D !important;
+    color: #FFFFFF !important;
+    border-color: #E85D5D !important;
+    animation: micPulse 1.2s infinite ease-in-out;
+  }
+}
+
+@keyframes micPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 93, 93, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(232, 93, 93, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 93, 93, 0);
   }
 }
 

@@ -109,6 +109,61 @@ export class AiStudioComponent implements OnInit {
     }, 50);
   }
 
+  readonly isListening = signal(false);
+  private speechRecognition: any = null;
+
+  toggleVoiceRecognition(): void {
+    if (typeof window === 'undefined') return;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      this.toast.show('Tu navegador no admite dictado de voz nativo.', 'info');
+      return;
+    }
+
+    if (this.isListening() && this.speechRecognition) {
+      try { this.speechRecognition.stop(); } catch {}
+      this.isListening.set(false);
+      return;
+    }
+
+    try {
+      this.speechRecognition = new SpeechRec();
+      this.speechRecognition.lang = 'es-BO';
+      this.speechRecognition.continuous = false;
+      this.speechRecognition.interimResults = true;
+
+      this.speechRecognition.onstart = () => {
+        this.isListening.set(true);
+      };
+
+      this.speechRecognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript.trim()) {
+          this.prompt.setValue(transcript.trim());
+        }
+      };
+
+      this.speechRecognition.onerror = (err: any) => {
+        this.isListening.set(false);
+        if (err?.error !== 'no-speech') {
+          this.toast.show('Error al acceder al micrófono. Verifica los permisos.', 'info');
+        }
+      };
+
+      this.speechRecognition.onend = () => {
+        this.isListening.set(false);
+      };
+
+      this.speechRecognition.start();
+    } catch {
+      this.isListening.set(false);
+      this.toast.show('No se pudo iniciar el dictado por voz.', 'info');
+    }
+  }
+
   isThinkingOpen(messageId: string): boolean {
     return this.openThoughts().has(messageId);
   }

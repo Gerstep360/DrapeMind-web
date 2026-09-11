@@ -648,13 +648,14 @@
         </div>
 
         <div class="composer-toolbar__right">
-          <!-- VOICE / PROMPT TRIGGER -->
+          <!-- VOICE DICTATION TRIGGER (WEB SPEECH API) -->
           <button
             type="button"
-            class="composer-btn-icon"
-            (click)="prompt.setValue('Hola Altair, ¿qué me recomiendas hoy según mi estilo?'); send()"
-            title="Pregunta sugerida"
-            aria-label="Pregunta de voz"
+            class="composer-btn-icon composer-btn-mic"
+            [class.composer-btn-mic--active]="isListening()"
+            (click)="toggleVoiceRecognition()"
+            [title]="isListening() ? 'Detener dictado por voz' : 'Dictar por voz'"
+            aria-label="Dictar por voz"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
