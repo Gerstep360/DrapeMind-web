@@ -185,7 +185,7 @@
             </div>
           }
 
-          @if (!message.pending || message.content || message.actionItems?.length) {
+          @if (message.role === 'assistant' && (!message.pending || message.content || message.actionItems?.length)) {
             <!-- COMPLETED BUBBLE TEXT CONTENT -->
             @if (message.content) {
               <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
@@ -409,14 +409,42 @@
   <!-- FLOATING COMPOSER ZONE (CHATGPT STYLE SINGLE CARD) -->
   <div class="ai-composer-zone" role="region" aria-label="Escribir a Altair">
     <div class="composer-card" [class.composer-card--busy]="ai.isBusy()">
+      <!-- ACTIVE COMMAND BAR (WITH LIME BADGE) -->
+      @if (activeCommand()) {
+        <div class="composer-command-bar">
+          <span class="composer-command-pill">
+            <span class="command-pill-prefix">/{{ activeCommand() }}</span>
+            <button type="button" class="command-pill-close" (click)="clearActiveCommand()" title="Quitar comando">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </span>
+          <span class="composer-command-tip">Personaliza tu consulta antes de enviar</span>
+        </div>
+      }
+
+      <!-- SLASH AUTOCOMPLETE POPUP (WHEN TYPING '/') -->
+      @if (isSlashMenuOpen()) {
+        <div class="slash-commands-popover" (click)="$event.stopPropagation()">
+          <div class="slash-popover-header">Comandos de Altair</div>
+          @for (cmd of slashCommands; track cmd.label) {
+            <button type="button" class="slash-command-item" (click)="selectSlashCommand(cmd)">
+              <span class="slash-cmd-badge">/{{ cmd.label }}</span>
+              <span class="slash-cmd-desc">{{ cmd.desc }}</span>
+            </button>
+          }
+        </div>
+      }
+
       <!-- TOP: TEXTAREA -->
       <div class="composer-input-row">
         <textarea
+          #promptTextarea
           [formControl]="prompt"
-          placeholder="Pregunta a Altair sobre prendas, outfits o estilo..."
+          [placeholder]="activeCommand() ? 'Escribe tu consulta para /' + activeCommand() + '...' : 'Pregunta a Altair sobre prendas, outfits o estilo...'"
           aria-label="Mensaje para Altair"
           rows="1"
           (keydown)="onKeydown($event)"
+          (input)="onInputChange()"
           [disabled]="ai.isBusy()"
         ></textarea>
       </div>

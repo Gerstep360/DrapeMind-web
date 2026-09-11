@@ -432,10 +432,25 @@ export class AiSocketService {
     let isCommand = options?.isCommand ?? false;
     let commandLabel = options?.commandLabel;
     if (!isCommand && clean.startsWith('/')) {
-      const match = clean.match(/^\/([^\s\[\]\n]+(?:\s+[^\s\[\]\n]+)*)(.*)/);
-      if (match && match[1]) {
+      const knownCommands = [
+        'Look por Presupuesto',
+        'Analizar Perchero',
+        'Explorar Catálogo',
+        'Diseñar Outfit a Medida',
+        'Buscar Prenda',
+      ];
+      const matchedKnown = knownCommands.find((k) =>
+        clean.toLowerCase().startsWith(`/${k.toLowerCase()}`),
+      );
+      if (matchedKnown) {
         isCommand = true;
-        commandLabel = match[1].trim();
+        commandLabel = matchedKnown;
+      } else {
+        const match = clean.match(/^\/([a-zA-Z0-9_\u00C0-\u017F-]+)(?:\s+(.*))?$/s);
+        if (match && match[1]) {
+          isCommand = true;
+          commandLabel = match[1].trim();
+        }
       }
     }
 

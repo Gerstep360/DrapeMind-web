@@ -39,6 +39,8 @@ export class AiStudioComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly runtime = inject(RuntimeConfigService);
 
+  @ViewChild('promptTextarea') promptTextarea?: ElementRef<HTMLTextAreaElement>;
+
   private followLatest = true;
   onConversationScroll(): void {
     const el = this.conversation?.nativeElement;
@@ -54,6 +56,58 @@ export class AiStudioComponent implements OnInit {
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
   readonly openThoughts = signal<Set<string>>(new Set());
+
+  readonly activeCommand = signal<string | null>(null);
+  readonly isSlashMenuOpen = signal<boolean>(false);
+
+  readonly slashCommands = [
+    {
+      label: 'Look por Presupuesto',
+      desc: 'Recomienda outfit por presupuesto máximo en Bs',
+      template: 'Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.',
+    },
+    {
+      label: 'Analizar Perchero',
+      desc: 'Revisa prendas del perchero y sugiere combinaciones',
+      template: 'Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.',
+    },
+    {
+      label: 'Explorar Catálogo',
+      desc: 'Descubre piezas exclusivas y novedades',
+      template: 'Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.',
+    },
+    {
+      label: 'Diseñar Outfit a Medida',
+      desc: 'Diseña un look completo según criterio estético y ocasión',
+      template: 'Diseña un outfit completo según ocasión, corte y tallas.',
+    },
+  ];
+
+  clearActiveCommand(): void {
+    this.activeCommand.set(null);
+  }
+
+  selectSlashCommand(cmd: { label: string; desc: string; template: string }): void {
+    this.activeCommand.set(cmd.label);
+    this.prompt.setValue(cmd.template);
+    this.isSlashMenuOpen.set(false);
+    this.focusPrompt();
+  }
+
+  onInputChange(): void {
+    const val = (this.prompt.value || '').trim();
+    if (val === '/' && !this.activeCommand()) {
+      this.isSlashMenuOpen.set(true);
+    } else if (!val.startsWith('/')) {
+      this.isSlashMenuOpen.set(false);
+    }
+  }
+
+  focusPrompt(): void {
+    setTimeout(() => {
+      this.promptTextarea?.nativeElement?.focus();
+    }, 50);
+  }
 
   isThinkingOpen(messageId: string): boolean {
     return this.openThoughts().has(messageId);
@@ -151,26 +205,23 @@ export class AiStudioComponent implements OnInit {
 
   executeClosetAnalysis(): void {
     this.closePlusMenu();
-    this.send('Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.', {
-      isCommand: true,
-      commandLabel: 'Analizar Perchero',
-    });
+    this.activeCommand.set('Analizar Perchero');
+    this.prompt.setValue('Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.');
+    this.focusPrompt();
   }
 
   executeBudgetLook(): void {
     this.closePlusMenu();
-    this.send('Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.', {
-      isCommand: true,
-      commandLabel: 'Look por Presupuesto',
-    });
+    this.activeCommand.set('Look por Presupuesto');
+    this.prompt.setValue('Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.');
+    this.focusPrompt();
   }
 
   executeCatalogExplore(): void {
     this.closePlusMenu();
-    this.send('Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.', {
-      isCommand: true,
-      commandLabel: 'Explorar Catálogo',
-    });
+    this.activeCommand.set('Explorar Catálogo');
+    this.prompt.setValue('Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.');
+    this.focusPrompt();
   }
 
   readonly availableTools = [
@@ -344,14 +395,31 @@ export class AiStudioComponent implements OnInit {
   }
 
   send(value?: string, options?: { isCommand?: boolean; commandLabel?: string }): void {
-    const message = (value ?? this.prompt.value).trim();
-    if (!message || this.ai.isBusy()) return;
-    this.ai.sendMessage(message, {
-      isCommand: options?.isCommand,
-      commandLabel: options?.commandLabel,
+    const raw = (value ?? this.prompt.value ?? '').trim();
+    if (!raw && !this.activeCommand()) return;
+    if (this.ai.isBusy()) return;
+
+    const cmdLabel = options?.commandLabel || this.activeCommand();
+    const isCmd = options?.isCommand ?? !!cmdLabel;
+
+    let fullContent = raw;
+    if (cmdLabel) {
+      const prefix = `/${cmdLabel}`.toLowerCase();
+      if (!raw.toLowerCase().startsWith(prefix)) {
+        fullContent = `/${cmdLabel} ${raw}`.trim();
+      }
+    }
+
+    this.ai.sendMessage(fullContent, {
+      isCommand: isCmd,
+      commandLabel: cmdLabel || undefined,
       mode: this.activeModel(),
     });
+
     this.prompt.reset();
+    this.activeCommand.set(null);
+    this.isSlashMenuOpen.set(false);
+    this.closePlusMenu();
     this.followLatest = true;
     window.setTimeout(() => this.scrollToBottom(), 60);
   }
