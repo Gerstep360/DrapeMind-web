@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -28,7 +29,7 @@ export type OnboardingStage =
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule, DecimalPipe, FormsModule],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,13 +54,31 @@ export class OnboardingComponent implements OnInit {
   // Survey State
   readonly selectedGender = signal<string>('femenino');
   readonly selectedStyles = signal<string[]>(['Minimalista Atelier', 'Casual Sofisticado']);
-  readonly selectedSilhouette = signal<string>('Regular');
+  readonly selectedSilhouette = signal<string>('Regular Confort');
   readonly selectedTopSize = signal<string>('M');
   readonly selectedBottomSize = signal<string>('30');
   readonly selectedShoeSize = signal<string>('39');
   readonly selectedColors = signal<string[]>(['Monocromático', 'Tonos Tierra']);
   readonly selectedBudget = signal<number>(600);
   readonly selectedOccasion = signal<string>('casual');
+
+  // Custom Sizes
+  readonly isCustomTop = signal<boolean>(false);
+  readonly customTopSize = signal<string>('');
+  readonly isCustomBottom = signal<boolean>(false);
+  readonly customBottomSize = signal<string>('');
+  readonly isCustomShoe = signal<boolean>(false);
+  readonly customShoeSize = signal<string>('');
+
+  readonly effectiveTopSize = computed(() =>
+    this.isCustomTop() ? (this.customTopSize().trim() || 'M') : this.selectedTopSize()
+  );
+  readonly effectiveBottomSize = computed(() =>
+    this.isCustomBottom() ? (this.customBottomSize().trim() || '30') : this.selectedBottomSize()
+  );
+  readonly effectiveShoeSize = computed(() =>
+    this.isCustomShoe() ? (this.customShoeSize().trim() || '39') : this.selectedShoeSize()
+  );
 
   // Catalogs
   readonly genderOptions = [
@@ -79,9 +98,9 @@ export class OnboardingComponent implements OnInit {
   ];
 
   readonly silhouetteOptions = ['Oversize', 'Regular Confort', 'Slim Estilizado', 'Fit / Ceñido'];
-  readonly topSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  readonly bottomSizes = ['26', '28', '30', '32', '34', '36', '38', '40'];
-  readonly shoeSizes = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
+  readonly topSizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+  readonly bottomSizes = ['24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44', '46'];
+  readonly shoeSizes = ['34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'];
 
   readonly colorOptions = [
     { id: 'Monocromático', desc: 'Negro atelier, blanco crudo y grafito' },
@@ -133,17 +152,21 @@ export class OnboardingComponent implements OnInit {
     this.loadingGreeting.set(true);
     this.auth.getOnboardingGreeting().subscribe({
       next: (res) => {
-        this.greetingData.set(res);
+        const cleanRes: OnboardingGreeting = {
+          ...res,
+          model: 'Altair Mini',
+        };
+        this.greetingData.set(cleanRes);
         this.loadingGreeting.set(false);
-        this.typeGreeting(res.greeting);
+        this.typeGreeting(cleanRes.greeting);
       },
       error: () => {
         const user = this.auth.user();
         const fallbackName = user?.nombre?.split(' ')[0] || 'amante de la moda';
         const fallback: OnboardingGreeting = {
-          greeting: `¡Te doy una cálida bienvenida a DrapeMind, ${fallbackName}! Soy Altair, tu Personal Stylist impulsado por inteligencia artificial. Estoy conectado en tiempo real al inventario físico de nuestras boutiques en Bolivia. Te guiaré a través de este breve recorrido para calibrar tu ADN de estilo y descubrir tu primera selección exclusiva.`,
-          stylist_name: 'Altair',
-          model: 'Altair Mini (Gemma 2B)',
+          greeting: `¡Te doy una cálida bienvenida a DrapeMind, ${fallbackName}! Soy Altair, tu asistente inteligente de moda. Estoy conectado en tiempo real al inventario físico de nuestras boutiques en Bolivia. Acompáñame en este breve recorrido para calibrar tus medidas, preferencias y descubrir tu primer outfit exclusivo.`,
+          stylist_name: 'Altair AI',
+          model: 'Altair Mini',
           user_name: fallbackName,
           latency_ms: 185,
           tips: [
@@ -216,15 +239,42 @@ export class OnboardingComponent implements OnInit {
     this.stage.set(target);
   }
 
+  selectTopSize(size: string): void {
+    this.isCustomTop.set(false);
+    this.selectedTopSize.set(size);
+  }
+
+  enableCustomTop(): void {
+    this.isCustomTop.set(true);
+  }
+
+  selectBottomSize(size: string): void {
+    this.isCustomBottom.set(false);
+    this.selectedBottomSize.set(size);
+  }
+
+  enableCustomBottom(): void {
+    this.isCustomBottom.set(true);
+  }
+
+  selectShoeSize(size: string): void {
+    this.isCustomShoe.set(false);
+    this.selectedShoeSize.set(size);
+  }
+
+  enableCustomShoe(): void {
+    this.isCustomShoe.set(true);
+  }
+
   startInference(): void {
     this.stage.set('inferring');
     this.isSaving.set(true);
 
     const steps = [
-      'Conectando con el inventario físico del showroom...',
-      'Filtrando prendas disponibles en talle ' + this.selectedTopSize() + ' y ' + this.selectedBottomSize() + '...',
+      'Conectando con el inventario físico de las boutiques...',
+      'Filtrando prendas disponibles en talle ' + this.effectiveTopSize() + ' y ' + this.effectiveBottomSize() + '...',
       'Equilibrando paleta ' + this.selectedColors()[0] + ' y presupuesto en Bs...',
-      'Altair está sintetizando tu ADN de estilo exclusivo...',
+      'Altair está seleccionando tu combinación ideal...',
     ];
     let sIdx = 0;
     const interval = setInterval(() => {
@@ -235,9 +285,9 @@ export class OnboardingComponent implements OnInit {
     const payload: Partial<UserStyleProfile> = {
       genero: this.selectedGender(),
       estilos_preferidos: this.selectedStyles(),
-      talla_superior: this.selectedTopSize(),
-      talla_inferior: this.selectedBottomSize(),
-      talla_calzado: this.selectedShoeSize(),
+      talla_superior: this.effectiveTopSize(),
+      talla_inferior: this.effectiveBottomSize(),
+      talla_calzado: this.effectiveShoeSize(),
       colores_favoritos: this.selectedColors(),
       ocasiones_frecuentes: [this.selectedOccasion()],
       presupuesto_habitual: this.selectedBudget(),
@@ -249,12 +299,14 @@ export class OnboardingComponent implements OnInit {
       next: (profile) => {
         clearInterval(interval);
         this.isSaving.set(false);
+        this.auth.markStyleProfileDoneLocally();
         this.resultProfile.set(profile);
         this.stage.set('reveal');
       },
       error: () => {
         clearInterval(interval);
         this.isSaving.set(false);
+        this.auth.markStyleProfileDoneLocally();
         this.resultProfile.set({
           ...payload,
           estilos_preferidos: payload.estilos_preferidos || [],
@@ -268,12 +320,13 @@ export class OnboardingComponent implements OnInit {
   }
 
   skip(): void {
+    this.auth.markStyleProfileDoneLocally();
     const payload: Partial<UserStyleProfile> = {
       genero: this.selectedGender(),
       estilos_preferidos: this.selectedStyles(),
-      talla_superior: this.selectedTopSize(),
-      talla_inferior: this.selectedBottomSize(),
-      talla_calzado: this.selectedShoeSize(),
+      talla_superior: this.effectiveTopSize(),
+      talla_inferior: this.effectiveBottomSize(),
+      talla_calzado: this.effectiveShoeSize(),
       colores_favoritos: this.selectedColors(),
       ocasiones_frecuentes: [this.selectedOccasion()],
       presupuesto_habitual: this.selectedBudget(),
@@ -282,10 +335,10 @@ export class OnboardingComponent implements OnInit {
     };
     this.auth.saveStyleProfile({ ...payload, infer_outfit: false }).subscribe({
       next: () => {
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/catalog']);
       },
       error: () => {
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/catalog']);
       },
     });
   }
@@ -296,6 +349,7 @@ export class OnboardingComponent implements OnInit {
   }
 
   addAllToCart(): void {
+    this.auth.markStyleProfileDoneLocally();
     const outfit = this.resultProfile()?.primer_outfit_ia;
     const items = outfit?.items || [];
     const variants = items
@@ -306,15 +360,17 @@ export class OnboardingComponent implements OnInit {
       this.cart.replaceWithItems(variants, `Se agregó tu look de bienvenida al perchero`);
     }
     this.toasts.show('¡Look de bienvenida guardado en tu perchero!', 'success');
-    void this.router.navigate(['/dashboard']);
+    void this.router.navigate(['/catalog']);
   }
 
   goToAiStudio(): void {
+    this.auth.markStyleProfileDoneLocally();
     void this.router.navigate(['/ai-studio']);
   }
 
   finishAndGoStore(): void {
-    void this.router.navigate(['/dashboard']);
+    this.auth.markStyleProfileDoneLocally();
+    void this.router.navigate(['/catalog']);
   }
 
   colorSlug(id: string): string {

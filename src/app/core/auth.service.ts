@@ -67,15 +67,19 @@ export class AuthService {
     return this.http.get<OnboardingGreeting>(`${this.runtime.apiUrl}/ai/onboarding-greeting`);
   }
 
+  markStyleProfileDoneLocally(): void {
+    const u = this.user();
+    if (u) {
+      const updated = { ...u, has_style_profile: true };
+      sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
+      this.user.set(updated);
+    }
+  }
+
   saveStyleProfile(payload: Partial<UserStyleProfile> & { infer_outfit?: boolean }): Observable<UserStyleProfile> {
     return this.http.post<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`, payload).pipe(
       tap(() => {
-        const u = this.user();
-        if (u) {
-          const updated = { ...u, has_style_profile: true };
-          sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
-          this.user.set(updated);
-        }
+        this.markStyleProfileDoneLocally();
       }),
     );
   }

@@ -273,11 +273,39 @@
       align-items: center;
       gap: 0.6rem;
       font-size: 0.75rem;
-      color: var(--dm-text-muted, #7B7F75);
+
+      .model-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        background: #F4F5EA;
+        border: 1px solid var(--dm-border, #E1E3DA);
+        color: var(--dm-ink, #10110F);
+
+        .mode-svg {
+          color: #84CC16;
+        }
+      }
 
       .latency-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         font-weight: 600;
-        color: var(--dm-gray-700, #40433D);
+        font-size: 0.72rem;
+        color: var(--dm-text-muted, #7B7F75);
+
+        .latency-dot {
+          display: inline-block;
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #84CC16;
+        }
       }
     }
   }
@@ -363,7 +391,11 @@
     box-shadow: 0 2px 6px rgba(16, 17, 15, 0.02);
 
     .pill-icon {
-      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dm-ink, #10110F);
+      flex-shrink: 0;
     }
 
     .pill-text {
@@ -646,13 +678,13 @@
     }
 
     &--active {
-      background: #FAFAF7;
+      background: var(--dm-lime-soft, #EEFF9D);
       border-color: var(--dm-ink, #10110F);
       box-shadow: 0 4px 14px rgba(16, 17, 15, 0.06);
 
       .pill-check-indicator {
         border-color: var(--dm-ink, #10110F);
-        background: var(--dm-lime, #DFFF3F);
+        background: var(--dm-ink, #10110F);
       }
     }
   }
@@ -682,6 +714,7 @@
       border-radius: 50%;
       background: var(--dm-gray-200, #E1E3DA);
       flex-shrink: 0;
+      transition: background 160ms ease;
     }
 
     .chip-content {
@@ -703,22 +736,24 @@
 
     &:hover {
       border-color: var(--dm-ink, #10110F);
+      transform: translateY(-1px);
     }
 
     &--active {
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-lime-soft, #EEFF9D);
       border-color: var(--dm-ink, #10110F);
+      box-shadow: 0 4px 14px rgba(16, 17, 15, 0.06);
 
       .chip-dot {
-        background: var(--dm-lime, #DFFF3F);
+        background: var(--dm-ink, #10110F);
       }
 
       .chip-name {
-        color: #FFFFFF;
+        color: var(--dm-ink, #10110F);
       }
 
       .chip-desc {
-        color: var(--dm-lime-soft, #EEFF9D);
+        color: var(--dm-gray-700, #40433D);
       }
     }
   }
@@ -810,9 +845,45 @@
         }
 
         &--active {
-          background: var(--dm-ink, #10110F);
+          background: var(--dm-lime-soft, #EEFF9D);
           border-color: var(--dm-ink, #10110F);
-          color: var(--dm-lime, #DFFF3F);
+          color: var(--dm-ink, #10110F);
+          font-weight: 800;
+          box-shadow: 0 2px 8px rgba(16, 17, 15, 0.08);
+        }
+
+        &--custom-trigger {
+          font-size: 0.72rem;
+          font-weight: 700;
+        }
+      }
+    }
+
+    .custom-size-row {
+      margin-top: 0.5rem;
+
+      .custom-size-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.55rem 0.8rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--dm-ink, #10110F);
+        background: var(--dm-surface, #FFFFFF);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--dm-ink, #10110F);
+        outline: none;
+        transition: all 140ms ease;
+
+        &:focus {
+          border-color: var(--dm-ink, #10110F);
+          box-shadow: 0 0 0 3px rgba(223, 255, 63, 0.4);
+        }
+
+        &::placeholder {
+          color: var(--dm-text-muted, #7B7F75);
+          font-weight: 400;
+          font-size: 0.78rem;
         }
       }
     }
@@ -869,7 +940,7 @@
 
     &--active {
       border-color: var(--dm-ink, #10110F);
-      background: #FAFAF7;
+      background: var(--dm-lime-soft, #EEFF9D);
       box-shadow: 0 4px 10px rgba(16, 17, 15, 0.05);
     }
   }
@@ -907,10 +978,11 @@
 
     &--active {
       border-color: var(--dm-ink, #10110F);
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-lime-soft, #EEFF9D);
+      box-shadow: 0 4px 12px rgba(16, 17, 15, 0.06);
 
-      .occasion-name { color: var(--dm-lime, #DFFF3F); }
-      .occasion-desc { color: #E1E3DA; }
+      .occasion-name { color: var(--dm-ink, #10110F); }
+      .occasion-desc { color: var(--dm-gray-700, #40433D); }
     }
   }
 }

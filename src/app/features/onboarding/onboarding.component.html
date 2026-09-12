@@ -21,13 +21,13 @@
       <div class="progress-info">
         <span class="step-label">
           @switch (stage()) {
-            @case ('greeting') { Saludo Personalizado · Altair AI }
-            @case ('tutorial') { Tutorial Atelier · Paso {{ tutorialStep() }} de 3 }
+            @case ('greeting') { Saludo Inicial · Altair AI }
+            @case ('tutorial') { Conoce DrapeMind · Paso {{ tutorialStep() }} de 3 }
             @case ('survey_gender') { Calibración de Estilo · Paso 1 de 3 }
             @case ('survey_sizes') { Silueta & Medidas · Paso 2 de 3 }
             @case ('survey_budget') { Paleta & Presupuesto · Paso 3 de 3 }
-            @case ('inferring') { Síntesis en Tiempo Real · Gemma 2B }
-            @case ('reveal') { ADN de Estilo Calibrado }
+            @case ('inferring') { Síntesis en Tiempo Real · Altair Mini }
+            @case ('reveal') { Perfil de Estilo Personalizado }
           }
         </span>
         <span class="step-pct">{{ progressPercentage() }}%</span>
@@ -38,7 +38,7 @@
     </div>
 
     <!-- SKIP ACTION (NON-BLOCKING) -->
-    <button class="skip-btn" type="button" (click)="skip()" title="Omitir recorrido">
+    <button class="skip-btn" type="button" (click)="skip()" title="Omitir e ir a la colección">
       <span>Omitir e ir a la tienda</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M5 12h14"/>
@@ -64,11 +64,19 @@
           <div class="stylist-meta">
             <div class="stylist-name-group">
               <strong class="stylist-title">Altair</strong>
-              <span class="stylist-role-pill">Personal Stylist AI</span>
+              <span class="stylist-role-pill">Altair AI</span>
             </div>
             <div class="stylist-model-info">
-              <span class="model-tag">{{ greetingData()?.model || 'Altair Mini' }}</span>
-              <span class="latency-tag">⚡ {{ greetingData()?.latency_ms || 185 }}ms</span>
+              <span class="model-tag">
+                <svg class="mode-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                <span>Altair Mini</span>
+              </span>
+              <span class="latency-tag">
+                <span class="latency-dot"></span>
+                {{ greetingData()?.latency_ms || 185 }}ms
+              </span>
             </div>
           </div>
         </div>
@@ -79,7 +87,7 @@
               <div class="typing-indicator">
                 <span></span><span></span><span></span>
               </div>
-              <p class="inferring-caption">Altair está generando tu saludo de bienvenida...</p>
+              <p class="inferring-caption">Altair está redactando tu bienvenida...</p>
             } @else {
               <p class="greeting-text">
                 "{{ displayedGreetingText() }}"
@@ -92,15 +100,33 @@
         @if (!loadingGreeting()) {
           <div class="atelier-features-pills animate-fade-in">
             <div class="feature-pill">
-              <span class="pill-icon">📍</span>
+              <span class="pill-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </span>
               <span class="pill-text">Stock físico verificado en boutiques de Bolivia</span>
             </div>
             <div class="feature-pill">
-              <span class="pill-icon">✨</span>
+              <span class="pill-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="m4.93 4.93 4.24 4.24"/>
+                  <path d="m14.83 9.17 4.24-4.24"/>
+                  <path d="m14.83 14.83 4.24 4.24"/>
+                  <path d="m9.17 14.83-4.24 4.24"/>
+                </svg>
+              </span>
               <span class="pill-text">Asesoría de estilo y armonía de color</span>
             </div>
             <div class="feature-pill">
-              <span class="pill-icon">🏷️</span>
+              <span class="pill-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </span>
               <span class="pill-text">Presupuesto transparente en Bolivianos (Bs)</span>
             </div>
           </div>
@@ -129,7 +155,7 @@
         <div class="tutorial-header">
           <span class="eyebrow-accent">CÓMO FUNCIONA DRAPEMIND</span>
           <h2 class="stage-heading">Moda de boutique operada con inteligencia</h2>
-          <p class="stage-subhead">Descubre cómo combinar la presencia física de nuestras prendas con la potencia de la IA.</p>
+          <p class="stage-subhead">Combina la presencia física de nuestras prendas con la asesoría de IA.</p>
         </div>
 
         <div class="tutorial-slider">
@@ -142,14 +168,14 @@
                     <div class="mock-hanger mock-hanger--accent"></div>
                     <div class="mock-hanger"></div>
                   </div>
-                  <span class="badge-float">Showrooms Santa Cruz &amp; La Paz</span>
+                  <span class="badge-float">Boutiques &amp; Showrooms DrapeMind</span>
                 </div>
                 <div class="slide-copy">
                   <span class="slide-number">01 / 03</span>
                   <h3 class="slide-title">Inventario Físico Real</h3>
                   <p class="slide-desc">
-                    A diferencia de tiendas genéricas, cada pieza en DrapeMind existe físicamente en nuestras sucursales.
-                    Puedes sincronizar tu ubicación para ver únicamente prendas con disponibilidad inmediata en tu ciudad.
+                    Cada pieza en DrapeMind existe físicamente en las boutiques de nuestra red.
+                    Puedes sincronizar tu sucursal para ver disponibilidad inmediata de prendas reales.
                   </p>
                 </div>
               </div>
@@ -161,13 +187,13 @@
                     <span class="orb-core"></span>
                     <span class="orb-ring"></span>
                   </div>
-                  <span class="badge-float">Altair Personal Stylist</span>
+                  <span class="badge-float">Altair AI</span>
                 </div>
                 <div class="slide-copy">
                   <span class="slide-number">02 / 03</span>
                   <h3 class="slide-title">Estilismo y Asesoría con IA</h3>
                   <p class="slide-desc">
-                    Altair analiza tu silueta, ocasión y gustos cromáticos. No inventa ropa: consulta herramientas internas
+                    Altair analiza tu silueta, ocasión y gustos cromáticos. Consulta herramientas internas
                     para proponerte combinaciones completas respetando tu presupuesto en Bolivianos (Bs).
                   </p>
                 </div>
@@ -206,7 +232,7 @@
             <span>Atrás</span>
           </button>
           <button class="cta-btn cta-btn--primary" type="button" (click)="nextTutorialStep()">
-            <span>{{ tutorialStep() === 3 ? 'Configurar mi ADN de Estilo' : 'Siguiente' }}</span>
+            <span>{{ tutorialStep() === 3 ? 'Personalizar mis medidas y estilo' : 'Siguiente' }}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M5 12h14"/>
               <path d="m12 5 7 7-7 7"/>
@@ -293,7 +319,7 @@
         <div class="stage-header">
           <span class="eyebrow-accent">CALIBRACIÓN DE MEDIDAS · PASO 2</span>
           <h2 class="stage-heading">Tu silueta y tallas habituales</h2>
-          <p class="stage-subhead">Altair buscará únicamente piezas disponibles que calcen de forma idónea en tu cuerpo.</p>
+          <p class="stage-subhead">Altair buscará piezas disponibles que calcen de forma idónea en tu cuerpo.</p>
         </div>
 
         <div class="survey-block">
@@ -322,13 +348,35 @@
                 <button
                   type="button"
                   class="size-square"
-                  [class.size-square--active]="selectedTopSize() === ts"
-                  (click)="selectedTopSize.set(ts)"
+                  [class.size-square--active]="!isCustomTop() && selectedTopSize() === ts"
+                  (click)="selectTopSize(ts)"
                 >
                   {{ ts }}
                 </button>
               }
+              <button
+                type="button"
+                class="size-square size-square--custom-trigger"
+                [class.size-square--active]="isCustomTop()"
+                (click)="enableCustomTop()"
+                title="Ingresar medida personalizada"
+              >
+                Otra
+              </button>
             </div>
+
+            @if (isCustomTop()) {
+              <div class="custom-size-row animate-fade-in">
+                <input
+                  type="text"
+                  class="custom-size-input"
+                  [ngModel]="customTopSize()"
+                  (ngModelChange)="customTopSize.set($event)"
+                  placeholder="Ej: 38, S/M, 42cm..."
+                  maxlength="24"
+                />
+              </div>
+            }
           </div>
 
           <!-- TALLA INFERIOR -->
@@ -340,31 +388,75 @@
                 <button
                   type="button"
                   class="size-square"
-                  [class.size-square--active]="selectedBottomSize() === bs"
-                  (click)="selectedBottomSize.set(bs)"
+                  [class.size-square--active]="!isCustomBottom() && selectedBottomSize() === bs"
+                  (click)="selectBottomSize(bs)"
                 >
                   {{ bs }}
                 </button>
               }
+              <button
+                type="button"
+                class="size-square size-square--custom-trigger"
+                [class.size-square--active]="isCustomBottom()"
+                (click)="enableCustomBottom()"
+                title="Ingresar medida personalizada"
+              >
+                Otra
+              </button>
             </div>
+
+            @if (isCustomBottom()) {
+              <div class="custom-size-row animate-fade-in">
+                <input
+                  type="text"
+                  class="custom-size-input"
+                  [ngModel]="customBottomSize()"
+                  (ngModelChange)="customBottomSize.set($event)"
+                  placeholder="Ej: 31, 48, cintura 74cm..."
+                  maxlength="24"
+                />
+              </div>
+            }
           </div>
 
           <!-- CALZADO -->
           <div class="size-column">
             <label class="size-col-label">CALZADO</label>
-            <span class="size-col-hint">Talla estándar europea</span>
+            <span class="size-col-hint">Talla estándar de calzado</span>
             <div class="size-chips-flex">
               @for (ss of shoeSizes; track ss) {
                 <button
                   type="button"
                   class="size-square"
-                  [class.size-square--active]="selectedShoeSize() === ss"
-                  (click)="selectedShoeSize.set(ss)"
+                  [class.size-square--active]="!isCustomShoe() && selectedShoeSize() === ss"
+                  (click)="selectShoeSize(ss)"
                 >
                   {{ ss }}
                 </button>
               }
+              <button
+                type="button"
+                class="size-square size-square--custom-trigger"
+                [class.size-square--active]="isCustomShoe()"
+                (click)="enableCustomShoe()"
+                title="Ingresar medida personalizada"
+              >
+                Otra
+              </button>
             </div>
+
+            @if (isCustomShoe()) {
+              <div class="custom-size-row animate-fade-in">
+                <input
+                  type="text"
+                  class="custom-size-input"
+                  [ngModel]="customShoeSize()"
+                  (ngModelChange)="customShoeSize.set($event)"
+                  placeholder="Ej: 37.5, 41.5..."
+                  maxlength="24"
+                />
+              </div>
+            }
           </div>
         </div>
 
@@ -435,7 +527,7 @@
         </div>
 
         <div class="survey-block">
-          <label class="survey-label">PRESUPUESTO HABITUAL POR OUTFIT (EN BOLIVIANOS)</label>
+          <label class="survey-label">PRESUPUESTO HABITUAL POR LOOK (EN BOLIVIANOS)</label>
           <div class="budget-grid">
             @for (b of budgetRanges; track b.value) {
               <button
@@ -456,8 +548,11 @@
             <span>Atrás</span>
           </button>
           <button class="cta-btn cta-btn--primary cta-btn--glow" type="button" (click)="startInference()">
-            <span>Analizar con Altair e inferir mi look</span>
-            <span class="sparkle-icon">✨</span>
+            <span>Analizar y sugerir mi primer look</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14"/>
+              <path d="m12 5 7 7-7 7"/>
+            </svg>
           </button>
         </div>
       </section>
@@ -477,14 +572,14 @@
         </div>
 
         <div class="inferring-meta">
-          <span class="inferring-pill">INFERENCIA GEMMA 2B EN CURSO</span>
-          <h2 class="inferring-title">Calibrando tu ADN de Estilo</h2>
+          <span class="inferring-pill">INFERENCIA ALTAIR MINI EN CURSO</span>
+          <h2 class="inferring-title">Calibrando tu perfil de estilo</h2>
           <p class="inferring-step-text">{{ inferenceStepText() }}</p>
 
           <div class="inferring-tags-preview">
             <span class="tag">{{ selectedStyles()[0] }}</span>
             <span class="tag">Silueta {{ selectedSilhouette() }}</span>
-            <span class="tag">Talla {{ selectedTopSize() }} / {{ selectedBottomSize() }}</span>
+            <span class="tag">Talla {{ effectiveTopSize() }} / {{ effectiveBottomSize() }}</span>
             <span class="tag">Presupuesto Bs {{ selectedBudget() }}</span>
           </div>
         </div>
@@ -501,7 +596,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            <span>ADN DE ESTILO CALIBRADO EXITOSAMENTE</span>
+            <span>PERFIL DE ESTILO PERSONALIZADO</span>
           </div>
           <h2 class="stage-heading">Tu Perfil Editorial en DrapeMind</h2>
           <p class="stage-subhead">Altair ha configurado tus preferencias y seleccionado tu primer look exclusivo de bienvenida.</p>
@@ -510,8 +605,8 @@
         <!-- ADN SYNTHESIS CARD -->
         <div class="dna-summary-card">
           <div class="dna-card-head">
-            <span class="dna-title">SÍNTESIS DE ESTILO DEL ATELIER</span>
-            <span class="dna-model-badge">Curado por Altair</span>
+            <span class="dna-title">SÍNTESIS DE ESTILO · DRAPEMIND</span>
+            <span class="dna-model-badge">Curado por Altair AI</span>
           </div>
           <p class="dna-quote">
             "{{ resultProfile()?.adn_estilo_ia }}"
@@ -527,7 +622,7 @@
             </div>
             <div class="attr-item">
               <span class="attr-lbl">TALLAS REGISTRADAS</span>
-              <strong class="attr-val">Sup: {{ resultProfile()?.talla_superior || selectedTopSize() }} · Inf: {{ resultProfile()?.talla_inferior || selectedBottomSize() }}</strong>
+              <strong class="attr-val">Sup: {{ resultProfile()?.talla_superior || effectiveTopSize() }} · Inf: {{ resultProfile()?.talla_inferior || effectiveBottomSize() }} · Calzado: {{ resultProfile()?.talla_calzado || effectiveShoeSize() }}</strong>
             </div>
             <div class="attr-item">
               <span class="attr-lbl">PRESUPUESTO REF.</span>
@@ -542,7 +637,7 @@
             <div class="showcase-title-row">
               <div>
                 <h3 class="showcase-heading">Tu Primer Look Recomendado</h3>
-                <span class="showcase-sub">Prendas con disponibilidad inmediata en showroom</span>
+                <span class="showcase-sub">Prendas con disponibilidad inmediata en boutique</span>
               </div>
               <div class="showcase-price-badge">
                 <span class="price-lbl">TOTAL LOOK</span>
@@ -590,8 +685,10 @@
             </button>
           }
           <button class="cta-btn cta-btn--dark" type="button" (click)="goToAiStudio()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
             <span>Conversar con Altair en AI Studio</span>
-            <span class="sparkle-icon">✨</span>
           </button>
           <button class="cta-btn cta-btn--ghost" type="button" (click)="finishAndGoStore()">
             <span>Explorar catálogo directamente</span>
