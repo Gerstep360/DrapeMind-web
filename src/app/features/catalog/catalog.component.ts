@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, forkJoin, Observable } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { BranchService } from '../../core/branch.service';
 import { CartService } from '../../core/cart.service';
 import { BranchStock, Category, Product, ProductVariant } from '../../core/models';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
@@ -20,6 +21,7 @@ import { ToastService } from '../../core/toast.service';
 export class CatalogComponent {
   readonly auth = inject(AuthService);
   readonly cart = inject(CartService);
+  readonly branchService = inject(BranchService);
   private readonly api = inject(StoreApiService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
@@ -71,24 +73,20 @@ export class CatalogComponent {
     if (!p?.variantes) return [];
     const map = new Map<string, string | null>();
     p.variantes.forEach((v) => {
-      if (!map.has(v.color)) {
+      if (v.activo && !map.has(v.color)) {
         map.set(v.color, v.codigo_color || '#333333');
       }
     });
-    return Array.from(map.entries()).map(([color, hex]) => ({ color, hex }));
+    return Array.from(map.entries()).map(([color, hex]) => ({ color, hex: hex || '#333333' }));
   });
 
   readonly availableSizes = computed(() => {
     const p = this.selectedProduct();
     const color = this.selectedColor();
-    if (!p?.variantes) return [];
+    if (!p?.variantes || !color) return [];
     return p.variantes
-      .filter((v) => !color || v.color === color)
-      .map((v) => ({
-        talla: v.talla,
-        stock: v.stock_disponible,
-        variantId: v.id,
-      }));
+      .filter((v) => v.color === color && v.activo)
+      .map((v) => ({ talla: v.talla, stock: v.stock_disponible }));
   });
 
   readonly activeVariant = computed(() => {
@@ -108,7 +106,21 @@ export class CatalogComponent {
       : [];
   });
 
+  readonly currentBranchStock = computed(() => {
+    const bId = this.selectedBranchId();
+    if (!bId) return 0;
+    const match = this.selectedVariantAvailability().find((row) => row.sucursal_id === bId);
+    return match ? match.stock_disponible : 0;
+  });
+
+  readonly currentBranchName = computed(() => {
+    const bId = this.selectedBranchId();
+    if (!bId) return 'Sede no seleccionada';
+    return this.branchName(bId);
+  });
+
   constructor() {
+    this.branchService.loadBranches();
     this.load();
     this.route.queryParamMap.subscribe((params) => {
       const productId = Number(params.get('product'));
@@ -283,25 +295,57 @@ export class CatalogComponent {
     this.selectedBranchId.set(null);
   }
 
+  branchName(branchId: number): string {
+    const branch = this.branchService.branches().find((b) => b.id === branchId);
+    return branch ? branch.nombre : `Sucursal #${branchId}`;
+  }
+
+  onBranchChange(branchId: number): void {
+    if (!branchId) return;
+    this.selectedBranchId.set(branchId);
+    const branch = this.branchService.branches().find((b) => b.id === branchId);
+    if (branch) {
+      this.branchService.selectBranch(branch);
+    }
+  }
+
+  private syncSelectedBranchWithAvailability(rows?: BranchStock[]): void {
+    const variantId = this.activeVariant()?.id;
+    const avail = (rows ?? this.availability()).filter(
+      (row) => row.variante_id === variantId && row.stock_disponible > 0,
+    );
+    if (avail.length === 0) {
+      this.selectedBranchId.set(null);
+      return;
+    }
+    const preferredId = this.branchService.selectedBranchId();
+    const matching = avail.find((r) => r.sucursal_id === preferredId);
+    if (matching) {
+      this.selectedBranchId.set(matching.sucursal_id);
+    } else {
+      this.selectedBranchId.set(avail[0].sucursal_id);
+    }
+  }
+
   selectColor(color: string): void {
     this.selectedColor.set(color);
     const sizes = this.availableSizes();
     if (sizes.length > 0 && !sizes.some((s) => s.talla === this.selectedSize())) {
       this.selectedSize.set(sizes[0].talla);
     }
+    this.syncSelectedBranchWithAvailability();
   }
 
   selectSize(size: string): void {
     this.selectedSize.set(size);
-    this.selectedBranchId.set(null);
+    this.syncSelectedBranchWithAvailability();
   }
 
   private loadAvailability(productId: number): void {
     this.api.productAvailability(productId).subscribe({
       next: (rows) => {
         this.availability.set(rows);
-        const first = rows.find((row) => row.variante_id === this.activeVariant()?.id);
-        this.selectedBranchId.set(first?.sucursal_id ?? null);
+        this.syncSelectedBranchWithAvailability(rows);
       },
       error: () => this.availability.set([]),
     });

@@ -21,19 +21,32 @@
       @for (state of ['PENDIENTE','CONFIRMADA','EN_PREPARACION','LISTA','RETIRADA','CONVERTIDA','CANCELADA','VENCIDA']; track state) { <option [value]="state">{{ stateLabel(state) }}</option> }
     </select></label>
   </div>
-  <form class="qr-validator" (ngSubmit)="validateQr()">
-    <div>
-      <p class="eyebrow eyebrow--light">Punto de venta</p>
-      <h2>Validar QR</h2>
+  <div class="qr-validator">
+    <div class="qr-validator__titles">
+      <p class="eyebrow eyebrow--light">Punto de venta y recepción</p>
+      <h2>Validar Reserva / QR</h2>
     </div>
-    <label>
-      <span class="sr-only">Token QR</span>
-      <input [formControl]="qrToken" placeholder="Pega o escanea el UUID de la reserva" />
-    </label>
-    <button class="button button--accent" type="submit" [disabled]="validating() || qrToken.invalid">
-      {{ validating() ? 'Validando' : 'Confirmar visita' }}
-    </button>
-  </form>
+    <form class="qr-validator__form" (ngSubmit)="validateQr()">
+      <label class="sr-only" for="qr-input-field">Código o Token QR</label>
+      <input
+        id="qr-input-field"
+        [formControl]="qrToken"
+        placeholder="Ingresa código (ej: RES-0001, UUID) o escanea QR"
+      />
+      <button
+        type="button"
+        class="button button--scanner"
+        (click)="openScannerDialog()"
+        title="Abrir lector de cámara o subir foto del QR"
+      >
+        <span class="btn-icon">📷</span>
+        <span>Escanear QR</span>
+      </button>
+      <button class="button button--accent" type="submit" [disabled]="validating() || qrToken.invalid">
+        {{ validating() ? 'Validando...' : 'Confirmar visita' }}
+      </button>
+    </form>
+  </div>
 }
 
 <label class="reservation-search">Buscar una reserva
@@ -48,8 +61,9 @@
     @for (reservation of visibleReservations(); track reservation.id) {
       <article class="reservation-row">
         <div class="reservation-row__code">
-          <span>Reserva</span>
-          <strong>#{{ reservation.id.toString().padStart(4, '0') }}</strong>
+          <span>Código</span>
+          <strong>{{ reservationCode(reservation) }}</strong>
+          <small class="code-sub">#{{ reservation.id.toString().padStart(4, '0') }}</small>
         </div>
         <div>
           <span class="status-badge" [attr.data-status]="reservation.estado">{{
@@ -89,19 +103,69 @@
 
 <dialog #qrDialog class="reservation-dialog" aria-labelledby="qr-heading" (cancel)="closeQr()">
   @if (qrPreviewUrl(); as qrUrl) {
-    <p class="eyebrow">Tu pase de recojo</p>
-    <h2 id="qr-heading">Reserva #{{ qrReservation()?.id }}</h2>
+    <p class="eyebrow">Tu pase de recojo en showroom</p>
+    <h2 id="qr-heading">{{ reservationCode(qrReservation()!) }}</h2>
     <img [src]="qrUrl" alt="Código QR de la reserva" />
-    <p>Válido hasta {{ qrReservation()?.vence_at | date: 'd MMM, HH:mm' }}. Muéstralo al personal; no lo compartas.</p>
+    <p class="qr-code-display">Código: <code>{{ qrReservation()?.codigo_publico }}</code></p>
+    <p>Válido hasta {{ qrReservation()?.vence_at | date: 'd MMM, HH:mm' }}. Muéstralo al personal en showroom para retirar tus prendas.</p>
     <button class="button button--primary button--wide" type="button" (click)="closeQr()">Cerrar</button>
   }
 </dialog>
+
+<!-- SCANNER MODAL (Compatible con HTTP IP, cámara en vivo y fotos nativas) -->
+<dialog #scannerDialog class="reservation-dialog scanner-dialog" aria-labelledby="scanner-heading" (cancel)="closeScannerDialog()" (paste)="onPaste($event)">
+  <div class="scanner-dialog__content">
+    <div class="scanner-dialog__header">
+      <h2 id="scanner-heading">Lector de Código QR</h2>
+      <button type="button" class="btn-close-scanner" (click)="closeScannerDialog()" aria-label="Cerrar">✕</button>
+    </div>
+
+    @if (cameraSupported()) {
+      <div class="scanner-viewfinder">
+        <video #scannerVideo playsinline muted></video>
+        <div class="scanner-laser"></div>
+      </div>
+      <p class="scanner-hint">Apunta la cámara hacia el código QR de la reserva.</p>
+    } @else {
+      <div class="scanner-fallback-box">
+        <div class="scanner-icon">📷</div>
+        <h3>Escanear QR mediante cámara o imagen</h3>
+        <p class="scanner-desc">
+          En conexiones por IP/HTTP sin HTTPS, el navegador bloquea la cámara continua por política web.
+          Puedes tomar una foto al instante con la cámara nativa de tu dispositivo o seleccionar una imagen:
+        </p>
+      </div>
+    }
+
+    @if (cameraError()) {
+      <p class="scanner-error-text">{{ cameraError() }}</p>
+    }
+
+    <div class="scanner-actions-bar">
+      <label class="button button--accent scanner-upload-btn">
+        <span>📸 Tomar foto / Subir imagen</span>
+        <input
+          #qrFileInput
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="onFileSelected($event)"
+          style="display: none;"
+        />
+      </label>
+      <button class="button button--secondary" type="button" (click)="closeScannerDialog()">Cerrar</button>
+    </div>
+    <small class="scanner-tip">💡 También puedes presionar <kbd>Ctrl+V</kbd> para pegar una captura del QR directamente aquí.</small>
+  </div>
+</dialog>
+
 <dialog #cancelDialog class="reservation-dialog" aria-labelledby="cancel-heading">
   <p class="eyebrow">Cancelar apartado</p>
   <h2 id="cancel-heading">¿Liberar estas prendas?</h2>
-  <p>La reserva #{{ pendingCancel()?.id }} se cancelará y sus prendas volverán a estar disponibles.</p>
+  <p>La reserva {{ reservationCode(pendingCancel()!) }} se cancelará y sus prendas volverán a estar disponibles.</p>
   <div class="dialog-actions">
     <button class="button" (click)="cancelDialog.close()">Conservar reserva</button>
     <button class="button button--danger" (click)="confirmCancel()">Sí, cancelar</button>
   </div>
 </dialog>
+

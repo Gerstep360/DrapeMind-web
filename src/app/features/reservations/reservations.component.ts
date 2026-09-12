@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import jsQR from 'jsqr';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
 import { Branch, Reservation } from '../../core/models';
@@ -34,6 +35,14 @@ export class ReservationsComponent {
   readonly pendingCancel = signal<Reservation | null>(null);
   readonly cancelDialog = viewChild<ElementRef<HTMLDialogElement>>('cancelDialog');
   readonly qrDialog = viewChild<ElementRef<HTMLDialogElement>>('qrDialog');
+  readonly scannerDialog = viewChild<ElementRef<HTMLDialogElement>>('scannerDialog');
+  readonly scannerVideo = viewChild<ElementRef<HTMLVideoElement>>('scannerVideo');
+  readonly qrFileInput = viewChild<ElementRef<HTMLInputElement>>('qrFileInput');
+  readonly cameraSupported = signal(true);
+  readonly isScanning = signal(false);
+  readonly cameraError = signal<string | null>(null);
+  private mediaStream: MediaStream | null = null;
+  private animFrameId: number | null = null;
   private requestVersion = 0;
   readonly qrToken = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly validating = signal(false);
@@ -42,7 +51,10 @@ export class ReservationsComponent {
   readonly qrReservation = signal<Reservation | null>(null);
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.closeQr());
+    inject(DestroyRef).onDestroy(() => {
+      this.closeQr();
+      this.stopCamera();
+    });
     if (this.auth.user()?.rol !== 'CLIENTE') {
       this.api.assignedBranches().subscribe({ next: (branches) => this.branches.set(branches) });
     }
@@ -73,19 +85,165 @@ export class ReservationsComponent {
     });
   }
 
+  reservationCode(reservation: Reservation): string {
+    if (reservation.codigo_publico) {
+      const clean = String(reservation.codigo_publico).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      return `RES-${clean.slice(0, 8)}`;
+    }
+    return `RES-${reservation.id.toString().padStart(4, '0')}`;
+  }
+
+  async openScannerDialog(): Promise<void> {
+    this.cameraError.set(null);
+    this.scannerDialog()?.nativeElement.showModal();
+    await this.startCamera();
+  }
+
+  closeScannerDialog(): void {
+    this.stopCamera();
+    this.scannerDialog()?.nativeElement.close();
+  }
+
+  async startCamera(): Promise<void> {
+    this.stopCamera();
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      this.cameraSupported.set(false);
+      this.cameraError.set('Cámara en vivo no disponible (requiere HTTPS o dispositivo con cámara). Puedes capturar una foto o subir un archivo de imagen.');
+      return;
+    }
+    try {
+      this.cameraSupported.set(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      this.mediaStream = stream;
+      const video = this.scannerVideo()?.nativeElement;
+      if (video) {
+        video.srcObject = stream;
+        video.setAttribute('playsinline', 'true');
+        await video.play();
+        this.isScanning.set(true);
+        this.scanVideoFrame();
+      }
+    } catch {
+      this.cameraSupported.set(false);
+      this.cameraError.set('No se pudo acceder al stream de video. Usa el botón "Tomar foto / Subir QR" para capturar con la app de cámara nativa.');
+    }
+  }
+
+  private scanVideoFrame(): void {
+    if (!this.isScanning() || !this.mediaStream) return;
+    const video = this.scannerVideo()?.nativeElement;
+    if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+        if (code && code.data) {
+          this.processDecodedQr(code.data);
+          return;
+        }
+      }
+    }
+    this.animFrameId = requestAnimationFrame(() => this.scanVideoFrame());
+  }
+
+  stopCamera(): void {
+    this.isScanning.set(false);
+    if (this.animFrameId !== null) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach((track) => track.stop());
+      this.mediaStream = null;
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.decodeImageFile(file);
+    input.value = '';
+  }
+
+  decodeImageFile(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth',
+        });
+        if (code && code.data) {
+          this.processDecodedQr(code.data);
+        } else {
+          this.toast.show('No se detectó un código QR en la imagen. Intenta con una foto más cercana o enfocada.', 'error');
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onPaste(event: ClipboardEvent): void {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          this.decodeImageFile(file);
+          break;
+        }
+      }
+    }
+  }
+
+  private processDecodedQr(raw: string): void {
+    let token = raw.trim();
+    try {
+      if (token.startsWith('http://') || token.startsWith('https://')) {
+        const url = new URL(token);
+        token = url.searchParams.get('token') || url.pathname.split('/').filter(Boolean).pop() || token;
+      }
+    } catch {
+      // Keep raw
+    }
+    this.qrToken.setValue(token);
+    this.closeScannerDialog();
+    this.toast.show(`QR detectado con éxito`, 'success');
+    this.validateQr();
+  }
+
   validateQr(): void {
     if (this.qrToken.invalid || this.validating()) return;
     this.validating.set(true);
-    this.api.validateQr(this.qrToken.value.trim()).subscribe({
+    const codeEntered = this.qrToken.value.trim();
+    this.api.validateQr(codeEntered).subscribe({
       next: (reservation) => {
         this.validating.set(false);
         this.qrToken.reset();
-        this.toast.show(`Reserva #${reservation.id} validada`, 'success');
+        this.toast.show(`Reserva ${this.reservationCode(reservation)} validada correctamente`, 'success');
         this.load();
       },
       error: (error) => {
         this.validating.set(false);
-        this.toast.show(error?.error?.detail ?? 'QR invalido', 'error');
+        this.toast.show(error?.error?.detail ?? 'Código o QR inválido', 'error');
       },
     });
   }

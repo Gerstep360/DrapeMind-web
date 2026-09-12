@@ -387,7 +387,9 @@
               <label class="section-title">
                 Talla: <strong>{{ selectedSize() }}</strong>
                 @if (activeVariant(); as v) {
-                  <span class="stock-sub">({{ v.stock_disponible }} disponibles)</span>
+                  <span class="stock-sub">
+                    ({{ currentBranchStock() > 0 ? (currentBranchStock() + ' disponibles en ' + currentBranchName()) : (v.stock_disponible + ' disponibles') }})
+                  </span>
                 }
               </label>
               <div class="sizes-row">
@@ -407,23 +409,30 @@
           }
 
           <div class="showroom-picker">
-            <label class="section-title" for="showroom-select">Disponibilidad en showroom</label>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+              <label class="section-title" for="showroom-select" style="margin-bottom: 0;">Disponibilidad en showroom</label>
+              @if (selectedBranchId()) {
+                <span style="font-size: 0.8rem; font-weight: 600; color: #15803d; background: #f0fdf4; padding: 2px 8px; border-radius: 999px;">
+                  {{ currentBranchStock() }} disponible(s) en {{ currentBranchName() }}
+                </span>
+              }
+            </div>
             @if (selectedVariantAvailability().length) {
               <select
                 id="showroom-select"
                 [value]="selectedBranchId() ?? ''"
-                (change)="selectedBranchId.set(+$any($event.target).value)"
+                (change)="onBranchChange(+$any($event.target).value)"
               >
-                <option value="">Selecciona una sede</option>
+                <option value="" disabled>Selecciona una sede</option>
                 @for (row of selectedVariantAvailability(); track row.sucursal_id) {
                   <option [value]="row.sucursal_id">
-                    Sucursal #{{ row.sucursal_id }} · {{ row.stock_disponible }} disponibles
+                    {{ branchName(row.sucursal_id) }} — {{ row.stock_disponible }} unidad(es) disponible(s)
                   </option>
                 }
               </select>
               <small>La reserva bloquea esta talla durante 48 horas en la sede elegida.</small>
             } @else {
-              <p>Esta combinación no está disponible para reserva física.</p>
+              <p style="color: #b91c1c; font-size: 0.85rem; margin-top: 0.25rem;">Esta combinación no está disponible para reserva física en ninguna sede.</p>
             }
           </div>
 
