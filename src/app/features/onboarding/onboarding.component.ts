@@ -1,4 +1,4 @@
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BranchService } from '../../core/branch.service';
 import { CartService } from '../../core/cart.service';
@@ -29,14 +28,15 @@ export type OnboardingStage =
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnboardingComponent implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly branchService = inject(BranchService);
+  readonly branchService = inject(BranchService);
+  readonly chosenBranchId = signal<number | null>(null);
   private readonly cart = inject(CartService);
   private readonly router = inject(Router);
   private readonly runtime = inject(RuntimeConfigService);
@@ -52,15 +52,15 @@ export class OnboardingComponent implements OnInit {
   readonly resultProfile = signal<UserStyleProfile | null>(null);
 
   // Survey State
-  readonly selectedGender = signal<string>('femenino');
-  readonly selectedStyles = signal<string[]>(['Minimalista Atelier', 'Casual Sofisticado']);
-  readonly selectedSilhouette = signal<string>('Regular Confort');
-  readonly selectedTopSize = signal<string>('M');
-  readonly selectedBottomSize = signal<string>('30');
-  readonly selectedShoeSize = signal<string>('39');
-  readonly selectedColors = signal<string[]>(['Monocromático', 'Tonos Tierra']);
-  readonly selectedBudget = signal<number>(600);
-  readonly selectedOccasion = signal<string>('casual');
+  readonly selectedGender = signal<string>('');
+  readonly selectedStyles = signal<string[]>([]);
+  readonly selectedSilhouette = signal<string>('');
+  readonly selectedTopSize = signal<string>('');
+  readonly selectedBottomSize = signal<string>('');
+  readonly selectedShoeSize = signal<string>('');
+  readonly selectedColors = signal<string[]>([]);
+  readonly selectedBudget = signal<number>(0);
+  readonly selectedOccasion = signal<string>('');
 
   // Custom Sizes
   readonly isCustomTop = signal<boolean>(false);
@@ -145,55 +145,21 @@ export class OnboardingComponent implements OnInit {
 
   ngOnInit(): void {
     this.branchService.loadBranches();
-    this.fetchAltairGreeting();
   }
 
   fetchAltairGreeting(): void {
     this.loadingGreeting.set(true);
     this.auth.getOnboardingGreeting().subscribe({
       next: (res) => {
-        const cleanRes: OnboardingGreeting = {
-          ...res,
-          model: 'Altair Mini',
-        };
-        this.greetingData.set(cleanRes);
+        this.greetingData.set(res);
+        this.displayedGreetingText.set(res.greeting);
         this.loadingGreeting.set(false);
-        this.typeGreeting(cleanRes.greeting);
       },
       error: () => {
-        const user = this.auth.user();
-        const fallbackName = user?.nombre?.split(' ')[0] || 'amante de la moda';
-        const fallback: OnboardingGreeting = {
-          greeting: `¡Te doy una cálida bienvenida a DrapeMind, ${fallbackName}! Soy Altair, tu asistente inteligente de moda. Estoy conectado en tiempo real al inventario físico de nuestras boutiques en Bolivia. Acompáñame en este breve recorrido para calibrar tus medidas, preferencias y descubrir tu primer outfit exclusivo.`,
-          stylist_name: 'Altair AI',
-          model: 'Altair Mini',
-          user_name: fallbackName,
-          latency_ms: 185,
-          tips: [
-            'Consultamos stock real en Bolivianos (Bs) antes de recomendarte cualquier prenda.',
-            'Tus tallas y gustos quedarán registrados para tus futuras sesiones de asesoría.',
-            'Podrás reservar tus looks favoritos directamente en el showroom.',
-          ],
-        };
-        this.greetingData.set(fallback);
         this.loadingGreeting.set(false);
-        this.typeGreeting(fallback.greeting);
+        this.toasts.show('Altair no pudo responder. Puedes continuar con tus preferencias.', 'error');
       },
     });
-  }
-
-  private typeGreeting(fullText: string): void {
-    let index = 0;
-    this.displayedGreetingText.set('');
-    const interval = setInterval(() => {
-      index += 3;
-      if (index >= fullText.length) {
-        this.displayedGreetingText.set(fullText);
-        clearInterval(interval);
-      } else {
-        this.displayedGreetingText.set(fullText.slice(0, index));
-      }
-    }, 18);
   }
 
   goToTutorial(): void {
@@ -220,7 +186,7 @@ export class OnboardingComponent implements OnInit {
   toggleStyle(id: string): void {
     this.selectedStyles.update((list) => {
       if (list.includes(id)) {
-        return list.length > 1 ? list.filter((item) => item !== id) : list;
+        return list.filter((item) => item !== id);
       }
       return [...list, id];
     });
@@ -229,7 +195,7 @@ export class OnboardingComponent implements OnInit {
   toggleColor(id: string): void {
     this.selectedColors.update((list) => {
       if (list.includes(id)) {
-        return list.length > 1 ? list.filter((item) => item !== id) : list;
+        return list.filter((item) => item !== id);
       }
       return [...list, id];
     });
@@ -267,80 +233,59 @@ export class OnboardingComponent implements OnInit {
   }
 
   startInference(): void {
+    if (!this.chosenBranchId() || this.isSaving()) return;
     this.stage.set('inferring');
     this.isSaving.set(true);
-
-    const steps = [
-      'Conectando con el inventario físico de las boutiques...',
-      'Filtrando prendas disponibles en talle ' + this.effectiveTopSize() + ' y ' + this.effectiveBottomSize() + '...',
-      'Equilibrando paleta ' + this.selectedColors()[0] + ' y presupuesto en Bs...',
-      'Altair está seleccionando tu combinación ideal...',
-    ];
-    let sIdx = 0;
-    const interval = setInterval(() => {
-      sIdx = (sIdx + 1) % steps.length;
-      this.inferenceStepText.set(steps[sIdx]);
-    }, 900);
-
     const payload: Partial<UserStyleProfile> = {
-      genero: this.selectedGender(),
+      genero: this.selectedGender() || undefined,
       estilos_preferidos: this.selectedStyles(),
-      talla_superior: this.effectiveTopSize(),
-      talla_inferior: this.effectiveBottomSize(),
-      talla_calzado: this.effectiveShoeSize(),
+      talla_superior: this.effectiveTopSize() || undefined,
+      talla_inferior: this.effectiveBottomSize() || undefined,
+      talla_calzado: this.effectiveShoeSize() || undefined,
       colores_favoritos: this.selectedColors(),
-      ocasiones_frecuentes: [this.selectedOccasion()],
-      presupuesto_habitual: this.selectedBudget(),
-      silueta_preferida: this.selectedSilhouette(),
-      completado: true,
+      ocasiones_frecuentes: this.selectedOccasion() ? [this.selectedOccasion()] : [],
+      presupuesto_habitual: this.selectedBudget() || undefined,
+      silueta_preferida: this.selectedSilhouette() || undefined,
     };
-
-    this.auth.saveStyleProfile({ ...payload, infer_outfit: true }).subscribe({
+    this.auth.saveStyleProfile({ ...payload, infer_outfit: false }).subscribe({
       next: (profile) => {
-        clearInterval(interval);
         this.isSaving.set(false);
         this.auth.markStyleProfileDoneLocally();
         this.resultProfile.set(profile);
         this.stage.set('reveal');
       },
       error: () => {
-        clearInterval(interval);
         this.isSaving.set(false);
-        this.auth.markStyleProfileDoneLocally();
-        this.resultProfile.set({
-          ...payload,
-          estilos_preferidos: payload.estilos_preferidos || [],
-          colores_favoritos: payload.colores_favoritos || [],
-          ocasiones_frecuentes: payload.ocasiones_frecuentes || [],
-          adn_estilo_ia: `Perfil curado en base a estética ${this.selectedStyles().join(', ')} con silueta ${this.selectedSilhouette()}. Tus tallas y preferencias están registradas para todas tus consultas con Altair.`,
-        });
-        this.stage.set('reveal');
+        this.stage.set('survey_budget');
+        this.toasts.show('No se guardaron tus preferencias. Reintenta sin perder tus respuestas.', 'error');
       },
     });
   }
 
   skip(): void {
-    this.auth.markStyleProfileDoneLocally();
-    const payload: Partial<UserStyleProfile> = {
-      genero: this.selectedGender(),
-      estilos_preferidos: this.selectedStyles(),
-      talla_superior: this.effectiveTopSize(),
-      talla_inferior: this.effectiveBottomSize(),
-      talla_calzado: this.effectiveShoeSize(),
-      colores_favoritos: this.selectedColors(),
-      ocasiones_frecuentes: [this.selectedOccasion()],
-      presupuesto_habitual: this.selectedBudget(),
-      silueta_preferida: this.selectedSilhouette(),
-      completado: true,
+    // Skipping must not persist unconfirmed default measurements as preferences.
+    this.auth.onboardingSkippedForUser.set(this.auth.user()?.id ?? null);
+    void this.router.navigate(['/catalog']);
+  }
+
+  selectShoppingBranch(id: number): void {
+    const branch = this.branchService.branches().find(item => item.id === id);
+    if (!branch) return;
+    this.branchService.selectBranch(branch);
+    this.chosenBranchId.set(id);
+  }
+
+  exploreWithAltair(): void {
+    const profile = this.resultProfile();
+    if (!profile) return;
+    const preferences = {
+      estilos: profile.estilos_preferidos, tallas: [profile.talla_superior, profile.talla_inferior, profile.talla_calzado],
+      colores: profile.colores_favoritos, presupuesto: profile.presupuesto_habitual,
+      ocasiones: profile.ocasiones_frecuentes,
     };
-    this.auth.saveStyleProfile({ ...payload, infer_outfit: false }).subscribe({
-      next: () => {
-        void this.router.navigate(['/catalog']);
-      },
-      error: () => {
-        void this.router.navigate(['/catalog']);
-      },
-    });
+    const branch = this.branchService.branches().find(item => item.id === this.chosenBranchId());
+    const message = `Quiero explorar novedades disponibles en ${branch?.nombre}. Consulta stock real antes de recomendar. Estas son mis preferencias: ${JSON.stringify(preferences)}`;
+    void this.router.navigate(['/ai-studio'], { queryParams: { autoQuery: message } });
   }
 
   cardImageUrl(item: any): string | null {

@@ -223,12 +223,14 @@ export class AiStudioComponent implements OnInit {
   }
 
   replaceCartWithOutfit(items: AiActionItem[]): void {
+    if (!window.confirm('Esta selección reemplazará las prendas actuales de tu perchero. ¿Continuar?')) return;
     const variants = items
       .filter((item) => item.accion === 'AGREGAR' && item.variante_id)
       .map((item) => ({ variante_id: item.variante_id!, cantidad: 1 }));
     this.cart.replaceWithItems(
       variants,
       `Carrito reemplazado por una selección de ${variants.length} prendas`,
+      true,
     );
   }
 

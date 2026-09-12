@@ -23,6 +23,9 @@ import { RuntimeConfigService } from './runtime-config.service';
 
 @Injectable({ providedIn: 'root' })
 export class StoreApiService {
+  applyAiSelection(items: Array<{ variante_id: number; cantidad: number }>): Observable<Cart> {
+    return this.http.post<Cart>(`${this.runtime.apiUrl}/ai/recommendations/apply`, { items, replace_cart: true });
+  }
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(RuntimeConfigService);
 

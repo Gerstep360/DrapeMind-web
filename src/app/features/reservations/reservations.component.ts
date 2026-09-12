@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import jsQR from 'jsqr';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
-import { Branch, Reservation } from '../../core/models';
+import { Branch, Reservation, Order } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 
@@ -22,6 +22,39 @@ export class ReservationsComponent {
   private readonly toast = inject(ToastService);
 
   readonly reservations = signal<Reservation[]>([]);
+  readonly checkoutOrder = signal<Order | null>(null);
+  readonly collectingCash = signal(false);
+
+  collectCash(): void {
+    const order = this.checkoutOrder();
+    if (!order || this.collectingCash() || order.estado !== 'PENDIENTE_PAGO') return;
+    this.collectingCash.set(true);
+    this.api.confirmCashPayment(order.id).subscribe({
+      next: (paid) => {
+        this.collectingCash.set(false);
+        this.checkoutOrder.set(paid);
+        this.toast.show('Cobro registrado. Ya puedes descargar el comprobante.', 'success');
+      },
+      error: (error) => {
+        this.collectingCash.set(false);
+        this.toast.show(error?.error?.detail ?? 'No se confirmó el cobro. Revisa el pedido antes de reintentar.', 'error');
+      },
+    });
+  }
+
+  downloadCheckoutReceipt(): void {
+    const order = this.checkoutOrder();
+    if (!order) return;
+    this.api.receipt(order.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = `comprobante-${order.id}.txt`; link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: () => this.toast.show('No se pudo descargar el comprobante.', 'error'),
+    });
+  }
   readonly branches = signal<Branch[]>([]);
   readonly branchId = signal(0);
   readonly statusFilter = signal('');
@@ -255,6 +288,7 @@ export class ReservationsComponent {
       next: (order) => {
         this.actionId.set(null);
         this.toast.show(`Reserva convertida en pedido #${order.id}`, 'success');
+        this.checkoutOrder.set(order);
         this.load();
       },
       error: (error) => {

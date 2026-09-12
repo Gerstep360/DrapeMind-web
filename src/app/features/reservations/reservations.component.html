@@ -1,3 +1,16 @@
+@if (checkoutOrder(); as order) {
+  <section class="card" aria-live="polite" aria-label="Cobro de reserva convertida">
+    <h2>Pedido #{{ order.id }} · Mostrador</h2>
+    <p>Total: Bs {{ order.total }} · {{ order.estado }}</p>
+    @if (order.estado === 'PENDIENTE_PAGO') {
+      <p>Confirma únicamente después de recibir el efectivo del cliente.</p>
+      <button class="button button--primary" type="button" [disabled]="collectingCash()" (click)="collectCash()">{{ collectingCash() ? 'Registrando…' : 'He recibido el efectivo · Confirmar cobro' }}</button>
+    } @else {
+      <button class="button" type="button" (click)="downloadCheckoutReceipt()">Descargar comprobante</button>
+    }
+    <button class="button" type="button" [disabled]="collectingCash()" (click)="checkoutOrder.set(null)">Cerrar</button>
+  </section>
+}
 <section class="page-heading page-heading--split">
   <div>
     <p class="eyebrow">Apartados en tienda</p>
@@ -168,4 +181,3 @@
     <button class="button button--danger" (click)="confirmCancel()">Sí, cancelar</button>
   </div>
 </dialog>
-

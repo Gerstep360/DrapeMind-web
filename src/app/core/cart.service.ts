@@ -110,6 +110,7 @@ export class CartService {
   replaceWithItems(
     items: Array<{ variante_id: number; cantidad?: number }>,
     customMessage = 'Tu carrito ahora contiene esta selección',
+    fromAi = false,
   ): void {
     if (!this.auth.isAuthenticated()) {
       this.toast.show('Inicia sesión para usar la selección', 'error');
@@ -118,13 +119,11 @@ export class CartService {
     const validItems = items.filter((item) => item.variante_id > 0);
     if (!validItems.length || this.loading()) return;
     this.loading.set(true);
-    this.api
-      .replaceCartItemsBatch(
-        validItems.map((item) => ({
+    const selection = validItems.map((item) => ({
           variante_id: item.variante_id,
           cantidad: item.cantidad ?? 1,
-        })),
-      )
+        }));
+    (fromAi ? this.api.applyAiSelection(selection) : this.api.replaceCartItemsBatch(selection))
       .subscribe({
         next: (cart) => {
           this.cart.set(cart);

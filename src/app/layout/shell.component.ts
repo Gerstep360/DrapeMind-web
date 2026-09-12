@@ -101,7 +101,7 @@ export class ShellComponent {
 
     // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
-    if (user && user.has_style_profile === false) {
+    if (user && user.has_style_profile === false && this.auth.onboardingSkippedForUser() !== user.id) {
       void this.router.navigate(['/onboarding']);
     }
   }
