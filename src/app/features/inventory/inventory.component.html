@@ -83,6 +83,30 @@
   } @empty { <p class="empty-state">Sin movimientos registrados con el filtro seleccionado.</p> }
 </details>
 
+<div class="category-filter-bar">
+  <span class="category-filter-label">Categorías:</span>
+  <div class="cat-chips-scroll">
+    <button
+      type="button"
+      class="cat-chip"
+      [class.active]="selectedCategory() === null"
+      (click)="selectedCategory.set(null)"
+    >
+      Todas ({{ rows().length }})
+    </button>
+    @for (cat of categories(); track cat.id) {
+      <button
+        type="button"
+        class="cat-chip"
+        [class.active]="selectedCategory() === cat.id"
+        (click)="selectedCategory.set(cat.id)"
+      >
+        {{ cat.nombre }}
+      </button>
+    }
+  </div>
+</div>
+
 <div class="inventory-tools">
   <label>Buscar en esta sucursal <input type="search" placeholder="Prenda, SKU, talla o color" [value]="search()" (input)="search.set($any($event.target).value)" /></label>
   <button class="button" type="button" [attr.aria-pressed]="onlyCritical()" (click)="onlyCritical.set(!onlyCritical())">{{ onlyCritical() ? 'Mostrar todas' : 'Solo stock crítico' }}</button>
@@ -92,50 +116,136 @@
 } @else if (loading()) {
   <div class="loading-state"><span class="spinner"></span> Contando existencias</div>
 } @else {
-  <section class="data-sheet" aria-label="Inventario por variante">
-    <div class="data-sheet__head">
-      <span>Prenda / SKU</span><span>Color</span><span>Talla</span><span>Reservado</span
-      ><span>Total</span><span></span>
-    </div>
-    @for (row of visibleRows(); track row.variant.id) {
-      <article
-        class="data-sheet__row"
-        [class.data-sheet__row--critical]="row.variant.stock_disponible <= 3"
-      >
-        <div class="item-identity">
-          <span class="swatch" [style.background]="row.variant.codigo_color || '#d8d2c2'"></span>
-          <div>
-            <strong>{{ row.product.nombre }}</strong
-            ><small>{{ row.variant.sku }}</small>
+  <section class="data-sheet-grouped" aria-label="Inventario agrupado por categoría">
+    @for (group of groupedCategories(); track group.id) {
+      <div class="category-group-section">
+        <div class="category-group-header">
+          <div class="category-group-title">
+            <span class="category-group-icon">📂</span>
+            <h3>{{ group.nombre }}</h3>
           </div>
+          <span class="category-badge">{{ group.rows.length }} variantes · {{ group.totalUnits }} unidades</span>
         </div>
-        <span>{{ row.variant.color }}</span>
-        <strong>{{ row.variant.talla }}</strong>
-        <span>{{ row.variant.stock_reservado }}</span>
-        <input
-          class="stock-input"
-          type="number"
-          min="0"
-          [value]="stockDrafts()[row.variant.id]"
-          (input)="setStock(row.variant.id, $any($event.target).value)"
-          [attr.aria-label]="'Stock total de ' + row.variant.sku"
-        />
-        <button
-          class="save-cell"
-          type="button"
-          (click)="saveStock(row)"
-          [disabled]="
-            stockDrafts()[row.variant.id] === row.variant.stock_total ||
-            savingId() !== null
-          "
-        >
-          {{ actionLabel(row) }}
-        </button>
-      </article>
+
+        <div class="data-sheet">
+          <div class="data-sheet__head">
+            <span>Prenda / SKU</span><span>Color</span><span>Talla</span><span>Reservado</span
+            ><span>Total Físico</span><span>Acciones de Stock</span>
+          </div>
+          @for (row of group.rows; track row.variant.id) {
+            <article
+              class="data-sheet__row"
+              [class.data-sheet__row--critical]="row.variant.stock_disponible <= 3"
+            >
+              <div class="item-identity">
+                <span class="swatch" [style.background]="row.variant.codigo_color || '#d8d2c2'"></span>
+                <div>
+                  <strong>{{ row.product.nombre }}</strong
+                  ><small>{{ row.variant.sku }}</small>
+                </div>
+              </div>
+              <span>{{ row.variant.color }}</span>
+              <strong>{{ row.variant.talla }}</strong>
+              <span>{{ row.variant.stock_reservado }}</span>
+              <div class="stock-input-wrapper">
+                <input
+                  class="stock-input"
+                  type="number"
+                  min="0"
+                  [value]="stockDrafts()[row.variant.id]"
+                  (input)="setStock(row.variant.id, $any($event.target).value)"
+                  [attr.aria-label]="'Stock total de ' + row.variant.sku"
+                />
+              </div>
+              <div class="row-actions-cell">
+                <button
+                  class="btn-receive"
+                  type="button"
+                  (click)="openReceiveModal(row)"
+                  title="Recibir más unidades de esta variante"
+                >
+                  + Recibir
+                </button>
+                <button
+                  class="save-cell"
+                  type="button"
+                  (click)="saveStock(row)"
+                  [disabled]="
+                    stockDrafts()[row.variant.id] === row.variant.stock_total ||
+                    savingId() !== null
+                  "
+                >
+                  {{ actionLabel(row) }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
     } @empty {
       <div class="empty-state">
-        No hay variantes que coincidan. Revisa la búsqueda, el filtro o la sucursal seleccionada.
+        No hay variantes en esta categoría o búsqueda. Revisa los filtros seleccionados.
       </div>
     }
   </section>
 }
+
+<!-- RECEIVE STOCK MODAL -->
+@if (receiveModalOpen()) {
+  <div class="modal-backdrop" (click)="closeReceiveModal()">
+    <div class="receive-modal" (click)="$event.stopPropagation()">
+      <div class="receive-modal__head">
+        <h3>Recibir Mercadería en Showroom</h3>
+        <button type="button" class="btn-close-modal" (click)="closeReceiveModal()" aria-label="Cerrar">✕</button>
+      </div>
+      @if (activeReceiveRow(); as row) {
+        <div class="receive-modal__body">
+          <div class="receive-item-summary">
+            <span class="swatch-large" [style.background]="row.variant.codigo_color || '#333'"></span>
+            <div>
+              <h4>{{ row.product.nombre }}</h4>
+              <p>{{ row.variant.color }} · Talla {{ row.variant.talla }} · <code>{{ row.variant.sku }}</code></p>
+              <span class="current-stock-tag">Stock actual en sucursal: <b>{{ row.variant.stock_total }} unidades</b></span>
+            </div>
+          </div>
+
+          <label class="receive-field">
+            <span class="field-title">Unidades a ingresar (+):</span>
+            <div class="qty-quick-stepper">
+              <input
+                type="number"
+                min="1"
+                [value]="receiveQty()"
+                (input)="receiveQty.set(+$any($event.target).value)"
+              />
+              <div class="quick-chips">
+                <button type="button" (click)="receiveQty.set(receiveQty() + 5)">+5</button>
+                <button type="button" (click)="receiveQty.set(receiveQty() + 10)">+10</button>
+                <button type="button" (click)="receiveQty.set(receiveQty() + 25)">+25</button>
+              </div>
+            </div>
+          </label>
+
+          <label class="receive-field">
+            <span class="field-title">Motivo de recepción / Proveedor:</span>
+            <input
+              type="text"
+              maxlength="150"
+              [value]="receiveReason()"
+              (input)="receiveReason.set($any($event.target).value)"
+              placeholder="Ej: Recepción proveedor taller central"
+            />
+          </label>
+        </div>
+
+        <div class="receive-modal__foot">
+          <button type="button" class="button button--secondary" (click)="closeReceiveModal()">Cancelar</button>
+          <button type="button" class="button button--primary" (click)="confirmReceive()" [disabled]="receiveQty() <= 0">
+            Confirmar Ingreso (+{{ receiveQty() }} prendas)
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+

@@ -195,7 +195,7 @@
         <form [formGroup]="checkoutForm" (ngSubmit)="confirmOrder()">
           <!-- TIPO DE ENTREGA -->
           <section class="checkout-section">
-            <p class="section-label">1. Modalidad de Entrega</p>
+            <p class="section-label">Modalidad de entrega</p>
             <div class="delivery-toggle">
               <label class="delivery-option" [class.selected]="checkoutForm.get('tipo_entrega')?.value === 'RECOJO'">
                 <input type="radio" formControlName="tipo_entrega" value="RECOJO" />
@@ -217,7 +217,7 @@
                 <div class="option-icon-box">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <rect width="16" height="13" x="1" y="3" rx="2"/>
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 8"/>
                     <circle cx="5.5" cy="18.5" r="2.5"/>
                     <circle cx="18.5" cy="18.5" r="2.5"/>
                   </svg>
@@ -234,7 +234,7 @@
           <!-- DIRECCION DE ENTREGA (SI DELIVERY) -->
           @if (checkoutForm.get('tipo_entrega')?.value === 'DELIVERY') {
             <section class="checkout-section address-section">
-              <p class="section-label">2. Dirección de Entrega</p>
+              <p class="section-label">Dirección de entrega</p>
 
               @if (addresses().length > 0 && !showNewAddressForm()) {
                 <div class="saved-addresses">
@@ -296,7 +296,7 @@
 
           <!-- METODO DE PAGO -->
           <section class="checkout-section">
-            <p class="section-label">3. Método de Pago</p>
+            <p class="section-label">Método de pago</p>
             <div class="payment-methods-grid">
               <label class="payment-pill" [class.selected]="checkoutForm.get('metodo_pago')?.value === 'QR'">
                 <input type="radio" formControlName="metodo_pago" value="QR" />
@@ -370,11 +370,11 @@
         </div>
 
         <div class="checkout-actions">
-          <button class="button button--ghost" type="button" (click)="backToCart()" [disabled]="processing()">
+          <button class="button button--ghost btn-back-cart" type="button" (click)="backToCart()" [disabled]="processing()">
             &larr; Volver
           </button>
           <button
-            class="button button--primary button--wide"
+            class="button button--primary button--wide btn-confirm-checkout"
             type="button"
             (click)="confirmOrder()"
             [disabled]="processing()"

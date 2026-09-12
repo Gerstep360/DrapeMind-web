@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { DatePipe } from '@angular/common';
-import { Branch, Product, ProductVariant } from '../../core/models';
+import { Branch, Category, Product, ProductVariant } from '../../core/models';
 import { InventoryMovement, StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { AuthService } from '../../core/auth.service';
@@ -26,6 +26,8 @@ export class InventoryComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly products = signal<Product[]>([]);
+  readonly categories = signal<Category[]>([]);
+  readonly selectedCategory = signal<number | null>(null);
   readonly branches = signal<Branch[]>([]);
   readonly branchId = signal(0);
   readonly observation = signal('');
@@ -40,10 +42,56 @@ export class InventoryComponent {
   readonly loadError = signal('');
   readonly search = signal('');
   readonly onlyCritical = signal(false);
-  readonly visibleRows = computed(() => this.rows().filter(row =>
-    (!this.onlyCritical() || row.variant.stock_disponible <= 3) &&
-    [row.product.nombre, row.variant.sku, row.variant.color, row.variant.talla].join(' ')
-      .toLowerCase().includes(this.search().trim().toLowerCase())));
+
+  // Receive Variant Modal State
+  readonly receiveModalOpen = signal(false);
+  readonly activeReceiveRow = signal<InventoryRow | null>(null);
+  readonly receiveQty = signal<number>(5);
+  readonly receiveReason = signal<string>('Recepción de mercadería en showroom');
+
+  readonly visibleRows = computed(() => {
+    const catId = this.selectedCategory();
+    const query = this.search().trim().toLowerCase();
+    const onlyCrit = this.onlyCritical();
+
+    return this.rows().filter(row => {
+      if (catId !== null && row.product.categoria_id !== catId) return false;
+      if (onlyCrit && row.variant.stock_disponible > 3) return false;
+      if (query) {
+        const match = [row.product.nombre, row.variant.sku, row.variant.color, row.variant.talla]
+          .join(' ')
+          .toLowerCase()
+          .includes(query);
+        if (!match) return false;
+      }
+      return true;
+    });
+  });
+
+  readonly groupedCategories = computed(() => {
+    const rows = this.visibleRows();
+    const cats = this.categories();
+    const catMap = new Map<number, { id: number; nombre: string; rows: InventoryRow[]; totalUnits: number }>();
+
+    for (const r of rows) {
+      const cId = r.product.categoria_id || 0;
+      if (!catMap.has(cId)) {
+        const foundCat = cats.find(c => c.id === cId);
+        catMap.set(cId, {
+          id: cId,
+          nombre: foundCat ? foundCat.nombre : (cId === 0 ? 'Sin categoría' : `Categoría #${cId}`),
+          rows: [],
+          totalUnits: 0,
+        });
+      }
+      const group = catMap.get(cId)!;
+      group.rows.push(r);
+      group.totalUnits += r.variant.stock_total;
+    }
+
+    return Array.from(catMap.values());
+  });
+
   readonly editorOpen = signal(false);
   readonly stockDrafts = signal<Record<number, number>>({});
   readonly savingId = signal<number | null>(null);
@@ -60,6 +108,9 @@ export class InventoryComponent {
   });
 
   constructor() {
+    this.api.categories().subscribe({
+      next: (cats) => this.categories.set(cats),
+    });
     this.api.assignedBranches().subscribe({
       next: (branches) => {
         this.branches.set(branches);
@@ -125,11 +176,11 @@ export class InventoryComponent {
     this.stockDrafts.update((drafts) => ({ ...drafts, [id]: Number(value) }));
   }
 
-  saveStock(row: InventoryRow): void {
+  saveStock(row: InventoryRow, reasonOverride?: string): void {
     if (this.savingId() !== null) return;
     const next = this.stockDrafts()[row.variant.id];
-    if (!Number.isInteger(next) || next < 0 || this.observation().trim().length < 5) {
-      this.toast.show('Indica unidades enteras y un motivo de al menos 5 caracteres', 'error');
+    if (!Number.isInteger(next) || next < 0) {
+      this.toast.show('Indica una cantidad de unidades válida', 'error');
       return;
     }
     if (next < row.variant.stock_reservado) {
@@ -137,11 +188,21 @@ export class InventoryComponent {
       return;
     }
     if (next === row.variant.stock_total) return;
+
+    let reason = (reasonOverride || this.observation()).trim();
+    if (reason.length < 5) {
+      if (next > row.variant.stock_total) {
+        reason = `Recepción de mercadería (+${next - row.variant.stock_total} u.) en showroom`;
+      } else {
+        reason = `Ajuste manual de inventario (${next - row.variant.stock_total} u.) en showroom`;
+      }
+    }
+
     this.savingId.set(row.variant.id);
-    this.api.setBranchStock(this.branchId(), row.variant.id, next, this.observation().trim()).subscribe({
+    this.api.setBranchStock(this.branchId(), row.variant.id, next, reason).subscribe({
       next: () => {
         this.savingId.set(null);
-        this.toast.show(`Stock de ${row.variant.sku} actualizado`, 'success');
+        this.toast.show(`Stock de ${row.variant.sku} actualizado (${row.variant.stock_total} → ${next})`, 'success');
         this.load();
       },
       error: (error) => {
@@ -149,6 +210,39 @@ export class InventoryComponent {
         this.toast.show(error?.error?.detail ?? 'No se pudo ajustar el stock', 'error');
       },
     });
+  }
+
+  openReceiveModal(row: InventoryRow): void {
+    this.activeReceiveRow.set(row);
+    this.receiveQty.set(5);
+    this.receiveReason.set('Recepción de mercadería en showroom');
+    this.receiveModalOpen.set(true);
+  }
+
+  closeReceiveModal(): void {
+    this.receiveModalOpen.set(false);
+    this.activeReceiveRow.set(null);
+  }
+
+  confirmReceive(): void {
+    const row = this.activeReceiveRow();
+    const qty = this.receiveQty();
+    if (!row || !Number.isInteger(qty) || qty <= 0) {
+      this.toast.show('Indica una cantidad mayor a 0', 'error');
+      return;
+    }
+    const newTotal = row.variant.stock_total + qty;
+    this.stockDrafts.update((drafts) => ({ ...drafts, [row.variant.id]: newTotal }));
+    const reason = this.receiveReason().trim() || `Recepción de proveedor (+${qty} u.)`;
+    this.closeReceiveModal();
+    this.saveStock(row, reason);
+  }
+
+  quickAddStock(row: InventoryRow, amount: number): void {
+    const current = this.stockDrafts()[row.variant.id] ?? row.variant.stock_total;
+    const next = current + amount;
+    this.stockDrafts.update((drafts) => ({ ...drafts, [row.variant.id]: next }));
+    this.saveStock(row, `Recepción rápida (+${amount} u.) en tienda`);
   }
 
   createVariant(): void {
