@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, firstValueFrom, switchMap, tap, timeout } from 'rxjs';
-import { TokenResponse, User, UserStyleProfile } from './models';
+import { OnboardingGreeting, TokenResponse, User, UserStyleProfile } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 
 const TOKEN_KEY = 'drapemind_access_token';
@@ -61,6 +61,10 @@ export class AuthService {
 
   getStyleProfile(): Observable<UserStyleProfile> {
     return this.http.get<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`);
+  }
+
+  getOnboardingGreeting(): Observable<OnboardingGreeting> {
+    return this.http.get<OnboardingGreeting>(`${this.runtime.apiUrl}/ai/onboarding-greeting`);
   }
 
   saveStyleProfile(payload: Partial<UserStyleProfile> & { infer_outfit?: boolean }): Observable<UserStyleProfile> {

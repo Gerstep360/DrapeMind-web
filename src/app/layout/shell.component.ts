@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AiSocketService } from '../core/ai-socket.service';
 import { AuthService } from '../core/auth.service';
 import { CartService } from '../core/cart.service';
@@ -10,7 +10,6 @@ import { CartDrawerComponent } from './cart-drawer/cart-drawer.component';
 
 import { BranchService } from '../core/branch.service';
 import { Branch } from '../core/models';
-import { StyleOnboardingModalComponent } from '../shared/components/style-onboarding-modal/style-onboarding-modal.component';
 
 export type NavIcon =
   | 'dashboard'
@@ -30,7 +29,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, StyleOnboardingModalComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,9 +41,9 @@ export class ShellComponent {
   readonly toasts = inject(ToastService);
   readonly branchService = inject(BranchService);
   private readonly ai = inject(AiSocketService);
+  private readonly router = inject(Router);
   readonly menuOpen = signal(false);
   readonly isBranchDropdownOpen = signal(false);
-  readonly showStyleOnboarding = signal(false);
 
   private readonly allNav: NavItem[] = [
     {
@@ -100,10 +99,10 @@ export class ShellComponent {
     this.events.connect();
     this.branchService.loadBranches();
 
-    // Comprobar si el usuario no tiene perfil de estilo para desplegar la encuesta interactiva
+    // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
     if (user && user.has_style_profile === false) {
-      this.showStyleOnboarding.set(true);
+      void this.router.navigate(['/onboarding']);
     }
   }
 
@@ -120,10 +119,6 @@ export class ShellComponent {
   openBranchSelectorModal(): void {
     this.isBranchDropdownOpen.set(false);
     this.branchService.openSelectorModal();
-  }
-
-  onOnboardingClosed(): void {
-    this.showStyleOnboarding.set(false);
   }
 
   logout(): void {

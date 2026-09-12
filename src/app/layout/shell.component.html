@@ -286,13 +286,4 @@
       </button>
     }
   </section>
-
-  <!-- ENCUESTA ANIMADA DE ESTILO & ADN DE MODA IA (PRIMERA VEZ) -->
-  @if (showStyleOnboarding()) {
-    <app-style-onboarding-modal
-      [isOpen]="showStyleOnboarding()"
-      (closed)="onOnboardingClosed()"
-      (completed)="onOnboardingClosed()"
-    />
-  }
 </div>

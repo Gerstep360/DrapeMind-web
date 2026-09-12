@@ -30,6 +30,15 @@ export interface UserStyleProfile {
   updated_at?: string;
 }
 
+export interface OnboardingGreeting {
+  greeting: string;
+  stylist_name: string;
+  model: string;
+  user_name: string;
+  latency_ms: number;
+  tips: string[];
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: 'bearer';
