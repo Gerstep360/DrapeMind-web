@@ -133,7 +133,22 @@ export class StyleOnboardingModalComponent {
   }
 
   skip(): void {
-    this.closed.emit();
+    const payload: Partial<UserStyleProfile> = {
+      genero: this.selectedGender(),
+      estilos_preferidos: this.selectedStyles(),
+      talla_superior: this.selectedTopSize(),
+      talla_inferior: this.selectedBottomSize(),
+      talla_calzado: this.selectedShoeSize(),
+      colores_favoritos: this.selectedColors(),
+      ocasiones_frecuentes: [this.selectedOccasion()],
+      presupuesto_habitual: this.selectedBudget(),
+      silueta_preferida: this.selectedSilhouette(),
+      completado: true,
+    };
+    this.auth.saveStyleProfile({ ...payload, infer_outfit: false }).subscribe({
+      next: () => this.closed.emit(),
+      error: () => this.closed.emit(),
+    });
   }
 
   toggleStyle(id: string): void {

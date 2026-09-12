@@ -72,7 +72,7 @@ export class LoginComponent {
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: () => {
-            this.branchService.openSelectorModal();
+            this.branchService.loadBranches();
             this.showOnboarding.set(true);
           },
           error: (error) => {
@@ -105,9 +105,13 @@ export class LoginComponent {
         .login(email.trim().toLowerCase(), password)
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
-          next: () => {
-            this.branchService.openSelectorModal();
-            void this.router.navigate(['/dashboard']);
+          next: (user) => {
+            this.branchService.loadBranches();
+            if (user && user.has_style_profile === false) {
+              this.showOnboarding.set(true);
+            } else {
+              void this.router.navigate(['/dashboard']);
+            }
           },
           error: (error) =>
             this.error.set(error?.error?.detail ?? 'Credenciales incorrectas. Revisa tu correo y contraseña.'),

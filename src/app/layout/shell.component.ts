@@ -10,6 +10,7 @@ import { CartDrawerComponent } from './cart-drawer/cart-drawer.component';
 
 import { BranchService } from '../core/branch.service';
 import { Branch } from '../core/models';
+import { StyleOnboardingModalComponent } from '../shared/components/style-onboarding-modal/style-onboarding-modal.component';
 
 export type NavIcon =
   | 'dashboard'
@@ -29,7 +30,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, StyleOnboardingModalComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +44,7 @@ export class ShellComponent {
   private readonly ai = inject(AiSocketService);
   readonly menuOpen = signal(false);
   readonly isBranchDropdownOpen = signal(false);
+  readonly showStyleOnboarding = signal(false);
 
   private readonly allNav: NavItem[] = [
     {
@@ -97,6 +99,12 @@ export class ShellComponent {
   constructor() {
     this.events.connect();
     this.branchService.loadBranches();
+
+    // Comprobar si el usuario no tiene perfil de estilo para desplegar la encuesta interactiva
+    const user = this.auth.user();
+    if (user && user.has_style_profile === false) {
+      this.showStyleOnboarding.set(true);
+    }
   }
 
   toggleBranchDropdown(): void {
@@ -106,11 +114,16 @@ export class ShellComponent {
   chooseBranch(branch: Branch): void {
     this.branchService.selectBranch(branch);
     this.isBranchDropdownOpen.set(false);
+    this.toasts.show(`Sucursal activa: ${branch.nombre}. Disponibilidad física sincronizada.`, 'info');
   }
 
   openBranchSelectorModal(): void {
     this.isBranchDropdownOpen.set(false);
     this.branchService.openSelectorModal();
+  }
+
+  onOnboardingClosed(): void {
+    this.showStyleOnboarding.set(false);
   }
 
   logout(): void {
