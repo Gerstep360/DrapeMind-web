@@ -1,0 +1,335 @@
+@if (isOpen) {
+  <div class="onboarding-backdrop" (click)="skip()">
+    <div class="onboarding-card" (click)="$event.stopPropagation()">
+
+      <!-- PHASE 1: SURVEY STEPS -->
+      @if (phase() === 'survey') {
+        <!-- TOP PROGRESS & CONTROLS -->
+        <header class="onboarding-header">
+          <div class="header-left">
+            <span class="step-badge">Paso {{ currentStep() }} de {{ totalSteps }}</span>
+            <span class="step-label">
+              @switch (currentStep()) {
+                @case (1) { Identidad & Género }
+                @case (2) { Universo Estético }
+                @case (3) { Guía de Tallas }
+                @case (4) { Cromática & Presupuesto }
+              }
+            </span>
+          </div>
+          <button type="button" class="btn-skip" (click)="skip()" title="Completar más tarde">
+            <span>Omitir</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+
+        <!-- PROGRESS BAR WITH LIME GLOW -->
+        <div class="progress-track" role="progressbar" [attr.aria-valuenow]="(currentStep() / totalSteps) * 100">
+          <div class="progress-fill" [style.width.%]="(currentStep() / totalSteps) * 100"></div>
+        </div>
+
+        <!-- STEP CONTENTS WITH SLIDE TRANSITION -->
+        <div class="step-body">
+          <!-- STEP 1: GENDER / EXPRESSION -->
+          @if (currentStep() === 1) {
+            <div class="step-pane step-pane--active">
+              <div class="pane-headline">
+                <span class="atelier-tag">ALTAIR ONBOARDING</span>
+                <h2>¿Cómo te gustaría que Altair oriente tus prendas?</h2>
+                <p>Personalizaremos los cortes, caídas y siluetas para adaptarse a tu estilo.</p>
+              </div>
+
+              <div class="options-grid options-grid--2x2">
+                @for (opt of genderOptions; track opt.id) {
+                  <button
+                    type="button"
+                    class="selection-card"
+                    [class.selection-card--active]="selectedGender() === opt.id"
+                    (click)="selectedGender.set(opt.id)"
+                  >
+                    <div class="card-radio-mark"></div>
+                    <div class="card-text">
+                      <strong>{{ opt.label }}</strong>
+                      <small>{{ opt.desc }}</small>
+                    </div>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- STEP 2: STYLES & SILHOUETTE -->
+          @if (currentStep() === 2) {
+            <div class="step-pane step-pane--active">
+              <div class="pane-headline">
+                <span class="atelier-tag">ADN ESTÉTICO</span>
+                <h2>¿Qué estilos resuenan contigo?</h2>
+                <p>Puedes seleccionar uno o varios estilos para crear un perfil híbrido exclusivo.</p>
+              </div>
+
+              <div class="options-grid options-grid--styles">
+                @for (style of styleOptions; track style.id) {
+                  <button
+                    type="button"
+                    class="selection-card selection-card--style"
+                    [class.selection-card--active]="selectedStyles().includes(style.id)"
+                    (click)="toggleStyle(style.id)"
+                  >
+                    <div class="style-check-mark">
+                      @if (selectedStyles().includes(style.id)) {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                      }
+                    </div>
+                    <div class="card-text">
+                      <strong>{{ style.label }}</strong>
+                      <small>{{ style.desc }}</small>
+                    </div>
+                  </button>
+                }
+              </div>
+
+              <div class="sub-section">
+                <label class="sub-section-title">CAÍDA Y SILUETA PREDILECTA</label>
+                <div class="silhouette-row">
+                  @for (sil of silhouetteOptions; track sil.id) {
+                    <button
+                      type="button"
+                      class="choice-pill"
+                      [class.choice-pill--active]="selectedSilhouette() === sil.id"
+                      (click)="selectedSilhouette.set(sil.id)"
+                    >
+                      <span>{{ sil.label }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- STEP 3: SIZES -->
+          @if (currentStep() === 3) {
+            <div class="step-pane step-pane--active">
+              <div class="pane-headline">
+                <span class="atelier-tag">AJUSTE PERFECTO</span>
+                <h2>Tus medidas y tallas habituales</h2>
+                <p>Altair filtrará únicamente prendas disponibles con stock real en tu talla.</p>
+              </div>
+
+              <div class="sizes-section">
+                <div class="size-group">
+                  <label>PRENDA SUPERIOR (POLERAS, CAMISAS, VESTIDOS)</label>
+                  <div class="pills-grid">
+                    @for (s of topSizes; track s) {
+                      <button
+                        type="button"
+                        class="size-choice-btn"
+                        [class.size-choice-btn--active]="selectedTopSize() === s"
+                        (click)="selectedTopSize.set(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="size-group">
+                  <label>PRENDA INFERIOR (PANTALONES, JEANS, CARGO)</label>
+                  <div class="pills-grid">
+                    @for (s of bottomSizes; track s) {
+                      <button
+                        type="button"
+                        class="size-choice-btn"
+                        [class.size-choice-btn--active]="selectedBottomSize() === s"
+                        (click)="selectedBottomSize.set(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="size-group">
+                  <label>CALZADO Y SNEAKERS</label>
+                  <div class="pills-grid">
+                    @for (s of shoeSizes; track s) {
+                      <button
+                        type="button"
+                        class="size-choice-btn"
+                        [class.size-choice-btn--active]="selectedShoeSize() === s"
+                        (click)="selectedShoeSize.set(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- STEP 4: CHROMATICS & BUDGET -->
+          @if (currentStep() === 4) {
+            <div class="step-pane step-pane--active">
+              <div class="pane-headline">
+                <span class="atelier-tag">ARMONÍA & PRESUPUESTO</span>
+                <h2>Colores predilectos e inversión por look</h2>
+                <p>Combinaremos las piezas asegurando armonía tonal dentro de tu presupuesto.</p>
+              </div>
+
+              <div class="chromatic-section">
+                <label>GAMA CROMÁTICA (SELECCIÓN MÚLTIPLE)</label>
+                <div class="colors-row">
+                  @for (c of colorOptions; track c.id) {
+                    <button
+                      type="button"
+                      class="color-chip-btn"
+                      [class.color-chip-btn--active]="selectedColors().includes(c.id)"
+                      (click)="toggleColor(c.id)"
+                    >
+                      <span class="color-dot" [style.background-color]="c.swatch"></span>
+                      <span>{{ c.label }}</span>
+                      @if (selectedColors().includes(c.id)) {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="budget-section">
+                <label>PRESUPUESTO HABITUAL POR OUTFIT (EN BOLIVIANOS)</label>
+                <div class="budget-cards-row">
+                  @for (b of budgetOptions; track b.value) {
+                    <button
+                      type="button"
+                      class="budget-card"
+                      [class.budget-card--active]="selectedBudget() === b.value"
+                      (click)="selectedBudget.set(b.value)"
+                    >
+                      <strong>Bs {{ b.value }}</strong>
+                      <span>{{ b.label }}</span>
+                      <small>{{ b.range }}</small>
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- MODAL FOOTER BUTTONS -->
+        <footer class="onboarding-footer">
+          @if (currentStep() > 1) {
+            <button type="button" class="btn-prev" (click)="prevStep()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Atrás</span>
+            </button>
+          } @else {
+            <div></div>
+          }
+
+          @if (currentStep() < totalSteps) {
+            <button type="button" class="btn-next" (click)="nextStep()">
+              <span>Continuar</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          } @else {
+            <button type="button" class="btn-discover" (click)="startInference()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>Descubrir mi ADN con Altair</span>
+            </button>
+          }
+        </footer>
+      }
+
+      <!-- PHASE 2: INFERRING ANIMATION -->
+      @if (phase() === 'inferring') {
+        <div class="inferring-pane">
+          <div class="radar-orbit">
+            <div class="radar-pulse"></div>
+            <div class="radar-scan"></div>
+            <div class="radar-core">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            </div>
+          </div>
+
+          <h3>Sintetizando tu Perfil Estilístico</h3>
+          <p class="inference-step-msg">{{ inferenceStepText() }}</p>
+
+          <div class="inference-details-badge">
+            <span class="sparkle-dot"></span>
+            <span>Altair Scout · Showroom Neural Engine</span>
+          </div>
+        </div>
+      }
+
+      <!-- PHASE 3: REVELATION & FIRST OUTFIT -->
+      @if (phase() === 'reveal') {
+        <div class="reveal-pane">
+          <div class="reveal-header">
+            <span class="reveal-badge">ADN DE ESTILO SINTETIZADO</span>
+            <h2>¡Tu perfil está listo en DrapeMind!</h2>
+            <p class="reveal-summary">{{ resultProfile()?.adn_estilo_ia }}</p>
+          </div>
+
+          <!-- FIRST OUTFIT PREVIEW IF AVAILABLE -->
+          @if (resultProfile()?.primer_outfit_ia?.items?.length) {
+            <div class="first-outfit-box">
+              <div class="first-outfit-title">
+                <div class="title-left">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                  <strong>Tu Primer Look Curado por Altair</strong>
+                </div>
+                <span class="outfit-price-total">Bs {{ resultProfile()!.primer_outfit_ia.total_price | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="outfit-items-row">
+                @for (item of resultProfile()!.primer_outfit_ia.items; track item.id) {
+                  <div class="outfit-mini-card">
+                    <div class="mini-card-img">
+                      @if (cardImageUrl(item); as img) {
+                        <img [src]="img" [alt]="item.nombre" />
+                      } @else {
+                        <div class="mini-placeholder">
+                          <span>{{ item.nombre?.charAt(0) || 'P' }}</span>
+                        </div>
+                      }
+                    </div>
+                    <div class="mini-card-info">
+                      <span class="mini-name">{{ item.nombre }}</span>
+                      <span class="mini-tags">
+                        @if (item.color) { {{ item.color }} }
+                        @if (item.talla) { · Talla {{ item.talla }} }
+                      </span>
+                      <span class="mini-price">Bs {{ item.precio | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- ACTIONS ROW -->
+          <div class="reveal-actions">
+            @if (resultProfile()?.primer_outfit_ia?.items?.length) {
+              <button type="button" class="btn-primary-reveal" (click)="addAllToCart()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <span>Usar este look en mi perchero</span>
+              </button>
+            }
+
+            <button type="button" class="btn-secondary-reveal" (click)="goToAiStudio()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>Explorar en AI Studio</span>
+            </button>
+
+            <button type="button" class="btn-tertiary-reveal" (click)="finishAndGoStore()">
+              <span>Ir a la tienda</span>
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}

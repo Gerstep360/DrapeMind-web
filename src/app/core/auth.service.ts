@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, firstValueFrom, switchMap, tap, timeout } from 'rxjs';
-import { TokenResponse, User } from './models';
+import { TokenResponse, User, UserStyleProfile } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 
 const TOKEN_KEY = 'drapemind_access_token';
@@ -55,6 +55,23 @@ export class AuthService {
       tap((user) => {
         sessionStorage.setItem(USER_KEY, JSON.stringify(user));
         this.user.set(user);
+      }),
+    );
+  }
+
+  getStyleProfile(): Observable<UserStyleProfile> {
+    return this.http.get<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`);
+  }
+
+  saveStyleProfile(payload: Partial<UserStyleProfile> & { infer_outfit?: boolean }): Observable<UserStyleProfile> {
+    return this.http.post<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`, payload).pipe(
+      tap(() => {
+        const u = this.user();
+        if (u) {
+          const updated = { ...u, has_style_profile: true };
+          sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
+          this.user.set(updated);
+        }
       }),
     );
   }

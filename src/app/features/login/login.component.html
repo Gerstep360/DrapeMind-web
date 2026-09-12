@@ -163,4 +163,11 @@
       </p>
     </div>
   </section>
+
+  @if (showOnboarding()) {
+    <app-style-onboarding-modal
+      [isOpen]="showOnboarding()"
+      (closed)="onOnboardingClose()"
+    />
+  }
 </main>

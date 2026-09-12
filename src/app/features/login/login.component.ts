@@ -4,10 +4,11 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BranchService } from '../../core/branch.service';
+import { StyleOnboardingModalComponent } from '../../shared/components/style-onboarding-modal/style-onboarding-modal.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, StyleOnboardingModalComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +21,7 @@ export class LoginComponent {
 
   readonly mode = signal<'login' | 'register' | 'forgot'>('login');
   readonly loading = signal(false);
+  readonly showOnboarding = signal(false);
   readonly error = signal('');
   readonly successMessage = signal('');
   readonly showPassword = signal(false);
@@ -71,7 +73,7 @@ export class LoginComponent {
         .subscribe({
           next: () => {
             this.branchService.openSelectorModal();
-            void this.router.navigate(['/dashboard']);
+            this.showOnboarding.set(true);
           },
           error: (error) => {
             if (error?.status === 409) {
@@ -111,5 +113,10 @@ export class LoginComponent {
             this.error.set(error?.error?.detail ?? 'Credenciales incorrectas. Revisa tu correo y contraseña.'),
         });
     }
+  }
+
+  onOnboardingClose(): void {
+    this.showOnboarding.set(false);
+    void this.router.navigate(['/dashboard']);
   }
 }
