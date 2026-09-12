@@ -145,6 +145,43 @@ export class OnboardingComponent implements OnInit {
 
   ngOnInit(): void {
     this.branchService.loadBranches();
+    if (this.branchService.selectedBranchId()) {
+      this.chosenBranchId.set(this.branchService.selectedBranchId());
+    }
+
+    this.auth.getStyleProfile().subscribe({
+      next: (profile) => {
+        if (!profile) return;
+        if (profile.genero) this.selectedGender.set(profile.genero);
+        if (profile.estilos_preferidos?.length) {
+          this.selectedStyles.set([...profile.estilos_preferidos]);
+        }
+        if (profile.silueta_preferida) {
+          this.selectedSilhouette.set(profile.silueta_preferida);
+        }
+        if (profile.talla_superior) {
+          this.selectedTopSize.set(profile.talla_superior);
+        }
+        if (profile.talla_inferior) {
+          this.selectedBottomSize.set(profile.talla_inferior);
+        }
+        if (profile.talla_calzado) {
+          this.selectedShoeSize.set(profile.talla_calzado);
+        }
+        if (profile.colores_favoritos?.length) {
+          this.selectedColors.set([...profile.colores_favoritos]);
+        }
+        if (profile.presupuesto_habitual) {
+          this.selectedBudget.set(Number(profile.presupuesto_habitual));
+        }
+        if (profile.ocasiones_frecuentes?.length) {
+          this.selectedOccasion.set(profile.ocasiones_frecuentes[0]);
+        }
+      },
+      error: () => {
+        // Nuevo usuario sin perfil de estilo aún
+      },
+    });
   }
 
   fetchAltairGreeting(): void {

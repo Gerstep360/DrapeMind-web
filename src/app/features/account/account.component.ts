@@ -1,17 +1,17 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
-import { Address, AddressInput, Branch, Product } from '../../core/models';
+import { Address, AddressInput, Branch, Product, UserStyleProfile } from '../../core/models';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-account',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, UpperCasePipe],
   templateUrl: './account.component.html',
   styleUrl: './account.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +27,7 @@ export class AccountComponent {
   readonly addresses = signal<Address[]>([]);
   readonly favorites = signal<Product[]>([]);
   readonly branches = signal<Branch[]>([]);
+  readonly styleProfile = signal<UserStyleProfile | null>(null);
   readonly loading = signal(true);
   readonly savingProfile = signal(false);
   readonly savingAddress = signal(false);
@@ -69,6 +70,15 @@ export class AccountComponent {
         },
         error: () => this.toast.show('No pudimos sincronizar toda la información de tu cuenta', 'error'),
       });
+
+    this.auth.getStyleProfile().subscribe({
+      next: (profile) => this.styleProfile.set(profile),
+      error: () => this.styleProfile.set(null),
+    });
+  }
+
+  openOnboarding(): void {
+    void this.router.navigate(['/onboarding']);
   }
 
   saveProfile(): void {
