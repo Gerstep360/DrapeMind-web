@@ -142,6 +142,7 @@ export interface BranchStock {
   stock_total: number;
   stock_reservado: number;
   stock_disponible: number;
+  precio?: number;
   activo: boolean;
 }
 

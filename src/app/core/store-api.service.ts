@@ -71,6 +71,10 @@ export class StoreApiService {
     });
   }
 
+  branchAvailability(id: number): Observable<BranchStock[]> {
+    return this.branchStock(id);
+  }
+
   assignedBranches(): Observable<Branch[]> {
     return this.http.get<Branch[]>(`${this.runtime.apiUrl}/branches/staff/assigned`);
   }
@@ -248,6 +252,19 @@ export class StoreApiService {
 
   checkout(payload: CheckoutRequest): Observable<Order> {
     return this.http.post<Order>(`${this.runtime.apiUrl}/orders/checkout`, payload);
+  }
+
+  registerPosSale(payload: {
+    sucursal_id: number;
+    cliente_id?: number | null;
+    items: Array<{ variante_id: number; cantidad: number; precio_unitario: number }>;
+    metodo_pago: string;
+    numero_factura?: string | null;
+  }): Observable<{ pedido_id: number; total: number; estado: string; pago_estado: string; mensaje: string }> {
+    return this.http.post<{ pedido_id: number; total: number; estado: string; pago_estado: string; mensaje: string }>(
+      `${this.runtime.apiUrl}/admin/sales/pos`,
+      payload
+    );
   }
 
   initiatePayment(payload: PaymentCreate, idempotencyKey?: string): Observable<Payment> {

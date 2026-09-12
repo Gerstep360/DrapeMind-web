@@ -19,6 +19,10 @@ export class AuthService {
   readonly user = signal<User | null>(this.tokenState() ? this.readUser() : null);
   readonly isAuthenticated = computed(() => Boolean(this.tokenState()));
   readonly token = computed(() => this.tokenState());
+  readonly isStaff = computed(() => {
+    const rol = this.user()?.rol;
+    return rol === 'ADMIN' || rol === 'ENCARGADO' || rol === 'VENDEDOR' || rol === 'CAJERO';
+  });
 
   constructor() {
     const token = this.tokenState();

@@ -1,15 +1,16 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
-import { Order, Payment } from '../../core/models';
+import { Branch, BranchStock, Order, Payment } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
 
 @Component({
   selector: 'app-orders',
-  imports: [DatePipe, DecimalPipe, ReceiptModalComponent],
+  imports: [DatePipe, DecimalPipe, FormsModule, ReceiptModalComponent],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +36,18 @@ export class OrdersComponent {
   // Receipt modal (PDF & Image export)
   readonly receiptModalOpen = signal(false);
   readonly selectedReceiptOrderId = signal<number | null>(null);
+
+  // POS / Counter Sale modal (CU-37)
+  readonly posModalOpen = signal(false);
+  readonly posBranches = signal<Branch[]>([]);
+  readonly posSelectedBranchId = signal<number | null>(null);
+  readonly posStockList = signal<BranchStock[]>([]);
+  readonly posSearchTerm = signal<string>('');
+  readonly posSelectedStock = signal<BranchStock | null>(null);
+  readonly posQuantity = signal<number>(1);
+  readonly posPaymentMethod = signal<string>('EFECTIVO');
+  readonly posLoadingStock = signal<boolean>(false);
+  readonly posSubmitting = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -180,5 +193,129 @@ export class OrdersComponent {
         this.toast.show(err?.error?.detail || 'Error al procesar el pago', 'error');
       },
     });
+  }
+
+  // POS / Counter Sale Methods (CU-37)
+  openPosModal(): void {
+    this.posModalOpen.set(true);
+    this.posSelectedStock.set(null);
+    this.posQuantity.set(1);
+    this.posSearchTerm.set('');
+    this.posPaymentMethod.set('EFECTIVO');
+
+    this.api.branches().subscribe({
+      next: (branches) => {
+        this.posBranches.set(branches);
+        if (branches.length > 0) {
+          const defaultBranchId = branches[0].id;
+          this.posSelectedBranchId.set(defaultBranchId);
+          this.loadPosStock(defaultBranchId);
+        }
+      },
+      error: () => this.toast.show('Error al cargar sucursales para el punto de venta', 'error'),
+    });
+  }
+
+  closePosModal(): void {
+    this.posModalOpen.set(false);
+    this.posSelectedStock.set(null);
+    this.posQuantity.set(1);
+    this.posSearchTerm.set('');
+  }
+
+  onBranchChange(branchIdStr: string): void {
+    const branchId = Number(branchIdStr);
+    if (!isNaN(branchId)) {
+      this.posSelectedBranchId.set(branchId);
+      this.posSelectedStock.set(null);
+      this.posQuantity.set(1);
+      this.loadPosStock(branchId);
+    }
+  }
+
+  loadPosStock(branchId: number): void {
+    this.posLoadingStock.set(true);
+    this.api.branchAvailability(branchId).subscribe({
+      next: (stocks) => {
+        this.posStockList.set(stocks || []);
+        this.posLoadingStock.set(false);
+      },
+      error: () => {
+        this.posStockList.set([]);
+        this.posLoadingStock.set(false);
+      },
+    });
+  }
+
+  filteredPosStocks(): BranchStock[] {
+    const query = this.posSearchTerm().trim().toLowerCase();
+    const stocks = this.posStockList();
+    if (!query) return stocks.slice(0, 15);
+    return stocks
+      .filter(
+        (s) =>
+          s.producto.toLowerCase().includes(query) ||
+          s.sku.toLowerCase().includes(query) ||
+          s.color.toLowerCase().includes(query) ||
+          s.talla.toLowerCase().includes(query)
+      )
+      .slice(0, 25);
+  }
+
+  selectPosStock(item: BranchStock): void {
+    this.posSelectedStock.set(item);
+    this.posQuantity.set(1);
+  }
+
+  submitPosSale(): void {
+    const branchId = this.posSelectedBranchId();
+    const stock = this.posSelectedStock();
+    const qty = this.posQuantity();
+
+    if (!branchId) {
+      this.toast.show('Selecciona una sucursal para la venta', 'info');
+      return;
+    }
+    if (!stock) {
+      this.toast.show('Selecciona una prenda/variante para la venta', 'info');
+      return;
+    }
+    if (qty < 1 || qty > stock.stock_disponible) {
+      this.toast.show(`Cantidad no válida (Disponible: ${stock.stock_disponible})`, 'info');
+      return;
+    }
+
+    this.posSubmitting.set(true);
+    this.api
+      .registerPosSale({
+        sucursal_id: branchId,
+        items: [
+          {
+            variante_id: stock.variante_id,
+            cantidad: qty,
+            precio_unitario: Number(stock.precio || 0),
+          },
+        ],
+        metodo_pago: this.posPaymentMethod(),
+      })
+      .subscribe({
+        next: (res) => {
+          this.posSubmitting.set(false);
+          this.toast.show(
+            `¡Venta en mostrador registrada exitosamente! Pedido #${res.pedido_id}.`,
+            'success'
+          );
+          this.closePosModal();
+          this.load();
+          // Abrir inmediatamente el comprobante para descarga o impresión
+          this.selectedReceiptOrderId.set(res.pedido_id);
+          this.receiptModalOpen.set(true);
+        },
+        error: (err) => {
+          this.posSubmitting.set(false);
+          const detail = err?.error?.detail || 'Error al procesar la venta en mostrador';
+          this.toast.show(detail, 'error');
+        },
+      });
   }
 }
