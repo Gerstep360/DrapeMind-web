@@ -1,0 +1,265 @@
+<div class="receipt-modal-backdrop" (click)="close.emit()">
+  <div class="receipt-modal-dialog" (click)="$event.stopPropagation()">
+    <!-- ACTION TOOLBAR -->
+    <header class="receipt-toolbar">
+      <div class="toolbar-brand">
+        <div class="brand-monogram">DM</div>
+        <div>
+          <h3>Comprobante Oficial de Compra</h3>
+          <p>Generación dinámica en alta resolución (PDF / Imagen PNG)</p>
+        </div>
+      </div>
+
+      <div class="toolbar-actions">
+        <button
+          type="button"
+          class="btn-format btn-pdf"
+          (click)="downloadPdf()"
+          [disabled]="loading() || generatingPdf() || generatingImage()"
+        >
+          @if (generatingPdf()) {
+            <span class="toolbar-spinner"></span>
+            <span>Generando PDF...</span>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Descargar PDF</span>
+          }
+        </button>
+
+        <button
+          type="button"
+          class="btn-format btn-png"
+          (click)="downloadImage()"
+          [disabled]="loading() || generatingPdf() || generatingImage()"
+        >
+          @if (generatingImage()) {
+            <span class="toolbar-spinner"></span>
+            <span>Exportando...</span>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+            <span>Descargar Imagen</span>
+          }
+        </button>
+
+        <button
+          type="button"
+          class="btn-format btn-print"
+          (click)="printReceipt()"
+          [disabled]="loading()"
+          title="Imprimir comprobante"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect width="12" height="8" x="6" y="14"/>
+          </svg>
+          <span>Imprimir</span>
+        </button>
+
+        <button type="button" class="btn-close" (click)="close.emit()" title="Cerrar vista previa">
+          &times;
+        </button>
+      </div>
+    </header>
+
+    <!-- VOUCHER PREVIEW CONTAINER (SCROLLABLE ON MOBILE, 720PX FIXED CANVAS) -->
+    <div class="receipt-preview-body">
+      @if (loading()) {
+        <div class="receipt-loading-state">
+          <div class="loading-spinner"></div>
+          <p>Cargando información oficial del pedido...</p>
+        </div>
+      } @else if (receipt(); as r) {
+        <div class="voucher-wrapper">
+          <!-- THE FIXED 720PX CANVAS TO CAPTURE -->
+          <article #voucherCanvas id="receipt-voucher" class="receipt-voucher-canvas">
+            <!-- ATELIER HEADER -->
+            <header class="voucher-header">
+              <div class="brand-emblem-wrap">
+                <div class="brand-seal">
+                  <span class="seal-initials">DM</span>
+                </div>
+                <div class="brand-names">
+                  <h1 class="brand-title">DRAPEMIND ATELIER BOLIVIA</h1>
+                  <p class="brand-tagline">Alta Costura Contemporánea · Confección de Autor</p>
+                  <p class="brand-legal">NIT: 7492019012 · Registro Comercial No. 49102-SCZ</p>
+                </div>
+              </div>
+
+              <div class="voucher-status-box">
+                <span class="voucher-type-pill">COMPROBANTE OFICIAL DE VENTA</span>
+                <span class="voucher-folio">#DM-ORD-{{ r.order.id.toString().padStart(5, '0') }}</span>
+                <span class="status-indicator" [attr.data-status]="r.order.estado">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{{ r.order.estado }}</span>
+                </span>
+              </div>
+            </header>
+
+            <div class="voucher-divider">
+              <span class="divider-diamond">◆</span>
+            </div>
+
+            <!-- METADATA INFORMATION GRID -->
+            <section class="voucher-info-grid">
+              <div class="info-block">
+                <span class="info-label">CLIENTE TITULAR</span>
+                <strong class="info-val info-val--primary">{{ r.cliente.nombre }}</strong>
+                <p class="info-sub">Email: {{ r.cliente.email || 'No registrado' }}</p>
+                <p class="info-sub">Teléfono: {{ r.cliente.telefono || 'Sin teléfono' }}</p>
+              </div>
+
+              <div class="info-block">
+                <span class="info-label">PUNTO DE ATENCIÓN / SUCURSAL</span>
+                <strong class="info-val">{{ r.sucursal.nombre }}</strong>
+                <p class="info-sub">{{ r.sucursal.direccion }}</p>
+                <p class="info-sub">{{ r.sucursal.ciudad }}, Bolivia · Tel: {{ r.sucursal.telefono }}</p>
+              </div>
+
+              <div class="info-block">
+                <span class="info-label">FECHA Y HORA DE EMISIÓN</span>
+                <strong class="info-val">{{ r.order.created_at ? (r.order.created_at | date: 'dd/MM/yyyy HH:mm') : 'Reciente' }}</strong>
+                <p class="info-sub">Canal de Adquisición: {{ r.order.canal }} Atelier</p>
+              </div>
+
+              <div class="info-block">
+                <span class="info-label">MODALIDAD DE ENTREGA</span>
+                <strong class="info-val">
+                  {{ r.order.tipo_entrega === 'RECOJO' ? 'Retiro en Atelier / Local' : 'Envío Express a Domicilio' }}
+                </strong>
+                <p class="info-sub info-sub--mono">UUID: {{ r.order.codigo_publico }}</p>
+              </div>
+            </section>
+
+            <!-- ITEMS TABLE -->
+            <section class="voucher-table-section">
+              <table class="voucher-table">
+                <thead>
+                  <tr>
+                    <th class="col-item">PRENDA / CONCEPTO</th>
+                    <th class="col-sku">SKU</th>
+                    <th class="col-variant">VARIANTE</th>
+                    <th class="col-qty">CANT</th>
+                    <th class="col-price">P. UNIT.</th>
+                    <th class="col-subtotal">SUBTOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of r.items; track item.id) {
+                    <tr>
+                      <td class="col-item">
+                        <strong class="item-title">{{ item.nombre }}</strong>
+                      </td>
+                      <td class="col-sku">
+                        <code>{{ item.sku }}</code>
+                      </td>
+                      <td class="col-variant">
+                        <span class="variant-pill">{{ item.color }} · Talla {{ item.talla }}</span>
+                      </td>
+                      <td class="col-qty">
+                        <span>{{ item.cantidad }}</span>
+                      </td>
+                      <td class="col-price">
+                        <span>Bs {{ item.precio_unitario | number: '1.2-2' }}</span>
+                      </td>
+                      <td class="col-subtotal">
+                        <strong>Bs {{ item.subtotal | number: '1.2-2' }}</strong>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+
+            <!-- FINANCIAL TOTALS & SUMMARY -->
+            <section class="voucher-financials-wrap">
+              <div class="voucher-notes">
+                <p class="notes-title">Instrucciones & Observaciones:</p>
+                <p class="notes-text">
+                  {{ r.order.observacion || 'Ninguna instrucción especial registrada. Confección y empaque editorial estándar DrapeMind.' }}
+                </p>
+              </div>
+
+              <div class="voucher-summary-card">
+                <div class="summary-line">
+                  <span>Subtotal Prendas:</span>
+                  <strong>Bs {{ r.order.subtotal | number: '1.2-2' }}</strong>
+                </div>
+                <div class="summary-line">
+                  <span>Costo de Entrega:</span>
+                  <strong>{{ r.order.costo_envio > 0 ? ('Bs ' + (r.order.costo_envio | number: '1.2-2')) : 'Gratis' }}</strong>
+                </div>
+                @if (r.order.descuento > 0) {
+                  <div class="summary-line discount">
+                    <span>Descuento Aplicado:</span>
+                    <strong>- Bs {{ r.order.descuento | number: '1.2-2' }}</strong>
+                  </div>
+                }
+                <div class="summary-line total-box">
+                  <span class="total-label">TOTAL CANCELADO:</span>
+                  <span class="total-amount">Bs {{ r.order.total | number: '1.2-2' }} BOB</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- PAYMENT INFORMATION & SECURITY SEAL -->
+            <footer class="voucher-footer">
+              <div class="payment-details-box">
+                <span class="footer-label">MÉTODO DE PAGO & AUTORIZACIÓN</span>
+                <div class="payment-badge-row">
+                  <div class="pay-method-tag">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="20" height="14" x="2" y="5" rx="2"/>
+                      <line x1="2" x2="22" y1="10" y2="10"/>
+                    </svg>
+                    <span>{{ r.payments[0]?.metodo || 'PAGO DIRECTO' }}</span>
+                  </div>
+                  <span class="pay-state-tag">ESTADO: {{ r.payments[0]?.estado || 'CONFIRMADO' }}</span>
+                </div>
+                <p class="pay-ref">Ref. Operación: <code>{{ r.payments[0]?.referencia || r.order.codigo_publico }}</code></p>
+              </div>
+
+              <div class="voucher-security-box">
+                <!-- MOCKUP QR CODE -->
+                <div class="qr-stamp">
+                  <div class="qr-grid-pattern">
+                    <div class="qr-p-corner p-tl"></div>
+                    <div class="qr-p-corner p-tr"></div>
+                    <div class="qr-p-corner p-bl"></div>
+                    <div class="qr-badge-center">DM</div>
+                  </div>
+                </div>
+                <div class="seal-text-col">
+                  <div class="seal-official-text">
+                    <strong>DOCUMENTO OFICIAL AUTÉNTICO</strong>
+                    <small>Firma Digital DrapeMind Cloud ERP</small>
+                  </div>
+                  <p class="security-hash">HASH: {{ r.order.codigo_publico.substring(0, 16) }}...</p>
+                </div>
+              </div>
+            </footer>
+
+            <!-- LEGAL & EXCHANGE POLICY DISCLAIMER -->
+            <div class="voucher-policy-bar">
+              <p>
+                <strong>POLÍTICA DEL ATELIER:</strong> Este comprobante certifica la adquisición y entrega de prendas exclusivas confeccionadas por DrapeMind. Cuentas con 30 días continuos para cambios de talla o modelo en cualquier showroom presentando este comprobante y las etiquetas originales intactas. Gracias por confiar en el diseño y la moda boliviana.
+              </p>
+            </div>
+          </article>
+        </div>
+      }
+    </div>
+  </div>
+</div>

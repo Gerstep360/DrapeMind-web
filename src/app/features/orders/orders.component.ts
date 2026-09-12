@@ -5,10 +5,11 @@ import { EventsSocketService } from '../../core/events-socket.service';
 import { Order, Payment } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
+import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
 
 @Component({
   selector: 'app-orders',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, ReceiptModalComponent],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +31,10 @@ export class OrdersComponent {
   readonly currentPayment = signal<Payment | null>(null);
   readonly payingMock = signal(false);
   readonly paymentError = signal('');
+
+  // Receipt modal (PDF & Image export)
+  readonly receiptModalOpen = signal(false);
+  readonly selectedReceiptOrderId = signal<number | null>(null);
 
   constructor() {
     effect(() => {
@@ -144,16 +149,18 @@ export class OrdersComponent {
     });
   }
 
+  openReceiptModal(order: Order): void {
+    this.selectedReceiptOrderId.set(order.id);
+    this.receiptModalOpen.set(true);
+  }
+
+  closeReceiptModal(): void {
+    this.receiptModalOpen.set(false);
+    this.selectedReceiptOrderId.set(null);
+  }
+
   downloadReceipt(order: Order): void {
-    this.api.receipt(order.id).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url; link.download = `comprobante-${order.id}.txt`; link.click();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      },
-      error: () => this.toast.show('El comprobante requiere un pago aprobado', 'error'),
-    });
+    this.openReceiptModal(order);
   }
 
   confirmMockPayment(): void {

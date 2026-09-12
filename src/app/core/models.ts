@@ -380,3 +380,59 @@ export interface AiSocketEvent {
   response_meta?: AiResponseMeta;
   suggested_actions?: AiSuggestedAction[];
 }
+
+export interface ReceiptItem {
+  id: number;
+  nombre: string;
+  sku: string;
+  color: string;
+  talla: string;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+}
+
+export interface ReceiptBranch {
+  id: number;
+  nombre: string;
+  ciudad: string;
+  direccion: string;
+  telefono: string;
+}
+
+export interface ReceiptClient {
+  id: number | null;
+  nombre: string;
+  email: string;
+  telefono: string;
+}
+
+export interface ReceiptPayment {
+  id: number;
+  metodo: string;
+  monto: number;
+  estado: string;
+  referencia: string;
+  created_at: string | null;
+}
+
+export interface ReceiptData {
+  order: {
+    id: number;
+    codigo_publico: string;
+    created_at: string | null;
+    estado: string;
+    canal: string;
+    tipo_entrega: string;
+    subtotal: number;
+    descuento: number;
+    costo_envio: number;
+    total: number;
+    observacion?: string | null;
+  };
+  sucursal: ReceiptBranch;
+  cliente: ReceiptClient;
+  items: ReceiptItem[];
+  payments: ReceiptPayment[];
+}
+

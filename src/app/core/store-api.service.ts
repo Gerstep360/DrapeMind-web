@@ -14,6 +14,7 @@ import {
   Payment,
   PaymentCreate,
   Product,
+  ReceiptData,
   Reservation,
   SalesInventoryMetrics,
   User,
@@ -89,7 +90,11 @@ export class StoreApiService {
   }
 
   receipt(orderId: number): Observable<Blob> {
-    return this.http.get(`${this.runtime.apiUrl}/orders/${orderId}/receipt`, {responseType: 'blob'});
+    return this.http.get(`${this.runtime.apiUrl}/orders/${orderId}/receipt?format=text`, {responseType: 'blob'});
+  }
+
+  receiptData(orderId: number): Observable<ReceiptData> {
+    return this.http.get<ReceiptData>(`${this.runtime.apiUrl}/orders/${orderId}/receipt?format=json`);
   }
 
   productAvailability(productId: number): Observable<BranchStock[]> {

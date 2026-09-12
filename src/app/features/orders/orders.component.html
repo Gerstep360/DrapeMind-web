@@ -233,3 +233,8 @@
     </div>
   </div>
 }
+
+@if (receiptModalOpen() && selectedReceiptOrderId(); as rId) {
+  <app-receipt-modal [orderId]="rId" (close)="closeReceiptModal()"></app-receipt-modal>
+}
+

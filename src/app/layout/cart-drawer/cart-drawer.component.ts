@@ -8,12 +8,13 @@ import { Address, Order, Payment } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
+import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
 
 type DrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS';
 
 @Component({
   selector: 'app-cart-drawer',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, ReceiptModalComponent],
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,6 +38,7 @@ export class CartDrawerComponent {
   readonly lastOrder = signal<Order | null>(null);
   readonly lastPayment = signal<Payment | null>(null);
   readonly payingMock = signal<boolean>(false);
+  readonly showReceiptModal = signal<boolean>(false);
 
   readonly checkoutForm = this.fb.nonNullable.group({
     tipo_entrega: ['RECOJO' as 'DELIVERY' | 'RECOJO' | 'TIENDA', Validators.required],
@@ -217,5 +219,13 @@ export class CartDrawerComponent {
   viewMyOrders(): void {
     this.cart.close();
     this.router.navigate(['/orders']);
+  }
+
+  openReceiptModal(): void {
+    this.showReceiptModal.set(true);
+  }
+
+  closeReceiptModal(): void {
+    this.showReceiptModal.set(false);
   }
 }
