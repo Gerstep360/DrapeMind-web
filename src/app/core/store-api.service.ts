@@ -29,9 +29,13 @@ export class StoreApiService {
 
   stripeIntent(orderId: number): Observable<{
     payment_id: number; client_secret: string; publishable_key: string;
-    amount: number; currency: string; status: string;
+    amount: number; currency: string; status: string; sandbox?: boolean;
   }> {
     return this.http.post<any>(`${this.runtime.apiUrl}/payments/stripe-intent`, { order_id: orderId });
+  }
+
+  confirmStripeSandbox(paymentId: number): Observable<Payment> {
+    return this.http.post<Payment>(`${this.runtime.apiUrl}/payments/stripe-sandbox-confirm`, { payment_id: paymentId });
   }
   applyAiSelection(items: Array<{ variante_id: number; cantidad: number }>): Observable<Cart> {
     return this.http.post<Cart>(`${this.runtime.apiUrl}/ai/recommendations/apply`, { items, replace_cart: true });

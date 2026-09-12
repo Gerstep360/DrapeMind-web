@@ -44,6 +44,7 @@ export class CartDrawerComponent {
   // Success state data
   readonly lastOrder = signal<Order | null>(null);
   readonly lastPayment = signal<Payment | null>(null);
+  readonly lastPaymentMethod = signal<string>('QR');
   readonly payingMock = signal<boolean>(false);
   readonly showReceiptModal = signal<boolean>(false);
 
@@ -164,6 +165,7 @@ export class CartDrawerComponent {
 
   private executeCheckout(addressId: number | null): void {
     const formVal = this.checkoutForm.getRawValue();
+    this.lastPaymentMethod.set(formVal.metodo_pago);
     this.api
       .checkout({
         tipo_entrega: formVal.tipo_entrega,
@@ -174,26 +176,32 @@ export class CartDrawerComponent {
       .subscribe({
         next: (order) => {
           this.lastOrder.set(order);
-          // Iniciar pago automático
-          this.api
-            .paymentConfiguration().pipe(switchMap(config => config.provider === 'stripe' ? of(null) : this.api.initiatePayment({
-              pedido_id: order.id,
-              metodo: formVal.metodo_pago,
-            })))
-            .subscribe({
-              next: (payment) => {
-                this.lastPayment.set(payment);
-                this.processing.set(false);
-                this.step.set('SUCCESS');
-                this.cart.loadCart();
-                this.toast.show('¡Pedido generado exitosamente!', 'success');
-              },
-              error: () => {
-                this.processing.set(false);
-                this.step.set('SUCCESS');
-                this.cart.loadCart();
-              },
-            });
+          if (formVal.metodo_pago === 'TARJETA') {
+            this.processing.set(false);
+            this.step.set('SUCCESS');
+            this.cart.loadCart();
+            this.toast.show('¡Pedido generado exitosamente!', 'success');
+          } else {
+            this.api
+              .initiatePayment({
+                pedido_id: order.id,
+                metodo: formVal.metodo_pago,
+              })
+              .subscribe({
+                next: (payment) => {
+                  this.lastPayment.set(payment);
+                  this.processing.set(false);
+                  this.step.set('SUCCESS');
+                  this.cart.loadCart();
+                  this.toast.show('¡Pedido generado exitosamente!', 'success');
+                },
+                error: () => {
+                  this.processing.set(false);
+                  this.step.set('SUCCESS');
+                  this.cart.loadCart();
+                },
+              });
+          }
         },
         error: (err) => {
           this.processing.set(false);

@@ -1103,3 +1103,33 @@
     border-radius: var(--dm-radius-xl, 34px) var(--dm-radius-xl, 34px) 0 0;
   }
 }
+
+.switch-payment-hint {
+  margin-top: 12px;
+  text-align: center;
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--dm-text-muted, #7B7F75);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--dm-ink, #10110F);
+    }
+  }
+}
+
+.qr-icon-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--dm-ink, #10110F);
+}

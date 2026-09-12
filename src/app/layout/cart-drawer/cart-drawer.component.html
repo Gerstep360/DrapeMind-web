@@ -419,32 +419,9 @@
           </div>
         </div>
 
-        <!-- QR SIMULATION / PAYMENT AREA -->
-        <div class="payment-simulator-card">
-          <div class="qr-box">
-            <p class="qr-instruction">
-              @if (lastPayment()?.proveedor === 'MOCK') {
-                Demostración: no se realiza ningún cobro bancario.
-              } @else {
-                El pedido está registrado. Su pago se confirma por separado en el servidor.
-              }
-            </p>
-          </div>
-
-          @if (order.estado === 'PENDIENTE_PAGO' && lastPayment()?.proveedor === 'MOCK') {
-            <button
-              class="button button--accent button--wide pay-mock-btn"
-              type="button"
-              (click)="confirmMockPayment()"
-              [disabled]="payingMock()"
-            >
-              @if (payingMock()) {
-                <span class="spinner"></span> Aprobando pago...
-              } @else {
-                Simular Pago Aprobado Inmediato (Modo Demo)
-              }
-            </button>
-          } @else if (order.estado === 'PAGADO') {
+        <!-- PAYMENT SECTION -->
+        @if (order.estado === 'PAGADO') {
+          <div class="payment-simulator-card">
             <div class="paid-confirmation">
               <div class="check-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -456,11 +433,63 @@
                 <small>El atelier comenzará a empaquetar tus prendas.</small>
               </div>
             </div>
-          }
-        </div>
+          </div>
+        } @else if (order.estado === 'PENDIENTE_PAGO') {
+          @if (lastPaymentMethod() === 'TARJETA') {
+            <app-stripe-payment [orderId]="order.id" (paid)="stripePaid($event)" />
+            <div class="switch-payment-hint">
+              <button class="link-btn" type="button" (click)="lastPaymentMethod.set('QR')">
+                ¿Prefieres pagar con QR Simple? Haz clic aquí
+              </button>
+            </div>
+          } @else if (lastPaymentMethod() === 'QR') {
+            <div class="payment-simulator-card">
+              <div class="qr-box">
+                <div class="qr-icon-title">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>
+                  </svg>
+                  <strong>Pago con QR Simple Interoperable</strong>
+                </div>
+                <p class="qr-instruction">
+                  Escanea con tu banca móvil (BCP, BNB, Banco Unión) o aprueba la simulación en entorno de prueba.
+                </p>
+              </div>
 
-        @if (order.estado === 'PENDIENTE_PAGO') {
-          <app-stripe-payment [orderId]="order.id" (paid)="stripePaid($event)" />
+              <button
+                class="button button--accent button--wide pay-mock-btn"
+                type="button"
+                (click)="confirmMockPayment()"
+                [disabled]="payingMock()"
+              >
+                @if (payingMock()) {
+                  <span class="spinner"></span> Aprobando pago...
+                } @else {
+                  Simular Pago QR Aprobado
+                }
+              </button>
+
+              <div class="switch-payment-hint">
+                <button class="link-btn" type="button" (click)="lastPaymentMethod.set('TARJETA')">
+                  ¿Pagar con Tarjeta (Stripe)? Haz clic aquí
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="payment-simulator-card">
+              <div class="qr-box">
+                <strong>Pago en Efectivo (Contra Entrega / Sucursal)</strong>
+                <p class="qr-instruction">
+                  Indica tu código de pedido <strong>#{{ order.id }}</strong> en el mostrador para abonar tus prendas.
+                </p>
+              </div>
+              <div class="switch-payment-hint">
+                <button class="link-btn" type="button" (click)="lastPaymentMethod.set('TARJETA')">
+                  ¿Deseas pagar con Tarjeta (Stripe) ahora?
+                </button>
+              </div>
+            </div>
+          }
         }
         <div class="success-actions">
           <button class="button button--accent button--wide" type="button" (click)="openReceiptModal()">
