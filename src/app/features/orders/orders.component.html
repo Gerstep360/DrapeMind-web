@@ -213,7 +213,8 @@
         <strong>Bs {{ order.total | number: '1.2-2' }}</strong>
       </div>
 
-      <div class="qr-display-box">
+        <app-stripe-payment [orderId]="order.id" (paid)="currentPayment.set($event); load()" />
+        <div class="qr-display-box">
         <p class="qr-info">
           @if (paymentError()) {
             <span role="alert">{{ paymentError() }}</span>
@@ -428,4 +429,3 @@
 @if (receiptModalOpen() && selectedReceiptOrderId(); as rId) {
   <app-receipt-modal [orderId]="rId" (close)="closeReceiptModal()"></app-receipt-modal>
 }
-

@@ -1,16 +1,18 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
 import { Branch, BranchStock, Order, Payment } from '../../core/models';
 import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
+import { StripePaymentComponent } from '../../shared/components/stripe-payment.component';
 
 @Component({
   selector: 'app-orders',
-  imports: [DatePipe, DecimalPipe, FormsModule, ReceiptModalComponent],
+  imports: [DatePipe, DecimalPipe, FormsModule, ReceiptModalComponent, StripePaymentComponent],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,10 +126,10 @@ export class OrdersComponent {
     this.currentPayment.set(null);
 
     this.api
-      .initiatePayment({
+      .paymentConfiguration().pipe(switchMap(config => config.provider === 'stripe' ? of(null) : this.api.initiatePayment({
         pedido_id: order.id,
         metodo: 'QR',
-      }, `web-order-${order.id}-qr`)
+      }, `web-order-${order.id}-qr`)))
       .subscribe({
         next: (payment) => {
           if (this.selectedOrderForPay()?.id !== order.id || !this.payModalOpen()) return;

@@ -422,20 +422,16 @@
         <!-- QR SIMULATION / PAYMENT AREA -->
         <div class="payment-simulator-card">
           <div class="qr-box">
-            <div class="qr-mockup">
-              <div class="qr-pattern">
-                <span class="qr-corner top-left"></span>
-                <span class="qr-corner top-right"></span>
-                <span class="qr-corner bottom-left"></span>
-                <div class="qr-center-icon">DM</div>
-              </div>
-            </div>
             <p class="qr-instruction">
-              Escanea el código con tu app bancaria móvil o confirma el pago directo.
+              @if (lastPayment()?.proveedor === 'MOCK') {
+                Demostración: no se realiza ningún cobro bancario.
+              } @else {
+                El pedido está registrado. Su pago se confirma por separado en el servidor.
+              }
             </p>
           </div>
 
-          @if (order.estado === 'PENDIENTE_PAGO' && lastPayment()) {
+          @if (order.estado === 'PENDIENTE_PAGO' && lastPayment()?.proveedor === 'MOCK') {
             <button
               class="button button--accent button--wide pay-mock-btn"
               type="button"
@@ -463,6 +459,9 @@
           }
         </div>
 
+        @if (order.estado === 'PENDIENTE_PAGO') {
+          <app-stripe-payment [orderId]="order.id" (paid)="stripePaid($event)" />
+        }
         <div class="success-actions">
           <button class="button button--accent button--wide" type="button" (click)="openReceiptModal()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

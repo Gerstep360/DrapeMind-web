@@ -12,6 +12,7 @@
   "private": true,
   "packageManager": "npm@11.12.1",
   "dependencies": {
+    "@stripe/stripe-js": "^9.16.0",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",

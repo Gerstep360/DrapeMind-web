@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { CartService } from '../../core/cart.service';
 import { Address, Order, Payment } from '../../core/models';
@@ -9,17 +10,23 @@ import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
+import { StripePaymentComponent } from '../../shared/components/stripe-payment.component';
 
 type DrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS';
 
 @Component({
   selector: 'app-cart-drawer',
-  imports: [ReactiveFormsModule, DecimalPipe, ReceiptModalComponent],
+  imports: [ReactiveFormsModule, DecimalPipe, ReceiptModalComponent, StripePaymentComponent],
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartDrawerComponent {
+  stripePaid(payment: Payment): void {
+    this.lastPayment.set(payment);
+    const order = this.lastOrder();
+    if (order && payment.estado === 'APROBADO') this.lastOrder.set({ ...order, estado: 'PAGADO' });
+  }
   readonly cart = inject(CartService);
   readonly auth = inject(AuthService);
   readonly runtime = inject(RuntimeConfigService);
@@ -169,10 +176,10 @@ export class CartDrawerComponent {
           this.lastOrder.set(order);
           // Iniciar pago automático
           this.api
-            .initiatePayment({
+            .paymentConfiguration().pipe(switchMap(config => config.provider === 'stripe' ? of(null) : this.api.initiatePayment({
               pedido_id: order.id,
               metodo: formVal.metodo_pago,
-            })
+            })))
             .subscribe({
               next: (payment) => {
                 this.lastPayment.set(payment);

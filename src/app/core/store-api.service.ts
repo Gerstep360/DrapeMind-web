@@ -23,6 +23,16 @@ import { RuntimeConfigService } from './runtime-config.service';
 
 @Injectable({ providedIn: 'root' })
 export class StoreApiService {
+  paymentConfiguration(): Observable<{ provider: string }> {
+    return this.http.get<{ provider: string }>(`${this.runtime.apiUrl}/payments/config`);
+  }
+
+  stripeIntent(orderId: number): Observable<{
+    payment_id: number; client_secret: string; publishable_key: string;
+    amount: number; currency: string; status: string;
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/payments/stripe-intent`, { order_id: orderId });
+  }
   applyAiSelection(items: Array<{ variante_id: number; cantidad: number }>): Observable<Cart> {
     return this.http.post<Cart>(`${this.runtime.apiUrl}/ai/recommendations/apply`, { items, replace_cart: true });
   }
