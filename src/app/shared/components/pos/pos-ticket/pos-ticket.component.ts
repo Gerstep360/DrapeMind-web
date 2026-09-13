@@ -20,6 +20,7 @@ export class PosTicketComponent {
   @Input() subtotal: number = 0;
   @Input() total: number = 0;
   @Input() cashChange: number = 0;
+  @Input() cashMissing: number = 0;
   @Input() isCashSufficient: boolean = true;
   @Input() canSubmitSale: boolean = false;
 
@@ -47,6 +48,8 @@ export class PosTicketComponent {
   @Output() remove = new EventEmitter<number>();
   @Output() clearTicket = new EventEmitter<void>();
   @Output() paymentMethodChange = new EventEmitter<PaymentMethod>();
+  @Output() setExactCash = new EventEmitter<void>();
+  @Output() setCashAmount = new EventEmitter<number>();
   @Output() submit = new EventEmitter<void>();
 
   setCustomerMode(mode: CustomerMode): void {
@@ -79,6 +82,36 @@ export class PosTicketComponent {
 
   setPaymentMethod(method: PaymentMethod): void {
     this.paymentMethodChange.emit(method);
+  }
+
+  onSetExactCash(): void {
+    this.setExactCash.emit();
+  }
+
+  onSetCashAmount(amount: number): void {
+    this.setCashAmount.emit(amount);
+  }
+
+  onCashInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const val = input.value !== '' ? Number(input.value) : null;
+    this.cashReceivedControl.setValue(val);
+  }
+
+  getQuickBills(): number[] {
+    const tot = this.total;
+    if (!tot || tot <= 0) return [20, 50, 100, 200];
+    const candidates = [20, 50, 100, 200, 500];
+    const result: number[] = [];
+    candidates.forEach((c) => {
+      if (c >= tot && result.length < 3) {
+        result.push(c);
+      }
+    });
+    if (result.length === 0) {
+      result.push(Math.ceil(tot / 50) * 50);
+    }
+    return result;
   }
 
   onSubmit(): void {

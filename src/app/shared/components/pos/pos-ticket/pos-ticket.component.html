@@ -185,7 +185,10 @@
                 (click)="onRemove(item.variantId)"
                 title="Quitar prenda"
               >
-                &times;
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -245,24 +248,72 @@
       @if (paymentMethod === 'EFECTIVO') {
         <div class="cash-calc-row">
           <div class="cash-input-wrap">
-            <label>Monto Recibido:</label>
+            <div class="cash-label-row">
+              <label for="pos-cash-input">Monto Recibido:</label>
+              <button
+                type="button"
+                class="btn-quick-exact"
+                [disabled]="total <= 0"
+                (click)="onSetExactCash()"
+                title="Cobrar importe exacto sin cambio"
+              >
+                Exacto (Bs. {{ total | number:'1.2-2' }})
+              </button>
+            </div>
+
             <div class="input-with-symbol">
               <span class="currency-symbol">Bs.</span>
               <input
+                id="pos-cash-input"
                 [formControl]="cashReceivedControl"
+                (input)="onCashInput($event)"
                 type="number"
                 step="0.50"
                 min="0"
-                placeholder="0.00"
+                [placeholder]="total > 0 ? (total | number:'1.2-2') : '0.00'"
               />
             </div>
+
+            <!-- BILLETES RÁPIDOS SUGERIDOS -->
+            @if (total > 0) {
+              <div class="quick-bills-row">
+                @for (bill of getQuickBills(); track bill) {
+                  <button
+                    type="button"
+                    class="quick-bill-chip"
+                    [class.active]="cashReceivedControl.value === bill"
+                    (click)="onSetCashAmount(bill)"
+                  >
+                    Bs. {{ bill }}
+                  </button>
+                }
+              </div>
+            }
           </div>
 
-          <div class="cash-change-display" [class.negative]="!isCashSufficient">
+          <div
+            class="cash-change-display"
+            [class.sufficient]="isCashSufficient && (cashReceivedControl.value !== null && cashReceivedControl.value !== undefined)"
+            [class.negative]="!isCashSufficient && (cashReceivedControl.value !== null && cashReceivedControl.value !== undefined && total > 0)"
+          >
             <label>Cambio / Vuelto:</label>
             <strong class="change-amount">Bs. {{ cashChange | number:'1.2-2' }}</strong>
-            @if (!isCashSufficient && total > 0) {
-              <small class="cash-warning">Monto insuficiente</small>
+            @if (!isCashSufficient && (cashReceivedControl.value !== null && cashReceivedControl.value !== undefined) && total > 0) {
+              <small class="cash-warning">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>Faltan Bs. {{ cashMissing | number:'1.2-2' }}</span>
+              </small>
+            } @else if (isCashSufficient && cashChange > 0) {
+              <small class="cash-success">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Entregar al cliente</span>
+              </small>
             }
           </div>
         </div>

@@ -29,6 +29,7 @@
       [subtotal]="subtotal()"
       [total]="total()"
       [cashChange]="cashChange()"
+      [cashMissing]="cashMissing()"
       [isCashSufficient]="isCashSufficient()"
       [canSubmitSale]="canSubmitSale()"
       [customerMode]="customerMode()"
@@ -50,6 +51,8 @@
       (remove)="removeItem($event)"
       (clearTicket)="clearTicket()"
       (paymentMethodChange)="setPaymentMethod($event)"
+      (setExactCash)="setExactCash()"
+      (setCashAmount)="setCashAmount($event)"
       (submit)="submitSale()"
     />
   </div>

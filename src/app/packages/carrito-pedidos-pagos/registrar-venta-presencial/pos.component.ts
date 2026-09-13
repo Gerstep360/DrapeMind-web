@@ -91,6 +91,7 @@ export class PosComponent implements OnInit {
   // Pago
   readonly paymentMethod = signal<PaymentMethod>('EFECTIVO');
   readonly cashReceivedControl = new FormControl<number | null>(null);
+  readonly cashReceived = signal<number | null>(null);
   readonly cardRefControl = new FormControl('', { nonNullable: true });
   readonly qrRefControl = new FormControl('', { nonNullable: true });
 
@@ -129,15 +130,25 @@ export class PosComponent implements OnInit {
   readonly total = computed(() => this.subtotal());
 
   readonly cashChange = computed(() => {
-    const received = Number(this.cashReceivedControl.value || 0);
+    const received = this.cashReceived();
     const tot = this.total();
-    return received >= tot ? received - tot : 0;
+    if (received === null || received === undefined) return 0;
+    return received >= tot ? Number((received - tot).toFixed(2)) : 0;
   });
 
   readonly isCashSufficient = computed(() => {
     if (this.paymentMethod() !== 'EFECTIVO') return true;
-    const received = Number(this.cashReceivedControl.value || 0);
+    const received = this.cashReceived();
+    if (received === null || received === undefined) return true;
     return received >= this.total();
+  });
+
+  readonly cashMissing = computed(() => {
+    if (this.paymentMethod() !== 'EFECTIVO') return 0;
+    const received = this.cashReceived();
+    const tot = this.total();
+    if (received === null || received === undefined) return 0;
+    return received < tot ? Number((tot - received).toFixed(2)) : 0;
   });
 
   readonly canSubmitSale = computed(() => {
@@ -149,10 +160,27 @@ export class PosComponent implements OnInit {
     );
   });
 
+  setExactCash(): void {
+    const tot = this.total();
+    this.cashReceivedControl.setValue(tot);
+    this.cashReceived.set(tot);
+  }
+
+  setCashAmount(amount: number): void {
+    this.cashReceivedControl.setValue(amount);
+    this.cashReceived.set(amount);
+  }
+
   ngOnInit(): void {
     this.branchService.loadBranches();
     this.loadCategories();
     this.loadProducts();
+
+    // Sincronización reactiva del efectivo recibido para cálculo directo instantáneo
+    this.cashReceivedControl.valueChanges.subscribe((val) => {
+      const num = val !== null && val !== undefined && (val as unknown as string) !== '' ? Number(val) : null;
+      this.cashReceived.set(num);
+    });
 
     // Búsqueda reactiva de prendas
     this.searchControl.valueChanges
@@ -348,6 +376,7 @@ export class PosComponent implements OnInit {
   clearTicket(): void {
     this.ticketItems.set([]);
     this.cashReceivedControl.setValue(null);
+    this.cashReceived.set(null);
     this.cardRefControl.setValue('');
     this.qrRefControl.setValue('');
   }
@@ -932,7 +961,7 @@ export class PosComponent implements OnInit {
     } else if (method === 'QR') {
       refNum = this.qrRefControl.value.trim() || `POS-QR-${Date.now().toString().slice(-6)}`;
     } else {
-      const cash = Number(this.cashReceivedControl.value || 0);
+      const cash = this.cashReceived() ?? this.total();
       refNum = `EFECTIVO-REC:${cash.toFixed(2)}-VUELTO:${this.cashChange().toFixed(2)}`;
     }
 
@@ -952,11 +981,16 @@ export class PosComponent implements OnInit {
 
     this.commerceApi.createPosSale(payload).subscribe({
       next: (res) => {
+        const change = this.cashChange();
         this.isSubmitting.set(false);
         this.completedOrderId.set(res.pedido_id);
         this.receiptModalOpen.set(true);
         this.clearTicket();
-        this.toast.show('Venta completada con éxito', 'success');
+        if (method === 'EFECTIVO' && change > 0) {
+          this.toast.show(`Venta completada. Entregar cambio de Bs. ${change.toFixed(2)}`, 'success');
+        } else {
+          this.toast.show('Venta completada con éxito', 'success');
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);

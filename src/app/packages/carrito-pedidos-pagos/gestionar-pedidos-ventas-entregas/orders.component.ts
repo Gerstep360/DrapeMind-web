@@ -106,12 +106,96 @@ export class OrdersComponent {
     });
   }
 
+  // Estado de efectivo recibido por pedido para cobro en mostrador
+  readonly orderCashReceived = signal<Record<number, number | null>>({});
+
+  getCashReceived(orderId: number): number | null {
+    return this.orderCashReceived()[orderId] ?? null;
+  }
+
+  setCashReceived(orderId: number, amount: number | null): void {
+    this.orderCashReceived.update((map) => ({
+      ...map,
+      [orderId]: amount,
+    }));
+  }
+
+  onOrderCashInput(orderId: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const val = input.value !== '' ? Number(input.value) : null;
+    this.setCashReceived(orderId, val);
+  }
+
+  setExactCash(orderId: number, total: number): void {
+    this.setCashReceived(orderId, total);
+  }
+
+  getCashChange(orderId: number, total: number): number {
+    const received = this.getCashReceived(orderId);
+    if (received === null || received === undefined) return 0;
+    return received >= total ? Number((received - total).toFixed(2)) : 0;
+  }
+
+  isCashInsufficient(orderId: number, total: number): boolean {
+    const received = this.getCashReceived(orderId);
+    if (received === null || received === undefined) return false;
+    return received < total;
+  }
+
+  getMissingCash(orderId: number, total: number): number {
+    const received = this.getCashReceived(orderId);
+    if (received === null || received === undefined) return 0;
+    return received < total ? Number((total - received).toFixed(2)) : 0;
+  }
+
+  getQuickBills(total: number): number[] {
+    if (!total || total <= 0) return [50, 100, 200];
+    const bills: number[] = [];
+    const step = total > 500 ? 100 : total > 100 ? 50 : 20;
+    let nextRound = Math.ceil(total / step) * step;
+    if (nextRound <= total) nextRound += step;
+    bills.push(nextRound);
+
+    const nextRound2 = nextRound + (step === 20 ? 50 : step);
+    if (!bills.includes(nextRound2)) bills.push(nextRound2);
+
+    if (total <= 500 && !bills.includes(500)) {
+      bills.push(500);
+    } else if (total > 500 && !bills.includes(1000)) {
+      bills.push(1000);
+    }
+
+    return bills.slice(0, 3);
+  }
+
   confirmCashPayment(order: Order): void {
+    const received = this.getCashReceived(order.id);
+    const change = this.getCashChange(order.id, order.total);
+
+    if (received !== null && received < order.total) {
+      this.toast.show(
+        `El monto recibido (Bs. ${received.toFixed(2)}) es menor al total (Bs. ${order.total.toFixed(2)})`,
+        'error',
+      );
+      return;
+    }
+
     this.actionId.set(order.id);
     this.commerceApi.confirmCashPayment(order.id).subscribe({
       next: () => {
         this.actionId.set(null);
-        this.toast.show(`Cobro en efectivo registrado para el pedido #${order.id}. Venta completada con éxito.`, 'success');
+        if (received !== null && change > 0) {
+          this.toast.show(
+            `Cobro de Bs. ${received.toFixed(2)} registrado para el pedido #${order.id}. Entregar cambio de Bs. ${change.toFixed(2)} al cliente.`,
+            'success',
+          );
+        } else {
+          this.toast.show(
+            `Cobro en efectivo registrado para el pedido #${order.id}. Venta completada con éxito.`,
+            'success',
+          );
+        }
+        this.setCashReceived(order.id, null);
         this.load();
       },
       error: (error) => {

@@ -509,19 +509,47 @@
   .payment-method-details {
     .cash-calc-row {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 0.65rem;
-      align-items: center;
+      align-items: start;
 
       .cash-input-wrap {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
 
-        label {
-          font-size: 0.68rem;
-          font-weight: 700;
-          color: var(--dm-text-muted, #7B7F75);
+        .cash-label-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--dm-text-muted, #7B7F75);
+          }
+
+          .btn-quick-exact {
+            background: var(--dm-lime-soft, #EEFF9D);
+            border: 0;
+            border-radius: var(--dm-radius-pill, 999px);
+            font-size: 0.64rem;
+            font-weight: 800;
+            color: var(--dm-ink, #10110F);
+            padding: 1px 7px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            &:hover:not(:disabled) {
+              background: var(--dm-lime, #DFFF3F);
+              transform: translateY(-1px);
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+          }
         }
 
         .input-with-symbol {
@@ -554,15 +582,47 @@
             border-color: var(--dm-ink, #10110F);
           }
         }
+
+        .quick-bills-row {
+          display: flex;
+          gap: 0.3rem;
+          flex-wrap: wrap;
+          margin-top: 2px;
+
+          .quick-bill-chip {
+            background: #FFFFFF;
+            border: 1px solid var(--dm-border, #E1E3DA);
+            border-radius: var(--dm-radius-pill, 999px);
+            padding: 2px 7px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--dm-ink, #10110F);
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            &:hover {
+              background: var(--dm-surface-soft, #F8F9F2);
+              border-color: var(--dm-ink, #10110F);
+            }
+
+            &.active {
+              background: var(--dm-ink, #10110F);
+              color: var(--dm-lime, #DFFF3F);
+              border-color: var(--dm-ink, #10110F);
+            }
+          }
+        }
       }
 
       .cash-change-display {
         display: flex;
         flex-direction: column;
+        gap: 0.15rem;
         background: #F8F9F2;
         border: 1px solid var(--dm-border, #E1E3DA);
         border-radius: 14px;
-        padding: 0.4rem 0.75rem;
+        padding: 0.45rem 0.75rem;
+        transition: all 0.18s ease;
 
         label {
           font-size: 0.64rem;
@@ -572,23 +632,44 @@
 
         .change-amount {
           font-family: var(--font-display, 'Manrope', sans-serif);
-          font-size: 0.95rem;
+          font-size: 1rem;
+          font-weight: 900;
+          color: var(--dm-ink, #10110F);
+        }
+
+        .cash-success {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-size: 0.62rem;
           font-weight: 800;
-          color: #059669;
+          color: #047857;
+        }
+
+        .cash-warning {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-size: 0.62rem;
+          font-weight: 800;
+          color: #DC2626;
+        }
+
+        &.sufficient {
+          border-color: #A7F3D0;
+          background: #ECFDF5;
+
+          .change-amount {
+            color: #047857;
+          }
         }
 
         &.negative {
-          border-color: #FDE8EA;
-          background: #FFF5F6;
+          border-color: #FECDD3;
+          background: #FFF1F2;
 
           .change-amount {
-            color: #FF4757;
-          }
-
-          .cash-warning {
-            font-size: 0.62rem;
-            font-weight: 700;
-            color: #FF4757;
+            color: #DC2626;
           }
         }
       }
