@@ -10,10 +10,18 @@ import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ToastService } from '@core/toast.service';
 import { ReceiptModalComponent } from '@shared/components/receipt-modal/receipt-modal.component';
 import { StripePaymentComponent } from '@shared/components/stripe-payment.component';
+import { CashPaymentModalComponent } from '@shared/components/cash-payment-modal/cash-payment-modal.component';
 
 @Component({
   selector: 'app-orders',
-  imports: [DatePipe, DecimalPipe, FormsModule, ReceiptModalComponent, StripePaymentComponent],
+  imports: [
+    DatePipe,
+    DecimalPipe,
+    FormsModule,
+    ReceiptModalComponent,
+    StripePaymentComponent,
+    CashPaymentModalComponent,
+  ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +48,24 @@ export class OrdersComponent {
   // Receipt modal (PDF & Image export)
   readonly receiptModalOpen = signal(false);
   readonly selectedReceiptOrderId = signal<number | null>(null);
+
+  // Cash Payment modal (Dedicated Dialog with live change calculator)
+  readonly cashModalOpen = signal<boolean>(false);
+  readonly selectedOrderForCash = signal<Order | null>(null);
+
+  openCashModal(order: Order): void {
+    this.selectedOrderForCash.set(order);
+    this.cashModalOpen.set(true);
+  }
+
+  closeCashModal(): void {
+    this.cashModalOpen.set(false);
+    this.selectedOrderForCash.set(null);
+  }
+
+  onCashPaymentProcessed(_result: { order: Order; cashReceived: number; change: number }): void {
+    this.load();
+  }
 
   // POS / Counter Sale modal (CU-37)
   readonly posModalOpen = signal(false);

@@ -1,0 +1,195 @@
+<div class="cash-modal-scrim" (click)="onDismiss()" aria-hidden="true"></div>
+
+<div class="cash-modal-card" role="dialog" aria-modal="true" aria-labelledby="cash-modal-title">
+  <!-- CABECERA DEL MODAL -->
+  <header class="cash-modal-header">
+    <div class="cash-modal-header__brand">
+      <div class="cash-modal-header__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="12" x="2" y="6" rx="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M6 12h.01M18 12h.01"/>
+        </svg>
+      </div>
+
+      <div class="cash-modal-header__texts">
+        <span class="cash-modal-eyebrow">COBRO EN EFECTIVO · MOSTRADOR</span>
+        <h2 id="cash-modal-title" class="cash-modal-title">
+          Pedido #{{ formatOrderId(order().id) }}
+        </h2>
+      </div>
+    </div>
+
+    <button
+      class="cash-modal-close-btn"
+      type="button"
+      (click)="onDismiss()"
+      [disabled]="processing()"
+      aria-label="Cerrar ventana de cobro"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- CUERPO PRINCIPAL DEL COBRO -->
+  <div class="cash-modal-body">
+    <!-- BANNER TOTAL A COBRAR -->
+    <div class="cash-total-banner">
+      <div class="cash-total-banner__text">
+        <span class="cash-total-label">Total a abonar en caja</span>
+        <span class="cash-total-sub">Modalidad: {{ order().tipo_entrega }} · Canal: {{ order().canal }}</span>
+      </div>
+      <strong class="cash-total-amount">
+        Bs {{ total() | number: '1.2-2' }}
+      </strong>
+    </div>
+
+    <!-- SECCIÓN DE ENTRADA DE EFECTIVO -->
+    <div class="cash-input-group">
+      <label class="cash-input-label" for="cash-amount-input">
+        Monto recibido del cliente:
+      </label>
+
+      <div class="cash-input-wrapper">
+        <span class="cash-currency-tag">Bs.</span>
+        <input
+          #cashInputRef
+          id="cash-amount-input"
+          type="number"
+          step="0.50"
+          min="0"
+          placeholder="0.00"
+          [value]="cashReceived() ?? ''"
+          (input)="onCashInput($event)"
+          [disabled]="processing()"
+          autofocus
+        />
+      </div>
+
+      <!-- BOTONES RÁPIDOS (PÍLDORAS) -->
+      <div class="cash-quick-chips">
+        <button
+          type="button"
+          class="quick-bill-chip"
+          [class.quick-bill-chip--active]="cashReceived() === total()"
+          (click)="setExactCash()"
+          [disabled]="processing()"
+        >
+          Exacto (Bs. {{ total() | number: '1.2-2' }})
+        </button>
+
+        @for (bill of quickBills(); track bill) {
+          <button
+            type="button"
+            class="quick-bill-chip"
+            [class.quick-bill-chip--active]="cashReceived() === bill"
+            (click)="setBill(bill)"
+            [disabled]="processing()"
+          >
+            Bs. {{ bill }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- SHOWMESSAGE HACIENDO EL CAMBIO / VUELTO (DINÁMICO Y REACTIVO) -->
+    <div class="cash-feedback-area">
+      @if (cashReceived() === null) {
+        <div class="feedback-card feedback-card--neutral">
+          <div class="feedback-icon feedback-icon--neutral" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </div>
+          <div class="feedback-texts">
+            <strong>Esperando monto en caja</strong>
+            <span>Ingresa el efectivo entregado por el cliente para calcular el vuelto exacto de inmediato.</span>
+          </div>
+        </div>
+      } @else if (isSufficient() && change() > 0) {
+        <div class="feedback-card feedback-card--success">
+          <div class="feedback-icon feedback-icon--success" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="feedback-texts">
+            <span class="feedback-label">CAMBIO / VUELTO A ENTREGAR</span>
+            <strong class="feedback-big-amount">Bs {{ change() | number: '1.2-2' }}</strong>
+            <span class="feedback-hint">
+              Entregar <strong>Bs. {{ change() | number: '1.2-2' }}</strong> al cliente antes de confirmar.
+            </span>
+          </div>
+        </div>
+      } @else if (isSufficient() && change() === 0) {
+        <div class="feedback-card feedback-card--exact">
+          <div class="feedback-icon feedback-icon--exact" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="feedback-texts">
+            <span class="feedback-label">IMPORTE EXACTO</span>
+            <strong class="feedback-big-amount">Sin cambio necesario</strong>
+            <span class="feedback-hint">El cliente abonó la cantidad exacta del pedido.</span>
+          </div>
+        </div>
+      } @else {
+        <div class="feedback-card feedback-card--insufficient">
+          <div class="feedback-icon feedback-icon--insufficient" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div class="feedback-texts">
+            <span class="feedback-label">MONTO INSUFICIENTE</span>
+            <strong class="feedback-missing-amount">Faltan Bs {{ missing() | number: '1.2-2' }}</strong>
+            <span class="feedback-hint">El dinero recibido no cubre el importe total de Bs. {{ total() | number: '1.2-2' }}.</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ACCIONES DEL MODAL -->
+  <footer class="cash-modal-footer">
+    <button
+      class="btn-modal-cancel"
+      type="button"
+      (click)="onDismiss()"
+      [disabled]="processing()"
+    >
+      Cancelar
+    </button>
+
+    <button
+      class="btn-modal-confirm"
+      type="button"
+      (click)="processPayment()"
+      [disabled]="processing() || !isSufficient()"
+    >
+      @if (processing()) {
+        <span class="spinner-sm" aria-hidden="true"></span>
+        <span>Confirmando Cobro...</span>
+      } @else {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>
+          Confirmar Cobro
+          @if (change() > 0) {
+            · Entregar Bs {{ change() | number: '1.2-2' }}
+          }
+        </span>
+      }
+    </button>
+  </footer>
+</div>

@@ -749,171 +749,70 @@
 }
 
 /* =========================================================
-   SELLER CASH CONFIRMATION CARD (SOFT FUTURISM / DRAPEMIND)
-   Lightweight, friendly, intuitive inline experience
+   SELLER PAYMENT TRIGGER ACTIONS
+   Sleek pill buttons in order card footer
    ========================================================= */
-.seller-cash-card {
-  background: #FFFFFF;
-  border: 1.5px solid var(--dm-border, #E1E3DA);
-  border-radius: var(--dm-radius-md, 20px);
-  padding: 0.95rem 1.15rem;
+.seller-pay-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 0.85rem 0;
-  box-shadow: 0 4px 16px rgba(16, 17, 15, 0.03);
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0.5rem 0;
 
-  &__head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-
-    .cash-card-title-group {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-
-      .cash-card-tag {
-        font-size: 0.72rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--dm-ink, #10110F);
-      }
-
-      .cash-card-sub {
-        font-size: 0.76rem;
-        color: var(--dm-text-muted, #7B7F75);
-
-        strong {
-          color: var(--dm-ink, #10110F);
-        }
-      }
-    }
-
-    .cash-change-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.25rem 0.7rem;
-      border-radius: var(--dm-radius-pill, 999px);
-      font-size: 0.74rem;
-      font-weight: 800;
-
-      &--positive {
-        background: #ECFDF5;
-        color: #047857;
-        border: 1px solid #A7F3D0;
-      }
-
-      &--missing {
-        background: #FFF1F2;
-        color: #E11D48;
-        border: 1px solid #FECDD3;
-      }
-    }
-  }
-
-  &__row {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    flex-wrap: wrap;
-
-    .cash-inline-input {
-      display: inline-flex;
-      align-items: center;
-      background: var(--dm-surface-soft, #F8F9F2);
-      border: 1.5px solid var(--dm-border, #E1E3DA);
-      border-radius: var(--dm-radius-pill, 999px);
-      padding: 0.35rem 0.8rem;
-      transition: all 0.15s ease;
-
-      &:focus-within {
-        background: #FFFFFF;
-        border-color: var(--dm-ink, #10110F);
-        box-shadow: 0 0 0 3px rgba(16, 17, 15, 0.05);
-      }
-
-      .currency-prefix {
-        font-size: 0.78rem;
-        font-weight: 800;
-        color: var(--dm-text-muted, #7B7F75);
-        margin-right: 0.3rem;
-      }
-
-      input {
-        width: 120px;
-        border: 0;
-        background: transparent;
-        font-size: 0.88rem;
-        font-weight: 800;
-        color: var(--dm-ink, #10110F);
-        outline: none;
-      }
-    }
-
-    .cash-quick-pills {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-
-      .quick-pill {
-        background: #FFFFFF;
-        border: 1px solid var(--dm-border, #E1E3DA);
-        border-radius: var(--dm-radius-pill, 999px);
-        padding: 0.3rem 0.7rem;
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--dm-ink, #10110F);
-        cursor: pointer;
-        transition: all 0.15s ease;
-
-        &:hover {
-          background: var(--dm-surface-soft, #F8F9F2);
-          border-color: var(--dm-ink, #10110F);
-          transform: translateY(-1px);
-        }
-
-        &--active {
-          background: var(--dm-ink, #10110F);
-          color: var(--dm-lime, #DFFF3F);
-          border-color: var(--dm-ink, #10110F);
-        }
-      }
-    }
-  }
-
-  .cash-confirm-btn {
+  .button-pay-cash {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    height: 2.6rem;
-    padding: 0 1.25rem;
+    height: 2.5rem;
+    padding: 0 1.15rem;
     background: var(--dm-lime, #DFFF3F);
     color: var(--dm-ink, #10110F);
-    border: 0;
+    border: 1.5px solid rgba(16, 17, 15, 0.1);
     border-radius: var(--dm-radius-pill, 999px);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 800;
+    letter-spacing: -0.01em;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(223, 255, 63, 0.35);
     transition: all 0.18s ease;
 
-    &:hover:not(:disabled) {
+    &:hover {
       background: var(--dm-lime-hover, #D2F632);
       transform: translateY(-1px);
       box-shadow: 0 4px 14px rgba(223, 255, 63, 0.45);
     }
 
-    &:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  .button-pay-qr {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    height: 2.5rem;
+    padding: 0 1.15rem;
+    background: var(--dm-surface-soft, #F8F9F2);
+    color: var(--dm-ink, #10110F);
+    border: 1.5px solid var(--dm-border, #E1E3DA);
+    border-radius: var(--dm-radius-pill, 999px);
+    font-size: 0.78rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: all 0.18s ease;
+
+    &:hover {
+      background: #FFFFFF;
+      border-color: var(--dm-ink, #10110F);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
     }
   }
 }
