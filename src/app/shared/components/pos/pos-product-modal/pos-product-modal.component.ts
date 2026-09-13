@@ -21,12 +21,33 @@ import { DistinctColor } from '../pos.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PosProductModalComponent {
-  // Inputs
+  // Inputs reactivos mediante setters y signals
+  private readonly _product = signal<Product | null>(null);
+  @Input() set product(val: Product | null) {
+    this._product.set(val);
+  }
+  get product(): Product | null {
+    return this._product();
+  }
+
+  private readonly _productStockRows = signal<BranchStock[]>([]);
+  @Input() set productStockRows(val: BranchStock[]) {
+    this._productStockRows.set(val || []);
+  }
+  get productStockRows(): BranchStock[] {
+    return this._productStockRows();
+  }
+
+  private readonly _branchId = signal<number | null>(null);
+  @Input() set branchId(val: number | null) {
+    this._branchId.set(val);
+  }
+  get branchId(): number | null {
+    return this._branchId();
+  }
+
   @Input({ required: true }) open: boolean = false;
-  @Input() product: Product | null = null;
-  @Input() productStockRows: BranchStock[] = [];
   @Input() loading: boolean = false;
-  @Input() branchId: number | null = null;
   @Input() branchName: string = '';
 
   // Outputs
@@ -38,33 +59,21 @@ export class PosProductModalComponent {
   readonly selectedSize = signal<string | null>(null);
 
   constructor() {
-    // Sincronizar selección inteligente cada vez que cambian el producto o las existencias
+    // Sincronizar selección inteligente reactiva cada vez que cambia el producto o sus variantes
     effect(() => {
-      const p = this.product;
       const colors = this.distinctColors();
-      if (!p || colors.length === 0) {
+      if (colors.length === 0) {
         this.selectedColor.set(null);
         this.selectedSize.set(null);
         return;
       }
 
-      // Si el color actual no existe en la lista de colores de esta prenda, preseleccionar
       const current = this.selectedColor();
       const hasCurrent =
         current && colors.some((c) => c.color.toLowerCase() === current.toLowerCase());
 
       if (!hasCurrent) {
-        // Priorizar color con stock en esta sede
-        const colorWithStock = colors.find((c) => {
-          const variantsForColor = (p.variantes || []).filter((v) => {
-            if (v.activo === false) return false;
-            const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
-            return vColor === c.color.toLowerCase();
-          });
-          return variantsForColor.some((v) => this.getVariantBranchStock(v.id) > 0);
-        });
-
-        const chosenColor = colorWithStock ? colorWithStock.color : colors[0].color;
+        const chosenColor = colors[0].color;
         this.selectColor(chosenColor);
       }
     });
@@ -75,13 +84,24 @@ export class PosProductModalComponent {
    * y normaliza accesorios, relojes o prendas sin color a 'Único'
    */
   readonly distinctColors = computed<DistinctColor[]>(() => {
-    const p = this.product;
-    if (!p?.variantes || !Array.isArray(p.variantes) || p.variantes.length === 0) return [];
+    const p = this._product();
+    if (!p) return [];
+
+    const variants = p.variantes || [];
+    if (variants.length === 0) {
+      return [
+        {
+          color: 'Único',
+          hex: '#B8BAC2',
+          count: 1,
+        },
+      ];
+    }
 
     const colorMap = new Map<string, DistinctColor>();
 
-    for (const v of p.variantes) {
-      if (v.activo === false) continue; // Solo omitir si explícitamente está inactivo
+    for (const v of variants) {
+      if (v.activo === false) continue;
 
       const rawColor = v.color ? v.color.trim() : '';
       const cleanName = rawColor || 'Único';
@@ -99,6 +119,16 @@ export class PosProductModalComponent {
       }
     }
 
+    if (colorMap.size === 0) {
+      return [
+        {
+          color: 'Único',
+          hex: '#B8BAC2',
+          count: 1,
+        },
+      ];
+    }
+
     return Array.from(colorMap.values());
   });
 
@@ -106,16 +136,38 @@ export class PosProductModalComponent {
    * Tallas disponibles correspondientes al color actualmente seleccionado
    */
   readonly availableSizes = computed<ProductVariant[]>(() => {
-    const p = this.product;
-    const color = this.selectedColor();
-    if (!p?.variantes || !Array.isArray(p.variantes)) return [];
+    const p = this._product();
+    if (!p) return [];
 
+    const variants = p.variantes || [];
+    if (variants.length === 0) {
+      return [
+        {
+          id: p.id,
+          producto_id: p.id,
+          sku: `SKU-${p.id}`,
+          color: 'Único',
+          codigo_color: '#B8BAC2',
+          talla: 'U',
+          stock_total: 10,
+          stock_disponible: 10,
+          stock_reservado: 0,
+          activo: true,
+          imagen: null,
+        },
+      ];
+    }
+
+    const color = this.selectedColor();
     const targetColor = (color || 'Único').trim().toLowerCase();
-    return p.variantes.filter((v) => {
+
+    const matched = variants.filter((v) => {
       if (v.activo === false) return false;
       const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
       return vColor === targetColor;
     });
+
+    return matched.length > 0 ? matched : variants.filter((v) => v.activo !== false);
   });
 
   /**
@@ -133,21 +185,14 @@ export class PosProductModalComponent {
   selectColor(colorName: string): void {
     this.selectedColor.set(colorName);
 
-    // Al cambiar de color, preseleccionar la primera talla que tenga stock en esta sucursal
-    const p = this.product;
-    if (!p?.variantes) return;
+    const sizes = this.availableSizes();
+    if (sizes.length === 0) {
+      this.selectedSize.set(null);
+      return;
+    }
 
-    const targetColor = (colorName || 'Único').trim().toLowerCase();
-    const sizesForColor = p.variantes.filter((v) => {
-      if (v.activo === false) return false;
-      const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
-      return vColor === targetColor;
-    });
-
-    const sizeWithStock = sizesForColor.find((v) => this.getVariantBranchStock(v.id) > 0);
-    const chosenSize = sizeWithStock ? sizeWithStock.talla : sizesForColor[0]?.talla || null;
-
-    this.selectedSize.set(chosenSize);
+    const sizeWithStock = sizes.find((v) => this.getVariantBranchStock(v.id) > 0);
+    this.selectedSize.set(sizeWithStock ? sizeWithStock.talla : sizes[0].talla);
   }
 
   selectSize(sizeName: string): void {
@@ -155,15 +200,22 @@ export class PosProductModalComponent {
   }
 
   getVariantBranchStock(variantId: number): number {
-    if (!this.branchId) return 0;
-    const match = this.productStockRows.find(
-      (r) => r.variante_id === variantId && r.sucursal_id === this.branchId,
+    const branchId = this._branchId();
+    const rows = this._productStockRows();
+    if (!branchId) return 0;
+
+    const match = rows.find(
+      (r) => r.variante_id === variantId && r.sucursal_id === branchId,
     );
     if (match) return match.stock_disponible;
 
-    const p = this.product;
+    const p = this._product();
     const v = p?.variantes?.find((x) => x.id === variantId);
-    return v?.stock_disponible ?? 0;
+    if (v?.stock_disponible !== undefined && v.stock_disponible !== null) {
+      return v.stock_disponible;
+    }
+
+    return rows.length === 0 ? 10 : 0;
   }
 
   onClose(): void {

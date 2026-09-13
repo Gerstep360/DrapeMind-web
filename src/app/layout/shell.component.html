@@ -1,47 +1,198 @@
-<div class="app-shell" [class.app-shell--menu-open]="menuOpen()">
-  <!-- SIDEBAR BOUTIQUE -->
-  <aside class="sidebar">
+<div class="app-shell dm-shell" [class.app-shell--menu-open]="menuOpen()">
+
+  <!-- =========================================================
+       SIDEBAR — DRAPEMIND ATELIER
+       ========================================================= -->
+  <aside
+    class="sidebar dm-sidebar"
+    aria-label="Panel principal DrapeMind"
+  >
+
+    <!-- =======================================================
+         BRAND
+         ======================================================= -->
     <div class="sidebar-header">
-      <a class="brand" routerLink="/catalog" (click)="menuOpen.set(false)">
-        <span class="brand__mark">D</span>
+
+      <a
+        class="brand dm-brand"
+        routerLink="/catalog"
+        (click)="menuOpen.set(false)"
+        aria-label="Ir al catálogo de DrapeMind"
+      >
+
+        <span class="brand__mark">
+
+          <span class="brand__mark-letter">
+            D
+          </span>
+
+          <span
+            class="brand__mark-spark"
+            aria-hidden="true"
+          >
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M12 3l1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Z"
+              />
+              <path
+                d="M18.5 14.5l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z"
+              />
+            </svg>
+          </span>
+
+        </span>
+
+
         <div class="brand__text">
-          <span class="brand__title">DrapeMind</span>
-          <span class="brand__sub">ATELIER &amp; STUDIO</span>
+
+          <span class="brand__title">
+            DrapeMind
+          </span>
+
+          <span class="brand__sub">
+            ATELIER &amp; INTELLIGENCE
+          </span>
+
         </div>
+
       </a>
+
+
+      <div class="sidebar-header__meta">
+
+        <span class="sidebar-header__status">
+
+          <span
+            class="sidebar-header__status-dot"
+            aria-hidden="true"
+          ></span>
+
+          Sistema activo
+
+        </span>
+
+      </div>
+
     </div>
 
-    <nav class="sidebar-nav" aria-label="Navegación principal">
-      <p class="nav-caption">Áreas del atelier</p>
-      @for (group of navigation(); track group.label) {
-        <section class="nav-package" [class.nav-package--expanded]="isPackageExpanded(group.label)">
+
+    <!-- =======================================================
+         NAVIGATION
+         ======================================================= -->
+    <nav
+      class="sidebar-nav dm-sidebar-nav"
+      aria-label="Navegación principal"
+    >
+
+      <div class="nav-intro">
+
+        <span class="nav-caption">
+          Áreas del atelier
+        </span>
+
+        <span
+          class="nav-intro__line"
+          aria-hidden="true"
+        ></span>
+
+      </div>
+
+
+      @for (
+        group of navigation();
+        track group.label;
+        let packageIndex = $index
+      ) {
+
+        <section
+          class="nav-package"
+          [class.nav-package--expanded]="
+            isPackageExpanded(group.label)
+          "
+        >
+
+          <!-- PACKAGE HEADER -->
           <button
             type="button"
             class="nav-package__toggle"
             (click)="togglePackage(group.label)"
-            [attr.aria-expanded]="isPackageExpanded(group.label)"
+            [attr.aria-expanded]="
+              isPackageExpanded(group.label)
+            "
           >
-            <div class="nav-package__heading">
-              <strong>{{ group.label }}</strong>
-              <span>{{ group.description }}</span>
+
+            <div class="nav-package__identity">
+
+              <span class="nav-package__number">
+                {{
+                  (packageIndex + 1)
+                    .toString()
+                    .padStart(2, '0')
+                }}
+              </span>
+
+
+              <div class="nav-package__heading">
+
+                <strong>
+                  {{ group.label }}
+                </strong>
+
+                <span>
+                  {{ group.description }}
+                </span>
+
+              </div>
+
             </div>
-            <svg
-              class="nav-package__chevron"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+
+
+            <span
+              class="nav-package__action"
+              aria-hidden="true"
             >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+
+              <svg
+                class="nav-package__chevron"
+                [class.nav-package__chevron--open]="
+                  isPackageExpanded(group.label)
+                "
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+
+            </span>
+
           </button>
+
+
+          <!-- PACKAGE ITEMS -->
           @if (isPackageExpanded(group.label)) {
+
             <div class="nav-package__items">
-              @for (item of group.items; track item.route) {
+
+              @for (
+                item of group.items;
+                track item.route
+              ) {
+
                 <a
                   [routerLink]="item.route"
                   routerLinkActive="nav-link--active"
@@ -49,30 +200,116 @@
                   (click)="menuOpen.set(false)"
                   [attr.title]="item.description"
                 >
-                  <span class="nav-link__icon"><app-nav-icon [name]="item.icon" /></span>
-                  <span class="nav-link__copy"
-                    ><strong>{{ item.label }}</strong
-                    ><small>{{ item.description }}</small></span
+
+                  <span
+                    class="nav-link__accent"
+                    aria-hidden="true"
+                  ></span>
+
+
+                  <span class="nav-link__icon">
+
+                    <app-nav-icon
+                      [name]="item.icon"
+                    />
+
+                  </span>
+
+
+                  <span class="nav-link__copy">
+
+                    <strong>
+                      {{ item.label }}
+                    </strong>
+
+                    <small>
+                      {{ item.description }}
+                    </small>
+
+                  </span>
+
+
+                  <span
+                    class="nav-link__arrow"
+                    aria-hidden="true"
                   >
+
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m13 6 6 6-6 6" />
+                    </svg>
+
+                  </span>
+
                 </a>
+
               }
+
             </div>
+
           }
+
         </section>
+
       }
+
     </nav>
 
+
+    <!-- =======================================================
+         SIDEBAR USER
+         ======================================================= -->
     <div class="sidebar-foot">
-      <div class="sidebar-user-card">
-        <div class="sidebar-user-info">
-          <span class="avatar">{{ auth.user()?.nombre?.charAt(0) }}</span>
-          <div class="sidebar-user-copy">
-            <strong class="sidebar-user-name">{{ auth.user()?.nombre }}</strong>
-            <span class="role-badge" [attr.data-role]="auth.user()?.rol">{{
-              auth.user()?.rol
-            }}</span>
-          </div>
+
+      <div class="sidebar-user-card dm-user-card">
+
+        <div class="sidebar-user-card__eyebrow">
+          <span>
+            SESIÓN ACTIVA
+          </span>
         </div>
+
+
+        <div class="sidebar-user-info">
+
+          <span class="avatar avatar--sidebar">
+            {{
+              auth.user()?.nombre?.charAt(0) ||
+              'D'
+            }}
+          </span>
+
+
+          <div class="sidebar-user-copy">
+
+            <strong class="sidebar-user-name">
+              {{ auth.user()?.nombre }}
+            </strong>
+
+
+            <span
+              class="role-badge"
+              [attr.data-role]="
+                auth.user()?.rol
+              "
+            >
+              {{ auth.user()?.rol }}
+            </span>
+
+          </div>
+
+        </div>
+
+
         <button
           class="sidebar-logout-btn"
           type="button"
@@ -80,165 +317,734 @@
           title="Cerrar sesión"
           aria-label="Cerrar sesión"
         >
+
           <svg
             width="16"
             height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="1.8"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" x2="9" y1="12" y2="12" />
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+            />
+            <polyline
+              points="16 17 21 12 16 7"
+            />
+            <line
+              x1="21"
+              x2="9"
+              y1="12"
+              y2="12"
+            />
           </svg>
-          <span>Cerrar sesión</span>
+
+
+          <span>
+            Cerrar sesión
+          </span>
+
         </button>
+
       </div>
+
     </div>
+
   </aside>
 
-  <button class="menu-scrim" aria-label="Cerrar menú" (click)="menuOpen.set(false)"></button>
 
-  <section class="workspace">
-    <!-- TOPBAR -->
-    <header class="topbar">
+  <!-- =========================================================
+       MOBILE SIDEBAR SCRIM
+       ========================================================= -->
+  <button
+    class="menu-scrim"
+    type="button"
+    aria-label="Cerrar menú"
+    (click)="menuOpen.set(false)"
+  ></button>
+
+
+  <!-- =========================================================
+       MAIN WORKSPACE
+       ========================================================= -->
+  <section class="workspace dm-workspace">
+
+
+    <!-- =======================================================
+         FLOATING TOPBAR
+         ======================================================= -->
+    <header class="topbar dm-topbar">
+
+
+      <!-- LEFT -->
       <div class="topbar-left">
+
+        <!-- MOBILE MENU -->
         <button
-          class="menu-toggle"
+          class="menu-toggle dm-icon-action"
           type="button"
           (click)="menuOpen.set(!menuOpen())"
           aria-label="Abrir menú"
+          [attr.aria-expanded]="menuOpen()"
         >
-          <span></span><span></span>
+
+          <span></span>
+          <span></span>
+
         </button>
-        <!-- SUCURSAL SELECTOR (REEMPLAZO DE 'DrapeMind Haute Couture') -->
+
+
+        <!-- CURRENT CONTEXT -->
+        <div class="topbar-context">
+
+          <span class="topbar-context__eyebrow">
+            DRAPEMIND
+          </span>
+
+          <span class="topbar-context__title">
+            Fashion Commerce
+          </span>
+
+        </div>
+
+
+        <!-- ===================================================
+             BRANCH SELECTOR
+             =================================================== -->
         <div class="branch-selector-wrapper">
+
+
+          <!-- TRIGGER -->
           <button
             type="button"
             class="branch-selector-trigger"
             (click)="toggleBranchDropdown()"
-            [attr.aria-expanded]="isBranchDropdownOpen()"
+            [attr.aria-expanded]="
+              isBranchDropdownOpen()
+            "
+            aria-haspopup="listbox"
             title="Elegir sucursal DrapeMind"
           >
-            <span class="branch-pin-dot"></span>
+
+            <span
+              class="branch-selector-trigger__visual"
+              aria-hidden="true"
+            >
+
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="2.5"
+                />
+              </svg>
+
+            </span>
+
+
             <div class="branch-trigger-texts">
-              <span class="branch-tiny-label">SUCURSAL</span>
+
+              <span class="branch-tiny-label">
+                SUCURSAL ACTIVA
+              </span>
+
               <strong class="branch-current-name">
-                {{ branchService.selectedBranch()?.nombre || 'Elegir sucursal' }}
+                {{
+                  branchService
+                    .selectedBranch()
+                    ?.nombre ||
+                  'Elegir sucursal'
+                }}
               </strong>
+
             </div>
+
+
             <svg
               class="branch-chevron-icon"
-              [class.branch-chevron-icon--open]="isBranchDropdownOpen()"
+              [class.branch-chevron-icon--open]="
+                isBranchDropdownOpen()
+              "
               width="12"
               height="12"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2.5"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
             >
               <path d="m6 9 6 6 6-6" />
             </svg>
+
           </button>
 
-          <!-- DROPDOWN LIST -->
+
+          <!-- =================================================
+               BRANCH DROPDOWN
+               ================================================= -->
           @if (isBranchDropdownOpen()) {
-            <div class="branch-menu-scrim" (click)="isBranchDropdownOpen.set(false)"></div>
-            <div class="branch-dropdown-card" (click)="$event.stopPropagation()">
+
+            <div
+              class="branch-menu-scrim"
+              (click)="
+                isBranchDropdownOpen.set(false)
+              "
+            ></div>
+
+
+            <div
+              class="branch-dropdown-card"
+              role="listbox"
+              aria-label="Sucursales disponibles"
+              (click)="$event.stopPropagation()"
+            >
+
+              <!-- HEADER -->
               <div class="branch-card-header">
-                <span class="branch-card-title">ELEGIR SUCURSAL</span>
-                <span class="branch-card-caption">Disponibilidad física en tiempo real</span>
+
+                <div
+                  class="branch-card-header__icon"
+                  aria-hidden="true"
+                >
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                    />
+                    <circle
+                      cx="12"
+                      cy="10"
+                      r="2.5"
+                    />
+                  </svg>
+
+                </div>
+
+
+                <div class="branch-card-header__copy">
+
+                  <span class="branch-card-title">
+                    Elegir sucursal
+                  </span>
+
+                  <span class="branch-card-caption">
+                    Stock y disponibilidad física
+                    en tiempo real
+                  </span>
+
+                </div>
+
               </div>
+
+
+              <!-- ITEMS -->
               <div class="branch-items-list">
-                @for (branch of branchService.branches(); track branch.id) {
+
+                @for (
+                  branch of
+                    branchService.branches();
+                  track branch.id
+                ) {
+
                   <button
                     type="button"
                     class="branch-menu-item"
+                    role="option"
+                    [attr.aria-selected]="
+                      branch.id ===
+                      branchService
+                        .selectedBranch()
+                        ?.id
+                    "
                     [class.branch-menu-item--active]="
-                      branch.id === branchService.selectedBranch()?.id
+                      branch.id ===
+                      branchService
+                        .selectedBranch()
+                        ?.id
                     "
                     (click)="chooseBranch(branch)"
                   >
+
+                    <!-- CODE -->
+                    <span
+                      class="branch-menu-item__marker"
+                    >
+                      {{
+                        branch.codigo ||
+                        'DM'
+                      }}
+                    </span>
+
+
+                    <!-- INFO -->
                     <div class="branch-item-text">
-                      <strong class="branch-name">{{ branch.nombre }}</strong>
-                      <span class="branch-address"
-                        >{{ branch.direccion || 'Showroom DrapeMind'
-                        }}{{ branch.ciudad ? ' · ' + branch.ciudad : '' }}</span
-                      >
+
+                      <strong class="branch-name">
+                        {{ branch.nombre }}
+                      </strong>
+
+
+                      <span class="branch-address">
+
+                        {{
+                          branch.direccion ||
+                          'Showroom DrapeMind'
+                        }}
+
+                        {{
+                          branch.ciudad
+                            ? ' · ' +
+                              branch.ciudad
+                            : ''
+                        }}
+
+                      </span>
+
                     </div>
-                    @if (branch.id === branchService.selectedBranch()?.id) {
-                      <span class="branch-active-check">
+
+
+                    <!-- SELECTED -->
+                    @if (
+                      branch.id ===
+                      branchService
+                        .selectedBranch()
+                        ?.id
+                    ) {
+
+                      <span
+                        class="branch-active-check"
+                        aria-hidden="true"
+                      >
+
                         <svg
                           width="14"
                           height="14"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          stroke-width="2.5"
+                          stroke-width="2.4"
                           stroke-linecap="round"
                           stroke-linejoin="round"
                         >
-                          <polyline points="20 6 9 17 4 12" />
+                          <polyline
+                            points="20 6 9 17 4 12"
+                          />
                         </svg>
+
                       </span>
+
                     }
+
                   </button>
+
                 } @empty {
+
+                  <!-- EMPTY STATE -->
                   <div class="branch-empty">
-                    <span>No se encontraron sucursales activas.</span>
+
+                    <span
+                      class="branch-empty__icon"
+                      aria-hidden="true"
+                    >
+
+                      <svg
+                        width="30"
+                        height="30"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                        />
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="2.5"
+                        />
+                        <path
+                          d="M5 5 19 19"
+                        />
+                      </svg>
+
+                    </span>
+
+
+                    <strong>
+                      No encontramos sucursales
+                    </strong>
+
+
+                    <span>
+                      Todavía no existen
+                      sucursales activas
+                      disponibles.
+                    </span>
+
                   </div>
+
                 }
+
               </div>
+
             </div>
+
           }
+
         </div>
+
       </div>
 
+
+      <!-- =======================================================
+           TOPBAR ACTIONS
+           ======================================================= -->
       <div class="topbar-actions">
-        <!-- BOTÓN CARRITO BOUTIQUE -->
+
+
+        <!-- CART -->
         <button
-          class="cart-trigger-btn"
+          class="cart-trigger-btn dm-cart-pill"
           type="button"
           (click)="cart.toggle()"
-          aria-label="Abrir bolsa de compras"
+          aria-label="Abrir perchero de compras"
         >
-          <svg
-            class="cart-svg-icon"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-          <span class="cart-label">Perchero</span>
+
+          <span class="cart-trigger-btn__icon">
+
+            <svg
+              class="cart-svg-icon"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"
+              />
+              <path
+                d="M3 6h18"
+              />
+              <path
+                d="M16 10a4 4 0 0 1-8 0"
+              />
+            </svg>
+
+          </span>
+
+
+          <span class="cart-label">
+            Perchero
+          </span>
+
+
           @if (cart.totalItems() > 0) {
-            <span class="cart-badge">{{ cart.totalItems() }}</span>
+
+            <span class="cart-badge">
+              {{ cart.totalItems() }}
+            </span>
+
           }
+
         </button>
 
-        <!-- PERFIL & SESIÓN (Desktop) -->
-        <div class="account account--topbar">
-          <span class="avatar">{{ auth.user()?.nombre?.charAt(0) }}</span>
+
+        <!-- ACCOUNT -->
+        <div
+          class="
+            account
+            account--topbar
+            dm-account-pill
+          "
+        >
+
+          <span class="avatar avatar--topbar">
+            {{
+              auth.user()
+                ?.nombre
+                ?.charAt(0) ||
+              'D'
+            }}
+          </span>
+
+
           <div class="account__copy">
-            <strong>{{ auth.user()?.nombre }}</strong>
-            <span class="role-badge" [attr.data-role]="auth.user()?.rol">{{
-              auth.user()?.rol
-            }}</span>
+
+            <strong>
+              {{ auth.user()?.nombre }}
+            </strong>
+
+
+            <span
+              class="role-badge"
+              [attr.data-role]="
+                auth.user()?.rol
+              "
+            >
+              {{ auth.user()?.rol }}
+            </span>
+
           </div>
-          <button class="account__logout" type="button" (click)="logout()" title="Cerrar Sesión">
+
+
+          <span
+            class="account__divider"
+            aria-hidden="true"
+          ></span>
+
+
+          <button
+            class="account__logout"
+            type="button"
+            (click)="logout()"
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+          >
+
             <svg
               width="16"
               height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+              />
+              <polyline
+                points="16 17 21 12 16 7"
+              />
+              <line
+                x1="21"
+                x2="9"
+                y1="12"
+                y2="12"
+              />
+            </svg>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- =======================================================
+         ROUTED CONTENT
+         ======================================================= -->
+    <main class="page-frame dm-page-frame">
+
+      <div
+        class="
+          page-frame__glow
+          page-frame__glow--lime
+        "
+        aria-hidden="true"
+      ></div>
+
+
+      <div
+        class="
+          page-frame__glow
+          page-frame__glow--cyan
+        "
+        aria-hidden="true"
+      ></div>
+
+
+      <div class="page-frame__content">
+
+        <router-outlet />
+
+      </div>
+
+    </main>
+
+  </section>
+
+
+  <!-- =========================================================
+       GLOBAL CART DRAWER
+       ========================================================= -->
+  <app-cart-drawer />
+
+
+  <!-- =========================================================
+       BRANCH SELECTOR MODAL
+       ========================================================= -->
+  @if (branchService.showSelectorModal()) {
+
+    <div
+      class="branch-modal-scrim"
+      (click)="
+        branchService.closeSelectorModal()
+      "
+    ></div>
+
+
+    <div
+      class="branch-modal-card dm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="branch-modal-title"
+    >
+
+      <!-- =====================================================
+           MODAL HEADER
+           ===================================================== -->
+      <header class="branch-modal-header">
+
+        <div class="branch-modal-title-group">
+
+
+          <!-- EYEBROW -->
+          <span class="branch-modal-eyebrow">
+
+            <span
+              class="branch-modal-eyebrow__spark"
+              aria-hidden="true"
+            >
+
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 3l1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Z"
+                />
+                <path
+                  d="M18.5 14.5l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z"
+                />
+              </svg>
+
+            </span>
+
+            SHOWROOMS &amp; ATELIER
+
+          </span>
+
+
+          <h2
+            id="branch-modal-title"
+            class="branch-modal-title"
+          >
+            ¿Dónde quieres comprar hoy?
+          </h2>
+
+        </div>
+
+
+        <!-- CLOSE -->
+        <button
+          class="branch-modal-close"
+          type="button"
+          (click)="
+            branchService.closeSelectorModal()
+          "
+          aria-label="Cerrar selector de sucursal"
+        >
+
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+            />
+            <line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+            />
+          </svg>
+
+        </button>
+
+      </header>
+
+
+      <!-- =====================================================
+           MODAL INTRO
+           ===================================================== -->
+      <div class="branch-modal-intro">
+
+        <p class="branch-modal-desc">
+          Selecciona tu sucursal para
+          sincronizar el stock,
+          disponibilidad de prendas y
+          coordinar el recojo presencial
+          en showroom.
+        </p>
+
+
+        <span class="branch-modal-live">
+
+          <span
+            class="branch-modal-live__icon"
+            aria-hidden="true"
+          >
+
+            <svg
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -246,105 +1052,393 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" x2="9" y1="12" y2="12" />
+              <path
+                d="M20 6 9 17l-5-5"
+              />
             </svg>
-          </button>
-        </div>
+
+          </span>
+
+          Disponibilidad sincronizada
+
+        </span>
+
       </div>
-    </header>
 
-    <main class="page-frame">
-      <router-outlet />
-    </main>
-  </section>
 
-  <!-- DRAWER DE CARRITO GLOBAL -->
-  <app-cart-drawer />
+      <!-- =====================================================
+           BRANCH GRID
+           ===================================================== -->
+      <div class="branch-modal-grid">
 
-  <!-- MODAL ELEGIR SUCURSAL (DESPUÉS DEL LOGIN O DESDE TOPBAR) -->
-  @if (branchService.showSelectorModal()) {
-    <div class="branch-modal-scrim" (click)="branchService.closeSelectorModal()"></div>
-    <div class="branch-modal-card" role="dialog" aria-label="Elegir sucursal">
-      <header class="branch-modal-header">
-        <div class="branch-modal-title-group">
-          <span class="branch-modal-eyebrow">SHOWROOMS &amp; ATELIER</span>
-          <h2 class="branch-modal-title">Elegir Sucursal DrapeMind</h2>
-        </div>
-        <button
-          class="branch-modal-close"
-          type="button"
-          (click)="branchService.closeSelectorModal()"
-          aria-label="Cerrar"
+        @for (
+          branch of
+            branchService.branches();
+          track branch.id
+        ) {
+
+          <button
+            type="button"
+            class="branch-choice-card"
+            [class.branch-choice-card--selected]="
+              branch.id ===
+              branchService
+                .selectedBranch()
+                ?.id
+            "
+            (click)="chooseBranch(branch)"
+          >
+
+            <div
+              class="branch-choice-card__accent"
+              aria-hidden="true"
+            ></div>
+
+
+            <!-- HEADER -->
+            <div class="branch-choice-head">
+
+              <span class="branch-choice-code">
+                {{
+                  branch.codigo ||
+                  'SUC'
+                }}
+              </span>
+
+
+              @if (
+                branch.id ===
+                branchService
+                  .selectedBranch()
+                  ?.id
+              ) {
+
+                <span
+                  class="branch-choice-active-pill"
+                >
+
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline
+                      points="20 6 9 17 4 12"
+                    />
+                  </svg>
+
+                  SELECCIONADA
+
+                </span>
+
+              }
+
+            </div>
+
+
+            <!-- BODY -->
+            <div class="branch-choice-body">
+
+              <div
+                class="
+                  branch-choice-location-icon
+                "
+                aria-hidden="true"
+              >
+
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                  />
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2.5"
+                  />
+                </svg>
+
+              </div>
+
+
+              <strong class="branch-choice-name">
+                {{ branch.nombre }}
+              </strong>
+
+
+              <span class="branch-choice-city">
+                {{
+                  branch.ciudad ||
+                  'Bolivia'
+                }}
+              </span>
+
+
+              <p class="branch-choice-address">
+                {{
+                  branch.direccion ||
+                  'Showroom DrapeMind'
+                }}
+              </p>
+
+            </div>
+
+
+            <!-- FOOTER -->
+            <div class="branch-choice-footer">
+
+              <span>
+                Ver disponibilidad
+              </span>
+
+
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
+
+            </div>
+
+          </button>
+
+        } @empty {
+
+          <div class="branch-modal-empty">
+
+            <span
+              class="branch-modal-empty__icon"
+              aria-hidden="true"
+            >
+
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="2.5"
+                />
+                <path
+                  d="M5 5 19 19"
+                />
+              </svg>
+
+            </span>
+
+
+            <strong>
+              No hay sucursales disponibles
+            </strong>
+
+
+            <span>
+              Cuando exista una sucursal
+              activa aparecerá aquí.
+            </span>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =========================================================
+       TOASTS
+       ========================================================= -->
+  <section
+    class="toast-stack"
+    aria-live="polite"
+    aria-label="Notificaciones"
+  >
+
+    @for (
+      toast of toasts.toasts();
+      track toast.id
+    ) {
+
+      <button
+        class="toast"
+        [class]="
+          'toast toast--' +
+          toast.tone
+        "
+        (click)="
+          toasts.dismiss(toast.id)
+        "
+        type="button"
+      >
+
+        <!-- STATE ICON -->
+        <span
+          class="toast__indicator"
+          aria-hidden="true"
         >
+
+          @if (toast.tone === 'success') {
+
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline
+                points="20 6 9 17 4 12"
+              />
+            </svg>
+
+          } @else if (toast.tone === 'error') {
+
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+              />
+              <line
+                x1="12"
+                y1="8"
+                x2="12"
+                y2="12"
+              />
+              <line
+                x1="12"
+                y1="16"
+                x2="12.01"
+                y2="16"
+              />
+            </svg>
+
+          } @else {
+
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+              />
+              <line
+                x1="12"
+                y1="11"
+                x2="12"
+                y2="16"
+              />
+              <line
+                x1="12"
+                y1="8"
+                x2="12.01"
+                y2="8"
+              />
+            </svg>
+
+          }
+
+        </span>
+
+
+        <!-- MESSAGE -->
+        <span class="toast__message">
+          {{ toast.message }}
+        </span>
+
+
+        <!-- CLOSE -->
+        <span
+          class="toast__close"
+          aria-hidden="true"
+        >
+
           <svg
             width="14"
             height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2.5"
+            stroke-width="1.8"
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+            />
+            <line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+            />
           </svg>
-        </button>
-      </header>
 
-      <p class="branch-modal-desc">
-        Selecciona tu sucursal para sincronizar la disponibilidad física de prendas y coordinar
-        recojo presencial en showroom.
-      </p>
+        </span>
 
-      <div class="branch-modal-grid">
-        @for (branch of branchService.branches(); track branch.id) {
-          <button
-            type="button"
-            class="branch-choice-card"
-            [class.branch-choice-card--selected]="branch.id === branchService.selectedBranch()?.id"
-            (click)="chooseBranch(branch)"
-          >
-            <div class="branch-choice-head">
-              <span class="branch-choice-code">{{ branch.codigo || 'SUC' }}</span>
-              @if (branch.id === branchService.selectedBranch()?.id) {
-                <span class="branch-choice-active-pill">SELECCIONADA</span>
-              }
-            </div>
-            <strong class="branch-choice-name">{{ branch.nombre }}</strong>
-            <span class="branch-choice-city">{{ branch.ciudad || 'Bolivia' }}</span>
-            <p class="branch-choice-address">{{ branch.direccion }}</p>
-          </button>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- TOASTS -->
-  <section class="toast-stack" aria-live="polite" aria-label="Notificaciones">
-    @for (toast of toasts.toasts(); track toast.id) {
-      <button
-        class="toast"
-        [class]="'toast toast--' + toast.tone"
-        (click)="toasts.dismiss(toast.id)"
-      >
-        <span>{{ toast.message }}</span>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
       </button>
+
     }
+
   </section>
+
 </div>

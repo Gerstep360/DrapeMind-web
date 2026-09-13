@@ -19,6 +19,7 @@ export class PosAiModalComponent {
   @Input() outfitSets: OutfitSet[] = [];
   @Input() selectedOutfitSet: OutfitSet | null = null;
   @Input() responseText: string = '';
+  @Input() recommendationText: string = '';
   @Input() contextSummary: string = '';
 
   @Output() close = new EventEmitter<void>();

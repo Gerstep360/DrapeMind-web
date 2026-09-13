@@ -232,14 +232,54 @@
     .ai-response-box {
       background: var(--dm-surface-soft, #F8F9F2);
       border-left: 3px solid var(--dm-lime, #DFFF3F);
-      padding: 0.85rem 1.15rem;
-      border-radius: 0 14px 14px 0;
+      padding: 0.95rem 1.25rem;
+      border-radius: 0 16px 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
 
-      p {
-        font-size: 0.82rem;
-        line-height: 1.5;
+      .ai-response-header {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dm-ink, #10110F);
+
+        svg {
+          color: #7B9C18;
+        }
+      }
+
+      .ai-intro-text {
+        font-size: 0.84rem;
+        line-height: 1.55;
         color: var(--dm-text, #22231F);
         margin: 0;
+      }
+
+      .ai-recommendation-callout {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        background: #FFFFFF;
+        border: 1px solid #DCE6C6;
+        border-radius: 12px;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        color: #2D3D15;
+
+        .callout-icon {
+          font-size: 1rem;
+          line-height: 1;
+        }
+
+        p {
+          margin: 0;
+        }
       }
     }
 

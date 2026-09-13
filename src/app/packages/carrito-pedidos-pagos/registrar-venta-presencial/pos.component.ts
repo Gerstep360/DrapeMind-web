@@ -14,6 +14,7 @@ import { BranchService } from '@core/branch.service';
 import { BranchStock, Category, Product, ProductVariant, User } from '@core/models';
 import { CatalogApiService } from '@core/api/catalog-api.service';
 import { CommerceApiService } from '@core/api/commerce-api.service';
+import { RuntimeConfigService } from '@core/runtime-config.service';
 import { ToastService } from '@core/toast.service';
 import { ReceiptModalComponent } from '@shared/components/receipt-modal/receipt-modal.component';
 
@@ -55,6 +56,7 @@ export class PosComponent implements OnInit {
   readonly branchService = inject(BranchService);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly commerceApi = inject(CommerceApiService);
+  private readonly runtime = inject(RuntimeConfigService);
   private readonly toast = inject(ToastService);
 
   // Sucursal de venta: sincronizada con el estado global
@@ -99,6 +101,7 @@ export class PosComponent implements OnInit {
   readonly aiOutfitSets = signal<OutfitSet[]>([]);
   readonly selectedOutfitSet = signal<OutfitSet | null>(null);
   readonly aiResponseText = signal<string>('');
+  readonly aiRecommendationText = signal<string>('');
   readonly aiLoading = signal<boolean>(false);
 
   readonly altairPosContext = computed(() => {
@@ -221,8 +224,8 @@ export class PosComponent implements OnInit {
   getProductImage(product: Product): string | undefined {
     if (!product.imagenes || product.imagenes.length === 0) return undefined;
     const first = product.imagenes[0];
-    if (typeof first === 'string') return first;
-    return first?.url;
+    const raw = typeof first === 'string' ? first : first?.url;
+    return this.runtime.resolveImageUrl(raw) || undefined;
   }
 
   // MODAL DE VARIANTES & STOCK
@@ -409,12 +412,157 @@ export class PosComponent implements OnInit {
     this.selectedOutfitSet.set(set);
   }
 
+  private parseAiOutfits(text: string): {
+    intro: string;
+    options: Array<{
+      title: string;
+      description: string;
+      ids: number[];
+      pieceRoles: Array<{
+        id: number;
+        role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO';
+        roleLabel: string;
+      }>;
+    }>;
+    recommendation: string;
+  } {
+    const headerRegex = /###\s*(?:Opci[oó]n|Option|\d+)\s*(\d+)?[:\s\-]*([^\n]+)/gi;
+    const matches = [...text.matchAll(headerRegex)];
+
+    if (matches.length === 0) {
+      return { intro: text, options: [], recommendation: '' };
+    }
+
+    const intro = text.substring(0, matches[0].index).trim();
+    const options: Array<{
+      title: string;
+      description: string;
+      ids: number[];
+      pieceRoles: Array<{
+        id: number;
+        role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO';
+        roleLabel: string;
+      }>;
+    }> = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      const num = m[1] || `${i + 1}`;
+      const rawTitle = m[2].replace(/\*\*/g, '').trim();
+      const title = `Opción ${num}: ${rawTitle}`;
+
+      const start = (m.index ?? 0) + m[0].length;
+      const end = i + 1 < matches.length ? matches[i + 1].index : text.length;
+      let block = text.substring(start, end);
+
+      if (i === matches.length - 1) {
+        const recIdx = block.search(/\*\*(?:Recomendaci[oó]n|Consejo)[^\n]*\*\*/i);
+        if (recIdx !== -1) {
+          block = block.substring(0, recIdx);
+        }
+      }
+
+      const descMatch = block.match(/\*\*Descripci[oó]n:\*\*\s*([^\n]+)/i);
+      const description = descMatch ? descMatch[1].replace(/\*\*/g, '').trim() : '';
+
+      const lineRegex = /[*\-]?\s*\*\*([^*]+)\*\*:\s*([^\n]+)/g;
+      const lineMatches = [...block.matchAll(lineRegex)];
+
+      const ids: number[] = [];
+      const pieceRoles: Array<{
+        id: number;
+        role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO';
+        roleLabel: string;
+      }> = [];
+
+      for (const lm of lineMatches) {
+        const label = lm[1].trim();
+        const content = lm[2];
+        const idMatch = content.match(/(?:ID|id|Id)[:\s]*(\d+)/);
+        if (idMatch) {
+          const prodId = parseInt(idMatch[1], 10);
+          if (!isNaN(prodId) && !ids.includes(prodId)) {
+            ids.push(prodId);
+            let role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO' = 'SUPERIOR';
+            let roleLabel = label;
+            const lower = label.toLowerCase();
+            if (
+              lower.includes('calzado') ||
+              lower.includes('zapato') ||
+              lower.includes('tenis') ||
+              lower.includes('bota')
+            ) {
+              role = 'CALZADO';
+              roleLabel = 'Calzado';
+            } else if (
+              lower.includes('inferior') ||
+              lower.includes('pantalon') ||
+              lower.includes('jean') ||
+              lower.includes('falda') ||
+              lower.includes('short')
+            ) {
+              role = 'INFERIOR';
+              roleLabel = 'Prenda Inferior';
+            } else if (
+              lower.includes('complemento') ||
+              lower.includes('accesorio') ||
+              lower.includes('joy') ||
+              lower.includes('reloj') ||
+              lower.includes('pendiente')
+            ) {
+              role = 'ACCESORIO';
+              roleLabel = 'Accesorio / Complemento';
+            } else if (
+              lower.includes('principal') ||
+              lower.includes('superior') ||
+              lower.includes('vestido') ||
+              lower.includes('blusa') ||
+              lower.includes('camisa') ||
+              lower.includes('top')
+            ) {
+              role = 'SUPERIOR';
+              roleLabel = 'Prenda Principal';
+            }
+            pieceRoles.push({ id: prodId, role, roleLabel });
+          }
+        }
+      }
+
+      if (ids.length === 0) {
+        const genericIdMatches = [...block.matchAll(/(?:\(?(?:ID|id)[:\s]*(\d+)\)?)/g)];
+        for (const gm of genericIdMatches) {
+          const prodId = parseInt(gm[1], 10);
+          if (!isNaN(prodId) && !ids.includes(prodId)) {
+            ids.push(prodId);
+            pieceRoles.push({ id: prodId, role: 'SUPERIOR', roleLabel: 'Prenda Sugerida' });
+          }
+        }
+      }
+
+      options.push({
+        title,
+        description: description || `Look coordinado propuesto por Altair para esta ocasión.`,
+        ids,
+        pieceRoles,
+      });
+    }
+
+    const recIdx = text.search(/\*\*(?:Recomendaci[oó]n|Consejo) de Altair[^\n]*\*\*/i);
+    let recommendation = '';
+    if (recIdx !== -1) {
+      recommendation = text.substring(recIdx).replace(/\*\*/g, '').trim();
+    }
+
+    return { intro, options, recommendation };
+  }
+
   generateAiSuggestions(): void {
     const occasion = this.aiOccasionControl.value.trim();
     if (!occasion) return;
 
     this.aiLoading.set(true);
     this.aiResponseText.set('');
+    this.aiRecommendationText.set('');
 
     const baseProduct = this.ticketItems().length > 0 ? this.ticketItems()[0].productId : undefined;
 
@@ -424,44 +572,28 @@ export class PosComponent implements OnInit {
 
     request$.subscribe({
       next: (res) => {
-        this.aiLoading.set(false);
-        this.aiResponseText.set(res.respuesta || 'Recomendaciones coordinadas generadas.');
+        const fullAnswer = res.respuesta || '';
+        const parsed = this.parseAiOutfits(fullAnswer);
 
-        const rawItems =
-          res.recomendaciones && res.recomendaciones.length > 0
-            ? res.recomendaciones
-            : res.productos && res.productos.length > 0
-              ? res.productos
-              : [];
+        this.aiResponseText.set(parsed.intro || fullAnswer);
+        this.aiRecommendationText.set(parsed.recommendation);
 
-        const pieces: OutfitPiece[] = rawItems.map((item: any, idx: number) => {
-          const roleCode = (item.rol || '').toUpperCase();
-          let role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO' = 'SUPERIOR';
-          let roleLabel = 'Prenda Superior';
-          if (roleCode.includes('BOTTOM') || roleCode.includes('INFERIOR') || idx === 1) {
-            role = 'INFERIOR';
-            roleLabel = 'Prenda Inferior';
-          } else if (roleCode.includes('SHOE') || roleCode.includes('CALZADO') || idx === 2) {
-            role = 'CALZADO';
-            roleLabel = 'Calzado';
-          } else if (roleCode.includes('OUTER') || roleCode.includes('ACCESORIO') || idx >= 3) {
-            role = 'ACCESORIO';
-            roleLabel = 'Accesorio / Complemento';
+        // Reunir IDs de productos especificados en cada opción de Altair
+        let allIds = Array.from(new Set(parsed.options.flatMap((o) => o.ids)));
+
+        // Si no se detectaron IDs en el texto, respaldar con los productos devueltos por el backend
+        if (allIds.length === 0) {
+          const rawItems =
+            res.recomendaciones && res.recomendaciones.length > 0
+              ? res.recomendaciones
+              : res.productos && res.productos.length > 0
+                ? res.productos
+                : [];
+          for (const item of rawItems) {
+            const pid = item.producto_id || item.id;
+            if (pid && !allIds.includes(pid)) allIds.push(pid);
           }
-
-          return {
-            productId: item.producto_id || item.id,
-            variantId: item.variante_id || item.variant_id,
-            name: item.nombre || item.name || `Prenda ${idx + 1}`,
-            brand: item.marca || 'DrapeMind Atelier',
-            price: Number(item.precio || item.price || 150),
-            image: item.imagen || item.image || (item.imagenes?.[0]?.url || item.imagenes?.[0]),
-            role,
-            roleLabel,
-            color: item.color || undefined,
-            size: item.talla || undefined,
-          };
-        });
+        }
 
         const modelLabel =
           this.selectedAiModel() === 'mini'
@@ -470,20 +602,128 @@ export class PosComponent implements OnInit {
               ? 'Moda Dinámico'
               : 'Altair Atelier Pro';
 
-        const totalOutfitPrice = pieces.reduce((acc, p) => acc + p.price, 0);
+        if (allIds.length === 0) {
+          this.aiLoading.set(false);
+          this.aiOutfitSets.set([]);
+          return;
+        }
 
-        const newSet: OutfitSet = {
-          id: `outfit-${Date.now()}`,
-          title: `Look Coordinado: ${occasion}`,
-          occasion,
-          model: this.selectedAiModel(),
-          modelName: modelLabel,
-          rationale: res.respuesta || 'Conjunto seleccionado según ocasión y disponibilidad.',
-          totalPrice: totalOutfitPrice,
-          pieces,
-        };
+        // Cargar detalles reales de cada prenda desde la API de catálogo (con imágenes reales, marcas y tallas)
+        const requests = allIds.map((id) =>
+          this.catalogApi.product(id).pipe(catchError(() => of(null)))
+        );
 
-        this.aiOutfitSets.set([newSet]);
+        forkJoin(requests).subscribe({
+          next: (products) => {
+            this.aiLoading.set(false);
+            const productMap = new Map<number, Product>();
+            products.forEach((p) => {
+              if (p) productMap.set(p.id, p);
+            });
+
+            const builtSets: OutfitSet[] = [];
+
+            // Construir los conjuntos individuales según las opciones estructuradas (Opción 1, Opción 2, Opción 3)
+            if (parsed.options.length > 0) {
+              parsed.options.forEach((opt, optIdx) => {
+                const pieces: OutfitPiece[] = [];
+
+                for (const pieceInfo of opt.pieceRoles) {
+                  const prod = productMap.get(pieceInfo.id);
+                  if (prod) {
+                    pieces.push({
+                      productId: prod.id,
+                      variantId: prod.variantes?.[0]?.id,
+                      name: prod.nombre,
+                      brand: prod.marca || 'DrapeMind Atelier',
+                      price: Number(prod.precio),
+                      image: this.getProductImage(prod),
+                      role: pieceInfo.role,
+                      roleLabel: pieceInfo.roleLabel,
+                      color: prod.variantes?.[0]?.color || 'Único',
+                      size: prod.variantes?.[0]?.talla || 'U',
+                    });
+                  }
+                }
+
+                // Si alguna opción no tenía roles definidos pero sí IDs
+                if (pieces.length === 0) {
+                  opt.ids.forEach((id, pIdx) => {
+                    const prod = productMap.get(id);
+                    if (prod) {
+                      pieces.push({
+                        productId: prod.id,
+                        variantId: prod.variantes?.[0]?.id,
+                        name: prod.nombre,
+                        brand: prod.marca || 'DrapeMind Atelier',
+                        price: Number(prod.precio),
+                        image: this.getProductImage(prod),
+                        role: pIdx === 0 ? 'SUPERIOR' : 'ACCESORIO',
+                        roleLabel: pIdx === 0 ? 'Prenda Principal' : 'Complemento',
+                        color: prod.variantes?.[0]?.color || 'Único',
+                        size: prod.variantes?.[0]?.talla || 'U',
+                      });
+                    }
+                  });
+                }
+
+                if (pieces.length > 0) {
+                  const total = pieces.reduce((acc, p) => acc + p.price, 0);
+                  builtSets.push({
+                    id: `outfit-${optIdx + 1}-${Date.now()}`,
+                    title: opt.title,
+                    occasion: occasion,
+                    model: this.selectedAiModel(),
+                    modelName: modelLabel,
+                    rationale: opt.description,
+                    totalPrice: total,
+                    pieces,
+                  });
+                }
+              });
+            }
+
+            // Fallback si no hubo opciones parseadas pero sí productos cargados
+            if (builtSets.length === 0 && products.length > 0) {
+              const validProds = products.filter((p): p is Product => p !== null);
+              const chunkSize = 2;
+              for (let i = 0; i < validProds.length; i += chunkSize) {
+                const chunk = validProds.slice(i, i + chunkSize);
+                const optNum = Math.floor(i / chunkSize) + 1;
+                const pieces: OutfitPiece[] = chunk.map((prod, pIdx) => ({
+                  productId: prod.id,
+                  variantId: prod.variantes?.[0]?.id,
+                  name: prod.nombre,
+                  brand: prod.marca || 'DrapeMind Atelier',
+                  price: Number(prod.precio),
+                  image: this.getProductImage(prod),
+                  role: pIdx === 0 ? 'SUPERIOR' : 'ACCESORIO',
+                  roleLabel: pIdx === 0 ? 'Prenda Principal' : 'Complemento',
+                  color: prod.variantes?.[0]?.color || 'Único',
+                  size: prod.variantes?.[0]?.talla || 'U',
+                }));
+
+                builtSets.push({
+                  id: `outfit-${optNum}-${Date.now()}`,
+                  title: `Opción ${optNum}: Look ${occasion}`,
+                  occasion,
+                  model: this.selectedAiModel(),
+                  modelName: modelLabel,
+                  rationale: `Propuesta #${optNum} coordinada por Altair Stylist.`,
+                  totalPrice: pieces.reduce((acc, p) => acc + p.price, 0),
+                  pieces,
+                });
+              }
+            }
+
+            this.aiOutfitSets.set(builtSets);
+            // Mostrar la cuadrícula de opciones al usuario (sin preseleccionar una)
+            this.selectedOutfitSet.set(null);
+          },
+          error: () => {
+            this.aiLoading.set(false);
+          },
+        });
       },
       error: (err) => {
         this.aiLoading.set(false);
