@@ -21,15 +21,24 @@
   width: 100%;
   max-width: 860px;
   max-height: 92vh;
+
+  // IMPORTANTE: permite que el hijo scrolleable
+  // pueda reducirse dentro del flex container.
+  min-height: 0;
+
   background: #F8F9F2;
   border: 1px solid var(--dm-border, #E1E3DA);
   border-radius: 24px;
+
   display: flex;
   flex-direction: column;
+
   overflow: hidden;
+
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
   animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 /* ==========================================================================
    TOOLBAR
@@ -172,24 +181,37 @@
    PREVIEW BODY & WRAPPER
    ========================================================================== */
 
+
 .receipt-preview-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+
+  /*
+   * El scroll pertenece al preview completo.
+   * No dejamos que Flexbox estire el voucher verticalmente.
+   */
+  overflow: auto;
+
   padding: 1.75rem 1.5rem;
-  display: flex;
-  justify-content: center;
   background: #EAECE2;
+
+  // NO flex aquí.
+  display: block;
+
+  scrollbar-gutter: stable;
 }
 
 .voucher-wrapper {
-  max-width: 100%;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  display: flex;
-  justify-content: center;
-  /* Smooth horizontal scrolling on small viewports */
-  -webkit-overflow-scrolling: touch;
+  width: 720px;
+  min-width: 720px;
+
+  margin: 0 auto;
+  padding-bottom: 0.75rem;
+
+  display: block;
+  overflow: visible;
 }
+
 
 .receipt-loading-state {
   display: flex;
@@ -219,27 +241,55 @@
   width: 720px;
   min-width: 720px;
   max-width: 720px;
+
+  /*
+   * CRÍTICO:
+   * la altura siempre la determina TODO el contenido.
+   */
+  height: auto;
+  min-height: max-content;
+
+  flex: none;
+
   box-sizing: border-box;
+
   background: #FFFFFF;
   color: #10110F;
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  font-family:
+    'Manrope',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+
   padding: 2.5rem 2.75rem;
+
   border-radius: 16px;
   border: 2px solid #10110F;
+
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
   position: relative;
+
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin: 0 auto;
 
-  /* Double inner outline for luxury certificate feel */
+  margin: 0;
+
+  // El contenido NUNCA debe cortarse.
+  overflow: visible;
+
   &::before {
     content: '';
     position: absolute;
     inset: 6px;
+
     border: 1px solid #E1E3DA;
     border-radius: 10px;
+
     pointer-events: none;
   }
 }
@@ -577,15 +627,26 @@
       &.total-box {
         margin-top: 0.45rem;
         padding: 0.75rem 1rem;
+
         background: #10110F;
         color: #FFFFFF;
+
         border-radius: 10px;
 
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+
+        min-height: 54px;
+
         .total-label {
-          font-size: 0.82rem;
+          font-size: 0.78rem;
           font-weight: 800;
           letter-spacing: 0.06em;
           color: #DFFF3F;
+
+          line-height: 1.25;
         }
 
         .total-amount {
@@ -797,11 +858,7 @@
     display: none !important;
   }
 
-  .receipt-modal-dialog {
-    border: none;
-    box-shadow: none;
-    max-width: 100%;
-  }
+
 
   #receipt-voucher {
     box-shadow: none;

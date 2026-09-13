@@ -59,26 +59,76 @@
     <div class="ai-docked-capsule">
       <div class="ai-capsule-header">
         <div class="ai-capsule-title">
-          <span class="sparkle">✦</span>
-          <strong>Personal Stylist AI Concierge</strong>
-          <small>Encuentra prendas por ocasión, fit o estilo en stock real</small>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+          </svg>
+          <div>
+            <strong>Personal Stylist AI Concierge</strong>
+            <small>Filtro inteligente por ocasión, estilo o presupuesto</small>
+          </div>
         </div>
         <button type="button" class="btn-close-ai" (click)="toggleAiPanel()" title="Cerrar panel IA">&times;</button>
+      </div>
+
+      <!-- SELECTOR DE MODELOS IA -->
+      <div class="ai-capsule-models">
+        <span class="models-label">Modelo:</span>
+        <div class="models-chips">
+          <button
+            type="button"
+            class="ai-model-chip"
+            [class.active]="selectedAiModel() === 'mini'"
+            (click)="selectedAiModel.set('mini')"
+          >
+            Mini (Rápido)
+          </button>
+          <button
+            type="button"
+            class="ai-model-chip"
+            [class.active]="selectedAiModel() === 'dinamico'"
+            (click)="selectedAiModel.set('dinamico')"
+          >
+            Dinámico
+          </button>
+          <button
+            type="button"
+            class="ai-model-chip"
+            [class.active]="selectedAiModel() === 'altair'"
+            (click)="selectedAiModel.set('altair')"
+          >
+            Altair
+          </button>
+        </div>
       </div>
 
       <form class="ai-capsule-search" (ngSubmit)="onConciergeSearch()">
         <input
           [formControl]="aiQueryControl"
           type="text"
-          placeholder="Ej. 'vestido lino para boda de día', 'camisa blanca formal', 'pantalón cargo beige'..."
+          placeholder="Ej. 'algo casual menos de 300bs', 'vestido lino para boda', 'camisa blanca formal'..."
         />
-        <button type="submit" class="btn-ai-apply" [disabled]="!aiQueryControl.value.trim()">
-          Filtrar con IA
+        <button type="submit" class="btn-ai-apply" [disabled]="!aiQueryControl.value.trim() || isSearchingAi()">
+          @if (isSearchingAi()) {
+            <span class="spinner-sm"></span>
+            <span>Buscando...</span>
+          } @else {
+            <span>Filtrar con IA</span>
+          }
         </button>
         <button type="button" class="btn-ai-recommend" (click)="askAiFromCatalog()">
-          ✦ Abrir en Stylist Studio ↗
+          <span>Abrir en Stylist Studio</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
         </button>
       </form>
+
+      @if (aiResponseNotice()) {
+        <div class="ai-concierge-advice">
+          <p>{{ aiResponseNotice() }}</p>
+        </div>
+      }
 
       <div class="ai-quick-pills">
         <span class="pills-label">Inspiración rápida:</span>

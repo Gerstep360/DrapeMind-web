@@ -109,6 +109,15 @@ export class StoreApiService {
     return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/generate`, payload);
   }
 
+  naturalSearch(payload: { consulta: string }): Observable<{
+    sesion_id: number;
+    interaccion_id: number;
+    respuesta: string;
+    productos: Product[];
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/search`, payload);
+  }
+
   product(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.runtime.apiUrl}/catalog/products/${id}`);
   }

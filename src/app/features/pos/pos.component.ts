@@ -7,8 +7,8 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { catchError, debounceTime, distinctUntilChanged, forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BranchService } from '../../core/branch.service';
 import { BranchStock, Category, Product, ProductVariant, User } from '../../core/models';
@@ -61,7 +61,7 @@ export interface OutfitSet {
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DecimalPipe, ReceiptModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, DecimalPipe, ReceiptModalComponent],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -114,7 +114,7 @@ export class PosComponent implements OnInit {
   readonly aiModalOpen = signal<boolean>(false);
   readonly aiLoading = signal<boolean>(false);
   readonly selectedAiModel = signal<AiModelChoice>('altair');
-  readonly aiOccasionControl = new FormControl('Casual elegante para evento social', {
+  readonly aiOccasionControl = new FormControl('', {
     nonNullable: true,
   });
   readonly outfitSets = signal<OutfitSet[]>([]);
@@ -222,13 +222,19 @@ export class PosComponent implements OnInit {
       });
   }
 
-  onSelectBranch(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const branchId = Number(target.value);
-    const branch = this.branchService.branches().find((b) => b.id === branchId);
+  setBranchById(id: number | null): void {
+    if (!id) return;
+    const branch = this.branchService.branches().find((b) => b.id === Number(id));
     if (branch) {
       this.branchService.selectBranch(branch);
-      this.toast.show(`Sede de venta cambiada a: ${branch.nombre}`, 'info');
+      this.toast.show(`Sede de venta: ${branch.nombre}`, 'info');
+    }
+  }
+
+  onSelectBranch(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (target?.value) {
+      this.setBranchById(Number(target.value));
     }
   }
 
@@ -244,31 +250,30 @@ export class PosComponent implements OnInit {
   }
 
   // MODAL DE VARIANTES & STOCK
-  openVariantModal(product: Product): void {
-    this.selectedProduct.set(product);
+  openVariantModal(rawProduct: Product): void {
+    this.selectedProduct.set(rawProduct);
     this.variantModalOpen.set(true);
     this.loadingVariants.set(true);
+    this.selectedColor.set(null);
+    this.selectedSize.set(null);
+    this.selectedVariant.set(null);
+    this.productStockRows.set([]);
 
-    // Seleccionar por defecto la primera variante activa
-    const defaultV = product.variantes?.find((v) => v.activo) || product.variantes?.[0];
-    if (defaultV) {
-      this.selectedColor.set(defaultV.color);
-      this.selectedSize.set(defaultV.talla);
-      this.selectedVariant.set(defaultV);
-    } else {
-      this.selectedColor.set(null);
-      this.selectedSize.set(null);
-      this.selectedVariant.set(null);
-    }
-
-    // Consultar disponibilidad real de la prenda por sede usando productAvailability
-    this.api.productAvailability(product.id).subscribe({
-      next: (stockRows) => {
+    // Cargar producto completo con todas sus variantes reales + disponibilidad por sede
+    forkJoin({
+      fullProduct: this.api.product(rawProduct.id),
+      stockRows: this.api.productAvailability(rawProduct.id).pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ fullProduct, stockRows }) => {
+        this.selectedProduct.set(fullProduct);
         this.productStockRows.set(stockRows);
         this.loadingVariants.set(false);
 
+        const variants = fullProduct.variantes || [];
         const branchId = this.selectedBranchId();
-        const availableVariants = product.variantes?.filter((v) => {
+
+        // Buscar variante disponible en esta sucursal o fallback a la primera activa
+        const inBranch = variants.find((v) => {
           if (!v.activo) return false;
           if (!branchId) return v.stock_disponible > 0;
           const match = stockRows.find(
@@ -277,14 +282,15 @@ export class PosComponent implements OnInit {
           return (match?.stock_disponible ?? 0) > 0;
         });
 
-        const activeMatch = availableVariants?.[0] || defaultV;
-        if (activeMatch) {
-          this.selectColor(activeMatch.color);
-          this.selectSize(activeMatch.talla);
+        const activeDefault = inBranch || variants.find((v) => v.activo) || variants[0];
+        if (activeDefault) {
+          this.selectColor(activeDefault.color);
+          this.selectSize(activeDefault.talla);
         }
       },
       error: () => {
         this.loadingVariants.set(false);
+        this.toast.show('No se pudieron cargar las variantes de la prenda', 'error');
       },
     });
   }
@@ -481,11 +487,8 @@ export class PosComponent implements OnInit {
     if (firstItem) {
       this.aiOccasionControl.setValue(`Combinar con ${firstItem.name} (${firstItem.color})`);
     } else {
-      this.aiOccasionControl.setValue('Outfit completo casual contemporáneo de temporada');
+      this.aiOccasionControl.setValue('');
     }
-
-    // Auto-generar primera sugerencia
-    this.generateAiSuggestions();
   }
 
   closeAiOutfitModal(): void {
@@ -495,7 +498,6 @@ export class PosComponent implements OnInit {
 
   selectAiModel(model: AiModelChoice): void {
     this.selectedAiModel.set(model);
-    this.generateAiSuggestions();
   }
 
   setAiModel(model: AiModelChoice): void {
@@ -503,22 +505,28 @@ export class PosComponent implements OnInit {
   }
 
   generateAiSuggestions(): void {
+    const prompt = this.aiOccasionControl.value.trim();
+    if (!prompt) {
+      this.toast.show('Ingresa una ocasión, estilo o presupuesto deseado', 'info');
+      return;
+    }
+
     this.aiLoading.set(true);
     this.selectedOutfitSet.set(null);
     const firstItem = this.ticketItems()[0];
-    const occasion = this.aiOccasionControl.value.trim() || 'Estilo Contemporáneo';
     const model = this.selectedAiModel();
 
     const modelLabel =
       model === 'mini'
-        ? 'Gemma Mini 2B (Rápido)'
+        ? 'Mini (Rápido)'
         : model === 'dinamico'
-          ? 'Moda Dinámico (Balanceado)'
-          : 'Altair Atelier Pro (Curaduría)';
+          ? 'Moda Dinámico'
+          : 'Altair Atelier Pro';
 
     const handler = (res: any) => {
       this.aiLoading.set(false);
-      this.aiResponseText.set(res.respuesta || 'Sugerencia de outfit generada según disponibilidad.');
+      const answerText: string = res.respuesta || '';
+      this.aiResponseText.set(answerText);
       const rawProducts: any[] = res.productos || [];
 
       if (rawProducts.length === 0) {
@@ -526,21 +534,21 @@ export class PosComponent implements OnInit {
         return;
       }
 
-      // Convertir productos sugeridos en un conjunto de outfit curado
+      // Roles estéticos de moda
       const rolesOrder: Array<'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO'> = [
         'SUPERIOR',
         'INFERIOR',
         'CALZADO',
         'ACCESORIO',
       ];
-      const roleLabels: Record<string, string> = {
+      const roleLabels = {
         SUPERIOR: 'Prenda Superior',
         INFERIOR: 'Prenda Inferior',
         CALZADO: 'Calzado',
         ACCESORIO: 'Accesorio / Complemento',
       };
 
-      const pieces: OutfitPiece[] = rawProducts.map((prod, idx) => {
+      const createPiece = (prod: any, idx: number): OutfitPiece => {
         const role = rolesOrder[idx % rolesOrder.length];
         const defaultVar = prod.variantes?.[0];
         return {
@@ -549,78 +557,130 @@ export class PosComponent implements OnInit {
           name: prod.nombre,
           brand: prod.marca || 'DrapeMind Collection',
           price: Number(prod.precio || 0),
-          image: prod.imagen_principal || defaultVar?.imagen || undefined,
+          image: prod.imagen_principal || defaultVar?.imagen || this.getProductImage(prod),
           categoryName: prod.categoria || 'Moda',
           role,
           roleLabel: roleLabels[role],
           color: defaultVar?.color,
           size: defaultVar?.talla,
         };
-      });
+      };
 
-      const totalPrice = pieces.reduce((sum, p) => sum + p.price, 0);
+      // 1. Intentar parsear propuestas estructuradas del texto ("Opción 1: ... IDs: [938, 946]")
+      const optionRegex = /(?:\*\*|\#\#)?\s*Opci[oó]n\s*(\d+)[^:\n]*:?\s*([^\n*]+)?([\s\S]*?)(?=(?:\*\*|\#\#)?\s*Opci[oó]n\s*\d+|Recomendaci[oó]n|$)/gi;
+      const parsedSets: OutfitSet[] = [];
+      let match: RegExpExecArray | null;
 
-      const outfitTitle = firstItem
-        ? `Look Coordinado con ${firstItem.name}`
-        : `Outfit Completo: ${occasion}`;
+      while ((match = optionRegex.exec(answerText)) !== null) {
+        const optNum = match[1];
+        const optTitle = (match[2] || `Look ${optNum}`).replace(/[*_#]/g, '').trim();
+        const blockContent = match[3] || '';
 
-      const sets: OutfitSet[] = [
-        {
-          id: `outfit-main-${Date.now()}`,
-          title: outfitTitle,
-          occasion,
-          model,
-          modelName: modelLabel,
-          rationale: res.respuesta || 'Combinación armónica de texturas, paleta y corte curada por DrapeMind IA.',
-          totalPrice,
-          pieces,
-        },
-      ];
+        const idMatch = blockContent.match(/IDs?:?\s*\[([0-9,\s]+)\]/i);
+        if (idMatch) {
+          const ids = idMatch[1]
+            .split(',')
+            .map((s) => parseInt(s.trim(), 10))
+            .filter((n) => !isNaN(n));
 
-      if (pieces.length >= 3) {
-        const capsule = pieces.slice(0, 2);
-        const capPrice = capsule.reduce((sum, p) => sum + p.price, 0);
-        sets.push({
-          id: `outfit-capsule-${Date.now()}`,
-          title: `Cápsula Esencial (${occasion})`,
-          occasion,
-          model,
-          modelName: modelLabel,
-          rationale: `Selección minimalista de piezas clave combinadas para ${occasion}.`,
-          totalPrice: capPrice,
-          pieces: capsule,
-        });
+          const setPieces: OutfitPiece[] = [];
+          ids.forEach((id, idx) => {
+            const prod = rawProducts.find((p) => p.id === id);
+            if (prod) {
+              setPieces.push(createPiece(prod, idx));
+            }
+          });
+
+          if (setPieces.length > 0) {
+            const descMatch = blockContent.match(/\*?\*?Descripci[oó]n:\*?\*?\s*([^\n*]+)/i);
+            const rationale = descMatch
+              ? descMatch[1].replace(/[*_]/g, '').trim()
+              : `Propuesta coordinada para "${prompt}"`;
+
+            parsedSets.push({
+              id: `outfit-opt-${optNum}-${Date.now()}`,
+              title: `Opción ${optNum}: ${optTitle}`,
+              occasion: prompt,
+              model,
+              modelName: modelLabel,
+              rationale,
+              totalPrice: setPieces.reduce((sum, p) => sum + p.price, 0),
+              pieces: setPieces,
+            });
+          }
+        }
       }
 
-      this.outfitSets.set(sets);
+      // Si se parsearon opciones estructuradas con éxito, renderizarlas
+      if (parsedSets.length > 0) {
+        this.outfitSets.set(parsedSets);
+        return;
+      }
+
+      // 2. Fallback: buscar cualquier lista de IDs en el texto [123, 456]
+      const genericIdMatch = answerText.match(/IDs?:?\s*\[([0-9,\s]+)\]/i);
+      if (genericIdMatch) {
+        const ids = genericIdMatch[1]
+          .split(',')
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => !isNaN(n));
+        const setPieces: OutfitPiece[] = [];
+        ids.forEach((id, idx) => {
+          const prod = rawProducts.find((p) => p.id === id);
+          if (prod) {
+            setPieces.push(createPiece(prod, idx));
+          }
+        });
+        if (setPieces.length > 0) {
+          this.outfitSets.set([
+            {
+              id: `outfit-id-set-${Date.now()}`,
+              title: firstItem ? `Look Coordinado con ${firstItem.name}` : `Outfit Completo: ${prompt}`,
+              occasion: prompt,
+              model,
+              modelName: modelLabel,
+              rationale: answerText.slice(0, 240),
+              totalPrice: setPieces.reduce((sum, p) => sum + p.price, 0),
+              pieces: setPieces,
+            },
+          ]);
+          return;
+        }
+      }
+
+      // 3. Fallback final: Tomar como MÁXIMO 3 prendas coordinadas (NUNCA todas las 30 de la BD)
+      const limited = rawProducts.slice(0, 3);
+      const fallbackPieces = limited.map((p, idx) => createPiece(p, idx));
+      this.outfitSets.set([
+        {
+          id: `outfit-curated-${Date.now()}`,
+          title: firstItem ? `Look Coordinado con ${firstItem.name}` : `Outfit Completo: ${prompt}`,
+          occasion: prompt,
+          model,
+          modelName: modelLabel,
+          rationale: answerText.slice(0, 240) || 'Combinación armónica seleccionada de nuestro catálogo.',
+          totalPrice: fallbackPieces.reduce((sum, p) => sum + p.price, 0),
+          pieces: fallbackPieces,
+        },
+      ]);
     };
 
-    if (firstItem) {
-      this.api
-        .completeOutfit({
+    const apiCall = firstItem
+      ? this.api.completeOutfit({
           producto_base_id: firstItem.productId,
-          ocasion: `${occasion} [Modelo: ${model}]`,
+          ocasion: `${prompt} [Modelo: ${model}]`,
         })
-        .subscribe({
-          next: handler,
-          error: () => {
-            this.aiLoading.set(false);
-            this.toast.show('No se pudo generar recomendación IA', 'error');
-          },
+      : this.api.generateOutfit({
+          ocasion: `${prompt} [Modelo: ${model}]`,
         });
-    } else {
-      this.api
-        .generateOutfit({
-          ocasion: `${occasion} [Modelo: ${model}]`,
-        })
-        .subscribe({
-          next: handler,
-          error: () => {
-            this.aiLoading.set(false);
-            this.toast.show('No se pudo generar outfit IA', 'error');
-          },
-        });
-    }
+
+    apiCall.subscribe({
+      next: handler,
+      error: () => {
+        this.aiLoading.set(false);
+        this.toast.show('No se pudo generar outfit IA', 'error');
+      },
+    });
   }
 
   viewOutfitDetail(set: OutfitSet): void {

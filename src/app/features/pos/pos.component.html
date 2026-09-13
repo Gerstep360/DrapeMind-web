@@ -16,9 +16,11 @@
           <circle cx="12" cy="10" r="3"/>
         </svg>
         <span class="label-text">Sede Actual:</span>
-        <select [value]="selectedBranchId()" (change)="onSelectBranch($event)">
+        <select [ngModel]="selectedBranchId()" (ngModelChange)="setBranchById($event)">
           @for (b of branchService.branches(); track b.id) {
-            <option [value]="b.id">{{ b.nombre }} ({{ b.codigo }})</option>
+            <option [ngValue]="b.id" [selected]="b.id === selectedBranchId()">
+              {{ b.nombre }} ({{ b.codigo }})
+            </option>
           }
         </select>
       </div>
@@ -563,7 +565,7 @@
             (click)="setAiModel('mini')"
           >
             <span class="model-name">Mini</span>
-            <small class="model-desc">Gemma 2B Rápido</small>
+            <small class="model-desc">Rápido y Directo</small>
           </button>
 
           <button
@@ -590,12 +592,13 @@
 
       <!-- PROMPT SEARCH BAR -->
       <div class="ai-prompt-bar">
-        <label>Ocasión o estilo deseado:</label>
+        <label>Ocasión, estilo o presupuesto deseado:</label>
         <div class="prompt-input-group">
           <input
             [formControl]="aiOccasionControl"
             type="text"
-            placeholder="Ej. 'Cena de gala formal', 'Cóctel de verano', 'Look urbano casual'..."
+            placeholder="Ej. 'algo casual menos de 300bs', 'vestido de gala', 'ropa urbana'..."
+            (keydown.enter)="generateAiSuggestions()"
           />
           <button
             type="button"

@@ -43,6 +43,9 @@ export class CatalogComponent {
   readonly aiQueryControl = new FormControl('', { nonNullable: true });
   readonly aiPanelOpen = signal<boolean>(false);
   readonly activeAiFilter = signal<string>('');
+  readonly selectedAiModel = signal<'mini' | 'dinamico' | 'altair'>('dinamico');
+  readonly isSearchingAi = signal<boolean>(false);
+  readonly aiResponseNotice = signal<string>('');
 
   // Pagination (+8000 items)
   readonly offset = signal<number>(0);
@@ -271,6 +274,7 @@ export class CatalogComponent {
   clearAiFilter(): void {
     this.activeAiFilter.set('');
     this.aiQueryControl.setValue('');
+    this.aiResponseNotice.set('');
     this.search.setValue('', { emitEvent: false });
     this.loadProducts(false);
   }
@@ -299,9 +303,38 @@ export class CatalogComponent {
 
   onConciergeSearch(): void {
     const query = this.aiQueryControl.value.trim();
-    if (query) {
-      this.applyAiFilter(query);
-    }
+    if (!query) return;
+
+    this.isSearchingAi.set(true);
+    this.activeAiFilter.set(query);
+    this.aiResponseNotice.set('');
+
+    const model = this.selectedAiModel();
+    this.api
+      .naturalSearch({
+        consulta: `${query} [Modelo: ${model}]`,
+      })
+      .subscribe({
+        next: (res) => {
+          this.isSearchingAi.set(false);
+          if (res.respuesta) {
+            this.aiResponseNotice.set(res.respuesta);
+          }
+          if (res.productos && res.productos.length > 0) {
+            this.products.set(res.productos);
+            this.hasMore.set(false);
+            this.toast.show(`IA encontró ${res.productos.length} prendas recomendadas`, 'success');
+          } else {
+            this.search.setValue(query, { emitEvent: false });
+            this.loadProducts(false);
+          }
+        },
+        error: () => {
+          this.isSearchingAi.set(false);
+          this.search.setValue(query, { emitEvent: false });
+          this.loadProducts(false);
+        },
+      });
   }
 
   askAiFromCatalog(): void {
