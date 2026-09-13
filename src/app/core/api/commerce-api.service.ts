@@ -42,6 +42,11 @@ export class CommerceApiService {
   deleteCartItem(item_id: number): Observable<Cart> { return this.http.delete<Cart>(`${this.runtime.apiUrl}/cart/items/${item_id}`); }
   checkout(payload: CheckoutRequest): Observable<Order> { return this.http.post<Order>(`${this.runtime.apiUrl}/orders/checkout`, payload); }
   initiatePayment(payload: PaymentCreate, idempotencyKey?: string): Observable<Payment> { return this.http.post<Payment>(`${this.runtime.apiUrl}/payments`, payload, { headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {} }); }
-  orderPayments(orderId: number): Observable<Payment[]> { return this.http.get<Payment[]>(`${this.runtime.apiUrl}/payments/order/${orderId}`); }
   mockConfirmPayment(payment_id: number): Observable<Payment> { return this.http.post<Payment>(`${this.runtime.apiUrl}/payments/${payment_id}/mock-confirm`, {}); }
+  generateOutfit(payload: { ocasion?: string; presupuesto_max?: number; sesion_id?: string }): Observable<any> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/generate`, payload);
+  }
+  completeOutfit(payload: { producto_base_id?: number; ocasion?: string; presupuesto_max?: number; sesion_id?: string }): Observable<any> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/complete`, payload);
+  }
 }

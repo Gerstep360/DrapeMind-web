@@ -22,10 +22,17 @@ import { PosCatalogComponent } from '@shared/components/pos/pos-catalog/pos-cata
 import { PosHeaderComponent } from '@shared/components/pos/pos-header/pos-header.component';
 import { PosProductModalComponent } from '@shared/components/pos/pos-product-modal/pos-product-modal.component';
 import { PosTicketComponent } from '@shared/components/pos/pos-ticket/pos-ticket.component';
+import { PosAiModalComponent } from '@shared/components/pos/pos-ai-modal/pos-ai-modal.component';
 
 // Modelos y tipos del POS
-import { CustomerMode, PaymentMethod, PosTicketItem } from '@shared/components/pos/pos.models';
-import { AltairLauncherComponent } from '@shared/components/altair/altair-launcher/altair-launcher.component';
+import {
+  AiModelChoice,
+  CustomerMode,
+  OutfitPiece,
+  OutfitSet,
+  PaymentMethod,
+  PosTicketItem,
+} from '@shared/components/pos/pos.models';
 
 @Component({
   selector: 'app-pos',
@@ -36,7 +43,7 @@ import { AltairLauncherComponent } from '@shared/components/altair/altair-launch
     PosCatalogComponent,
     PosProductModalComponent,
     PosTicketComponent,
-    AltairLauncherComponent,
+    PosAiModalComponent,
     ReceiptModalComponent,
   ],
   templateUrl: './pos.component.html',
@@ -85,8 +92,15 @@ export class PosComponent implements OnInit {
   readonly cardRefControl = new FormControl('', { nonNullable: true });
   readonly qrRefControl = new FormControl('', { nonNullable: true });
 
-  // Entrada compartida al chat real de Altair
+  // Asistente de Estilo e IA en Mostrador
   readonly aiModalOpen = signal<boolean>(false);
+  readonly selectedAiModel = signal<AiModelChoice>('altair');
+  readonly aiOccasionControl = new FormControl('', { nonNullable: true });
+  readonly aiOutfitSets = signal<OutfitSet[]>([]);
+  readonly selectedOutfitSet = signal<OutfitSet | null>(null);
+  readonly aiResponseText = signal<string>('');
+  readonly aiLoading = signal<boolean>(false);
+
   readonly altairPosContext = computed(() => {
     const branch = this.selectedBranch()?.nombre || 'sin sucursal elegida';
     const pieces = this.ticketItems()
@@ -371,13 +385,289 @@ export class PosComponent implements OnInit {
     this.paymentMethod.set(method);
   }
 
-  // ASISTENTE DE OUTFITS IA
+  // ASISTENTE DE OUTFITS IA EN CAJA
   openAiOutfitModal(): void {
     this.aiModalOpen.set(true);
+    if (!this.aiOccasionControl.value) {
+      if (this.ticketItems().length > 0) {
+        this.aiOccasionControl.setValue(`Combinar con ${this.ticketItems()[0].name}`);
+      } else {
+        this.aiOccasionControl.setValue('Outfit elegante y contemporáneo');
+      }
+    }
   }
 
   closeAiOutfitModal(): void {
     this.aiModalOpen.set(false);
+  }
+
+  setAiModel(model: AiModelChoice): void {
+    this.selectedAiModel.set(model);
+  }
+
+  selectOutfitSet(set: OutfitSet | null): void {
+    this.selectedOutfitSet.set(set);
+  }
+
+  generateAiSuggestions(): void {
+    const occasion = this.aiOccasionControl.value.trim();
+    if (!occasion) return;
+
+    this.aiLoading.set(true);
+    this.aiResponseText.set('');
+
+    const baseProduct = this.ticketItems().length > 0 ? this.ticketItems()[0].productId : undefined;
+
+    const request$ = baseProduct
+      ? this.commerceApi.completeOutfit({ producto_base_id: baseProduct, ocasion: occasion })
+      : this.commerceApi.generateOutfit({ ocasion: occasion });
+
+    request$.subscribe({
+      next: (res) => {
+        this.aiLoading.set(false);
+        this.aiResponseText.set(res.respuesta || 'Recomendaciones coordinadas generadas.');
+
+        const rawItems =
+          res.recomendaciones && res.recomendaciones.length > 0
+            ? res.recomendaciones
+            : res.productos && res.productos.length > 0
+              ? res.productos
+              : [];
+
+        const pieces: OutfitPiece[] = rawItems.map((item: any, idx: number) => {
+          const roleCode = (item.rol || '').toUpperCase();
+          let role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO' = 'SUPERIOR';
+          let roleLabel = 'Prenda Superior';
+          if (roleCode.includes('BOTTOM') || roleCode.includes('INFERIOR') || idx === 1) {
+            role = 'INFERIOR';
+            roleLabel = 'Prenda Inferior';
+          } else if (roleCode.includes('SHOE') || roleCode.includes('CALZADO') || idx === 2) {
+            role = 'CALZADO';
+            roleLabel = 'Calzado';
+          } else if (roleCode.includes('OUTER') || roleCode.includes('ACCESORIO') || idx >= 3) {
+            role = 'ACCESORIO';
+            roleLabel = 'Accesorio / Complemento';
+          }
+
+          return {
+            productId: item.producto_id || item.id,
+            variantId: item.variante_id || item.variant_id,
+            name: item.nombre || item.name || `Prenda ${idx + 1}`,
+            brand: item.marca || 'DrapeMind Atelier',
+            price: Number(item.precio || item.price || 150),
+            image: item.imagen || item.image || (item.imagenes?.[0]?.url || item.imagenes?.[0]),
+            role,
+            roleLabel,
+            color: item.color || undefined,
+            size: item.talla || undefined,
+          };
+        });
+
+        const modelLabel =
+          this.selectedAiModel() === 'mini'
+            ? 'Altair Mini'
+            : this.selectedAiModel() === 'dinamico'
+              ? 'Moda Dinámico'
+              : 'Altair Atelier Pro';
+
+        const totalOutfitPrice = pieces.reduce((acc, p) => acc + p.price, 0);
+
+        const newSet: OutfitSet = {
+          id: `outfit-${Date.now()}`,
+          title: `Look Coordinado: ${occasion}`,
+          occasion,
+          model: this.selectedAiModel(),
+          modelName: modelLabel,
+          rationale: res.respuesta || 'Conjunto seleccionado según ocasión y disponibilidad.',
+          totalPrice: totalOutfitPrice,
+          pieces,
+        };
+
+        this.aiOutfitSets.set([newSet]);
+      },
+      error: (err) => {
+        this.aiLoading.set(false);
+        const detail = err?.error?.detail || 'No se pudo generar el outfit';
+        this.toast.show(detail, 'error');
+      },
+    });
+  }
+
+  addSinglePieceFromOutfit(piece: OutfitPiece): void {
+    const branchId = this.selectedBranchId();
+    if (!branchId) {
+      this.toast.show('Selecciona una sucursal para validar stock', 'info');
+      return;
+    }
+
+    forkJoin({
+      fullProduct: this.catalogApi.product(piece.productId),
+      stockRows: this.catalogApi
+        .productAvailability(piece.productId)
+        .pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ fullProduct, stockRows }) => {
+        const variantes = fullProduct.variantes || [];
+        let targetVariant: ProductVariant | undefined;
+        let availableStock = 0;
+
+        if (piece.variantId) {
+          targetVariant = variantes.find((v) => v.id === piece.variantId);
+        }
+        if (!targetVariant && piece.size) {
+          targetVariant = variantes.find((v) => v.talla === piece.size);
+        }
+        if (!targetVariant) {
+          for (const v of variantes) {
+            const row = stockRows.find(
+              (s) => s.sucursal_id === branchId && s.variante_id === v.id,
+            );
+            if (row && row.stock_disponible > 0) {
+              targetVariant = v;
+              availableStock = row.stock_disponible;
+              break;
+            }
+          }
+        }
+
+        if (!targetVariant && variantes.length > 0) {
+          targetVariant = variantes[0];
+        }
+
+        if (!targetVariant) {
+          this.toast.show(`No hay variantes para ${piece.name}`, 'error');
+          return;
+        }
+
+        if (availableStock === 0) {
+          const row = stockRows.find(
+            (s) => s.sucursal_id === branchId && s.variante_id === targetVariant?.id,
+          );
+          availableStock = row ? row.stock_disponible : (stockRows.length === 0 ? 10 : 0);
+        }
+
+        if (availableStock <= 0) {
+          this.toast.show(`Sin stock en esta sucursal para ${piece.name}`, 'error');
+          return;
+        }
+
+        this.addItemToTicket({
+          variantId: targetVariant.id,
+          productId: fullProduct.id,
+          name: fullProduct.nombre,
+          brand: fullProduct.marca || 'DrapeMind Atelier',
+          color: targetVariant.color || 'Único',
+          colorHex: targetVariant.codigo_color,
+          size: targetVariant.talla || 'U',
+          sku: targetVariant.sku || `SKU-${targetVariant.id}`,
+          price: Number(fullProduct.precio),
+          quantity: 1,
+          maxStock: availableStock,
+          image:
+            targetVariant.imagen || this.getProductImage(fullProduct) || piece.image || undefined,
+        });
+
+        this.toast.show(`Añadido al ticket: ${piece.name}`, 'success');
+      },
+      error: () => {
+        this.toast.show(`No se pudo verificar la prenda ${piece.name}`, 'error');
+      },
+    });
+  }
+
+  addWholeOutfitToTicket(outfit: OutfitSet): void {
+    const branchId = this.selectedBranchId();
+    if (!branchId) {
+      this.toast.show('Selecciona una sucursal para validar stock', 'info');
+      return;
+    }
+    if (!outfit.pieces.length) return;
+
+    const loads = outfit.pieces.map((piece) =>
+      forkJoin({
+        piece: of(piece),
+        fullProduct: this.catalogApi.product(piece.productId).pipe(catchError(() => of(null))),
+        stockRows: this.catalogApi
+          .productAvailability(piece.productId)
+          .pipe(catchError(() => of([]))),
+      }),
+    );
+
+    let addedCount = 0;
+    forkJoin(loads).subscribe({
+      next: (results) => {
+        for (const res of results) {
+          if (!res.fullProduct) continue;
+          const piece = res.piece;
+          const fullProduct = res.fullProduct;
+          const stockRows = res.stockRows;
+          const variantes = fullProduct.variantes || [];
+
+          let targetVariant = piece.variantId
+            ? variantes.find((v) => v.id === piece.variantId)
+            : undefined;
+
+          let availableStock = 0;
+          if (!targetVariant) {
+            for (const v of variantes) {
+              const row = stockRows.find(
+                (s) => s.sucursal_id === branchId && s.variante_id === v.id,
+              );
+              if (row && row.stock_disponible > 0) {
+                targetVariant = v;
+                availableStock = row.stock_disponible;
+                break;
+              }
+            }
+          } else {
+            const row = stockRows.find(
+              (s) => s.sucursal_id === branchId && s.variante_id === targetVariant?.id,
+            );
+            availableStock = row ? row.stock_disponible : 10;
+          }
+
+          if (!targetVariant && variantes.length > 0) {
+            targetVariant = variantes[0];
+            availableStock = 10;
+          }
+
+          if (targetVariant && availableStock > 0) {
+            this.addItemToTicket({
+              variantId: targetVariant.id,
+              productId: fullProduct.id,
+              name: fullProduct.nombre,
+              brand: fullProduct.marca || 'DrapeMind Atelier',
+              color: targetVariant.color || 'Único',
+              colorHex: targetVariant.codigo_color,
+              size: targetVariant.talla || 'U',
+              sku: targetVariant.sku || `SKU-${targetVariant.id}`,
+              price: Number(fullProduct.precio),
+              quantity: 1,
+              maxStock: availableStock,
+              image:
+                targetVariant.imagen ||
+                this.getProductImage(fullProduct) ||
+                piece.image ||
+                undefined,
+            });
+            addedCount++;
+          }
+        }
+
+        if (addedCount > 0) {
+          this.toast.show(`Se agregaron ${addedCount} prendas del outfit al ticket`, 'success');
+          this.closeAiOutfitModal();
+        } else {
+          this.toast.show(
+            'No se encontraron prendas con stock disponible en esta sucursal',
+            'info',
+          );
+        }
+      },
+      error: () => {
+        this.toast.show('Error al añadir las prendas del outfit', 'error');
+      },
+    });
   }
 
   // FINALIZAR VENTA & COBRO POS

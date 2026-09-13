@@ -67,14 +67,22 @@
   (addToTicket)="onAddVariantToTicket($event)"
 />
 
-<!-- El POS usa el mismo compositor, modos y conversación real de Altair. -->
-<app-altair-launcher
+<!-- ASISTENTE PERSONAL STYLIST IA EN CAJA (CON ADICIÓN DIRECTA AL TICKET) -->
+<app-pos-ai-modal
   [open]="aiModalOpen()"
-  [modal]="true"
-  title="Diseña para esta venta"
-  description="Altair tendrá en cuenta el ticket y la sucursal antes de consultar catálogo o stock."
-  [context]="altairPosContext()"
-  (closed)="closeAiOutfitModal()"
+  [loading]="aiLoading()"
+  [selectedModel]="selectedAiModel()"
+  [occasionControl]="aiOccasionControl"
+  [outfitSets]="aiOutfitSets()"
+  [selectedOutfitSet]="selectedOutfitSet()"
+  [responseText]="aiResponseText()"
+  [contextSummary]="altairPosContext()"
+  (close)="closeAiOutfitModal()"
+  (modelChange)="setAiModel($event)"
+  (generate)="generateAiSuggestions()"
+  (selectOutfitSet)="selectOutfitSet($event)"
+  (addSinglePiece)="addSinglePieceFromOutfit($event)"
+  (addWholeOutfit)="addWholeOutfitToTicket($event)"
 />
 
 <!-- MODAL: COMPROBANTE OFICIAL ELECTRÓNICO CON QR -->

@@ -14,25 +14,49 @@
     <nav class="sidebar-nav" aria-label="Navegación principal">
       <p class="nav-caption">Áreas del atelier</p>
       @for (group of navigation(); track group.label) {
-        <section class="nav-package">
-          <div class="nav-package__heading">
-            <strong>{{ group.label }}</strong>
-            <span>{{ group.description }}</span>
-          </div>
-          @for (item of group.items; track item.route) {
-            <a
-              [routerLink]="item.route"
-              routerLinkActive="nav-link--active"
-              class="nav-link"
-              (click)="menuOpen.set(false)"
-              [attr.title]="item.description"
+        <section class="nav-package" [class.nav-package--expanded]="isPackageExpanded(group.label)">
+          <button
+            type="button"
+            class="nav-package__toggle"
+            (click)="togglePackage(group.label)"
+            [attr.aria-expanded]="isPackageExpanded(group.label)"
+          >
+            <div class="nav-package__heading">
+              <strong>{{ group.label }}</strong>
+              <span>{{ group.description }}</span>
+            </div>
+            <svg
+              class="nav-package__chevron"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <span class="nav-link__icon"><app-nav-icon [name]="item.icon" /></span>
-              <span class="nav-link__copy"
-                ><strong>{{ item.label }}</strong
-                ><small>{{ item.description }}</small></span
-              >
-            </a>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          @if (isPackageExpanded(group.label)) {
+            <div class="nav-package__items">
+              @for (item of group.items; track item.route) {
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="nav-link--active"
+                  class="nav-link"
+                  (click)="menuOpen.set(false)"
+                  [attr.title]="item.description"
+                >
+                  <span class="nav-link__icon"><app-nav-icon [name]="item.icon" /></span>
+                  <span class="nav-link__copy"
+                    ><strong>{{ item.label }}</strong
+                    ><small>{{ item.description }}</small></span
+                  >
+                </a>
+              }
+            </div>
           }
         </section>
       }

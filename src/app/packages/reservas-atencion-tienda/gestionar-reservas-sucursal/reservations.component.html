@@ -266,6 +266,7 @@
             }
             @if (
               canConvert() &&
+              !['CONVERTIDA', 'CANCELADA'].includes(reservation.estado) &&
               ['CONFIRMADA', 'EN_PREPARACION', 'LISTA', 'RETIRADA'].includes(reservation.estado)
             ) {
               <button
@@ -289,6 +290,9 @@
                 </svg>
                 <span>Convertir a compra</span>
               </button>
+            }
+            @if (reservation.estado === 'CONVERTIDA') {
+              <span class="status-badge" data-status="CONVERTIDA">Pedido Generado</span>
             }
             <button
               class="button button--small button--secondary"

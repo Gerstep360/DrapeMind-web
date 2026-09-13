@@ -32,10 +32,22 @@ export class ShellComponent {
   readonly navigation = computed(() => {
     return navigationForRole(this.auth.user()?.rol);
   });
+  readonly expandedPackages = signal<Set<string>>(new Set());
 
   constructor() {
     this.events.connect();
     this.branchService.loadBranches();
+
+    // Auto-expand package matching current route
+    const currentUrl = this.router.url;
+    const nav = this.navigation();
+    const activeGroup = nav.find((g) => g.items.some((item) => currentUrl.startsWith(item.route)));
+    if (activeGroup) {
+      this.expandedPackages.set(new Set([activeGroup.label]));
+    } else if (nav.length > 0) {
+      // Default: expand first package
+      this.expandedPackages.set(new Set([nav[0].label]));
+    }
 
     // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
@@ -46,6 +58,23 @@ export class ShellComponent {
     ) {
       void this.router.navigate(['/onboarding']);
     }
+  }
+
+  togglePackage(label: string): void {
+    this.expandedPackages.update((current) => {
+      const next = new Set(current);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  }
+
+  isPackageExpanded(label: string): boolean {
+    // If a package contains active route, also consider it expanded if set is empty
+    return this.expandedPackages().has(label);
   }
 
   toggleBranchDropdown(): void {

@@ -243,6 +243,10 @@ export class ReservationsComponent {
 
   convert(reservation: Reservation): void {
     if (this.actionId() !== null) return;
+    if (['CONVERTIDA', 'CANCELADA'].includes(reservation.estado)) {
+      this.toast.show(`La reserva ya está en estado ${reservation.estado.toLowerCase()}`, 'info');
+      return;
+    }
     this.actionId.set(reservation.id);
     this.reservationsApi.convertReservation(reservation.id).subscribe({
       next: (order) => {
@@ -253,7 +257,10 @@ export class ReservationsComponent {
       },
       error: (error) => {
         this.actionId.set(null);
-        this.toast.show(error?.error?.detail ?? 'No se pudo convertir la reserva', 'error');
+        const detail = error?.error?.detail ?? 'No se pudo convertir la reserva';
+        this.toast.show(detail, 'error');
+        // Recargar reservas para sincronizar estado real tras conflicto (ej. 409)
+        this.load();
       },
     });
   }

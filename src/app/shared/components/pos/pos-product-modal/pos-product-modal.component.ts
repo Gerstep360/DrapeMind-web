@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { BranchStock, Product, ProductVariant } from '@core/models';
-import { DistinctColor } from '@shared/components/pos/pos.models';
+import { DistinctColor } from '../pos.models';
 
 @Component({
   selector: 'app-pos-product-modal',
@@ -50,13 +50,17 @@ export class PosProductModalComponent {
 
       // Si el color actual no existe en la lista de colores de esta prenda, preseleccionar
       const current = this.selectedColor();
-      const hasCurrent = current && colors.some((c) => c.color.toLowerCase() === current.toLowerCase());
+      const hasCurrent =
+        current && colors.some((c) => c.color.toLowerCase() === current.toLowerCase());
+
       if (!hasCurrent) {
         // Priorizar color con stock en esta sede
         const colorWithStock = colors.find((c) => {
-          const variantsForColor = (p.variantes || []).filter(
-            (v) => v.activo && v.color.trim().toLowerCase() === c.color.toLowerCase(),
-          );
+          const variantsForColor = (p.variantes || []).filter((v) => {
+            if (v.activo === false) return false;
+            const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
+            return vColor === c.color.toLowerCase();
+          });
           return variantsForColor.some((v) => this.getVariantBranchStock(v.id) > 0);
         });
 
@@ -67,23 +71,26 @@ export class PosProductModalComponent {
   }
 
   /**
-   * Agrupa los colores únicos para evitar que el mismo color (ej. "Rosado") se repita N veces
+   * Agrupa los colores únicos para evitar que el mismo color se repita N veces,
+   * y normaliza accesorios, relojes o prendas sin color a 'Único'
    */
   readonly distinctColors = computed<DistinctColor[]>(() => {
     const p = this.product;
-    if (!p?.variantes || !Array.isArray(p.variantes)) return [];
+    if (!p?.variantes || !Array.isArray(p.variantes) || p.variantes.length === 0) return [];
 
     const colorMap = new Map<string, DistinctColor>();
 
     for (const v of p.variantes) {
-      if (!v.activo || !v.color) continue;
-      const cleanName = v.color.trim();
+      if (v.activo === false) continue; // Solo omitir si explícitamente está inactivo
+
+      const rawColor = v.color ? v.color.trim() : '';
+      const cleanName = rawColor || 'Único';
       const key = cleanName.toLowerCase();
 
       if (!colorMap.has(key)) {
         colorMap.set(key, {
           color: cleanName,
-          hex: v.codigo_color || null,
+          hex: v.codigo_color || (cleanName === 'Único' ? '#B8BAC2' : null),
           count: 1,
         });
       } else {
@@ -101,12 +108,14 @@ export class PosProductModalComponent {
   readonly availableSizes = computed<ProductVariant[]>(() => {
     const p = this.product;
     const color = this.selectedColor();
-    if (!p?.variantes || !color) return [];
+    if (!p?.variantes || !Array.isArray(p.variantes)) return [];
 
-    const targetColor = color.trim().toLowerCase();
-    return p.variantes.filter(
-      (v) => v.activo && v.color && v.color.trim().toLowerCase() === targetColor,
-    );
+    const targetColor = (color || 'Único').trim().toLowerCase();
+    return p.variantes.filter((v) => {
+      if (v.activo === false) return false;
+      const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
+      return vColor === targetColor;
+    });
   });
 
   /**
@@ -115,9 +124,10 @@ export class PosProductModalComponent {
   readonly selectedVariant = computed<ProductVariant | null>(() => {
     const sizes = this.availableSizes();
     const s = this.selectedSize();
-    if (sizes.length === 0 || !s) return null;
+    if (sizes.length === 0) return null;
+    if (!s) return sizes[0];
 
-    return sizes.find((v) => v.talla === s) || null;
+    return sizes.find((v) => v.talla === s) || sizes[0];
   });
 
   selectColor(colorName: string): void {
@@ -127,9 +137,12 @@ export class PosProductModalComponent {
     const p = this.product;
     if (!p?.variantes) return;
 
-    const sizesForColor = p.variantes.filter(
-      (v) => v.activo && v.color && v.color.trim().toLowerCase() === colorName.trim().toLowerCase(),
-    );
+    const targetColor = (colorName || 'Único').trim().toLowerCase();
+    const sizesForColor = p.variantes.filter((v) => {
+      if (v.activo === false) return false;
+      const vColor = (v.color ? v.color.trim() : 'Único').toLowerCase();
+      return vColor === targetColor;
+    });
 
     const sizeWithStock = sizesForColor.find((v) => this.getVariantBranchStock(v.id) > 0);
     const chosenSize = sizeWithStock ? sizeWithStock.talla : sizesForColor[0]?.talla || null;

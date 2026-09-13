@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { Branch, Category, InventoryMovement, Product } from '@core/models';
 import { BranchInventoryApiService } from '@core/api/branch-inventory-api.service';
 import { CatalogApiService } from '@core/api/catalog-api.service';
+import { BranchService } from '@core/branch.service';
 import { ToastService } from '@core/toast.service';
 import { AuthService } from '@core/auth.service';
 import { InventoryRow } from './inventory.models';
@@ -18,6 +27,7 @@ import { InventoryRow } from './inventory.models';
 })
 export class InventoryComponent {
   readonly auth = inject(AuthService);
+  readonly branchService = inject(BranchService);
   private readonly inventoryApi = inject(BranchInventoryApiService);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly toast = inject(ToastService);
@@ -108,6 +118,73 @@ export class InventoryComponent {
     activo: [true],
   });
 
+  // Acordeón / Dropdown de Categorías
+  readonly collapsedCategories = signal<Set<number>>(new Set());
+
+  toggleCategory(catId: number): void {
+    this.collapsedCategories.update((set) => {
+      const next = new Set(set);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  }
+
+  isCategoryOpen(catId: number): boolean {
+    return !this.collapsedCategories().has(catId);
+  }
+
+  categoryEmoji(name: string): string {
+    const n = (name || '').toLowerCase();
+    if (n.includes('vestido') || n.includes('dress')) return '👗';
+    if (
+      n.includes('camis') ||
+      n.includes('top') ||
+      n.includes('poler') ||
+      n.includes('blusa') ||
+      n.includes('remera') ||
+      n.includes('polo')
+    )
+      return '👕';
+    if (n.includes('pantalon') || n.includes('jean') || n.includes('short') || n.includes('falda'))
+      return '👖';
+    if (
+      n.includes('abrigo') ||
+      n.includes('chaqueta') ||
+      n.includes('saco') ||
+      n.includes('blazer') ||
+      n.includes('chamarra')
+    )
+      return '🧥';
+    if (
+      n.includes('calzad') ||
+      n.includes('zapato') ||
+      n.includes('tenis') ||
+      n.includes('bota') ||
+      n.includes('sneaker')
+    )
+      return '👟';
+    if (
+      n.includes('reloj') ||
+      n.includes('accesorio') ||
+      n.includes('joy') ||
+      n.includes('cinturon') ||
+      n.includes('corbata')
+    )
+      return '⌚';
+    if (
+      n.includes('bols') ||
+      n.includes('cartera') ||
+      n.includes('mochila') ||
+      n.includes('billetera')
+    )
+      return '👜';
+    return '✨';
+  }
+
   constructor() {
     this.catalogApi.categories().subscribe({
       next: (cats) => this.categories.set(cats),
@@ -115,7 +192,15 @@ export class InventoryComponent {
     this.inventoryApi.assignedBranches().subscribe({
       next: (branches) => {
         this.branches.set(branches);
-        this.branchId.set(branches[0]?.id ?? 0);
+        const currentActive = this.branchService.selectedBranchId();
+        const matching = branches.find((b) => b.id === currentActive);
+        const chosenId = matching ? matching.id : branches[0]?.id ?? 0;
+        this.branchId.set(chosenId);
+        if (matching) {
+          this.branchService.selectBranch(matching);
+        } else if (branches[0]) {
+          this.branchService.selectBranch(branches[0]);
+        }
         this.load();
       },
       error: () => {
@@ -123,10 +208,31 @@ export class InventoryComponent {
         this.toast.show('No se pudieron cargar las sucursales', 'error');
       },
     });
+
+    // Reaccionar a cambios de sucursal global (topbar)
+    effect(() => {
+      const activeId = this.branchService.selectedBranchId();
+      if (
+        activeId &&
+        activeId !== this.branchId() &&
+        this.branches().some((b) => b.id === activeId)
+      ) {
+        untracked(() => {
+          this.branchId.set(activeId);
+          this.editorOpen.set(false);
+          this.load();
+        });
+      }
+    });
   }
 
   selectBranch(value: string): void {
-    this.branchId.set(Number(value));
+    const id = Number(value);
+    this.branchId.set(id);
+    const found = this.branches().find((b) => b.id === id);
+    if (found) {
+      this.branchService.selectBranch(found);
+    }
     this.editorOpen.set(false);
     this.load();
   }
