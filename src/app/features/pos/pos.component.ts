@@ -1,4 +1,4 @@
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,7 +7,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BranchService } from '../../core/branch.service';
@@ -16,52 +16,37 @@ import { StoreApiService } from '../../core/store-api.service';
 import { ToastService } from '../../core/toast.service';
 import { ReceiptModalComponent } from '../../shared/components/receipt-modal/receipt-modal.component';
 
-export interface PosTicketItem {
-  variantId: number;
-  productId: number;
-  name: string;
-  brand: string;
-  color: string;
-  colorHex?: string | null;
-  size: string;
-  sku: string;
-  price: number;
-  quantity: number;
-  maxStock: number;
-  image?: string | null;
-}
+// Componentes modulares hijos del POS
+import { PosAiModalComponent } from './components/pos-ai-modal/pos-ai-modal.component';
+import { PosCatalogComponent } from './components/pos-catalog/pos-catalog.component';
+import { PosHeaderComponent } from './components/pos-header/pos-header.component';
+import { PosProductModalComponent } from './components/pos-product-modal/pos-product-modal.component';
+import { PosTicketComponent } from './components/pos-ticket/pos-ticket.component';
 
-export type AiModelChoice = 'mini' | 'dinamico' | 'altair';
+// Modelos y tipos del POS
+import {
+  AiModelChoice,
+  CustomerMode,
+  OutfitPiece,
+  OutfitSet,
+  PaymentMethod,
+  PosTicketItem,
+} from './models/pos.models';
 
-export interface OutfitPiece {
-  productId: number;
-  variantId?: number;
-  name: string;
-  brand: string;
-  price: number;
-  image?: string;
-  categoryName?: string;
-  role: 'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO';
-  roleLabel: string;
-  color?: string;
-  size?: string;
-}
-
-export interface OutfitSet {
-  id: string;
-  title: string;
-  occasion: string;
-  model: AiModelChoice;
-  modelName: string;
-  rationale: string;
-  totalPrice: number;
-  pieces: OutfitPiece[];
-}
+export * from './models/pos.models';
 
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, DecimalPipe, ReceiptModalComponent],
+  imports: [
+    CommonModule,
+    PosHeaderComponent,
+    PosCatalogComponent,
+    PosProductModalComponent,
+    PosTicketComponent,
+    PosAiModalComponent,
+    ReceiptModalComponent,
+  ],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,17 +68,14 @@ export class PosComponent implements OnInit {
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly selectedCategory = signal<number | null>(null);
 
-  // Selector de variantes
+  // Modal selector de variantes y disponibilidad por sucursal
   readonly variantModalOpen = signal<boolean>(false);
   readonly selectedProduct = signal<Product | null>(null);
-  readonly selectedColor = signal<string | null>(null);
-  readonly selectedSize = signal<string | null>(null);
-  readonly selectedVariant = signal<ProductVariant | null>(null);
   readonly productStockRows = signal<BranchStock[]>([]);
   readonly loadingVariants = signal<boolean>(false);
 
-  // Cliente: Mostrador vs Registrado
-  readonly customerMode = signal<'WALK_IN' | 'REGISTERED'>('WALK_IN');
+  // Gestión de Cliente
+  readonly customerMode = signal<CustomerMode>('WALK_IN');
   readonly guestNameControl = new FormControl('Cliente de Mostrador', { nonNullable: true });
   readonly guestDocControl = new FormControl('', { nonNullable: true });
   readonly customerSearchControl = new FormControl('', { nonNullable: true });
@@ -105,18 +87,16 @@ export class PosComponent implements OnInit {
   readonly ticketItems = signal<PosTicketItem[]>([]);
 
   // Pago
-  readonly paymentMethod = signal<'EFECTIVO' | 'TARJETA' | 'QR'>('EFECTIVO');
+  readonly paymentMethod = signal<PaymentMethod>('EFECTIVO');
   readonly cashReceivedControl = new FormControl<number | null>(null);
   readonly cardRefControl = new FormControl('', { nonNullable: true });
   readonly qrRefControl = new FormControl('', { nonNullable: true });
 
-  // Sugerir Outfit IA con selector de modelo y vista de conjuntos
+  // Sugerir Outfit IA con selector de modelo
   readonly aiModalOpen = signal<boolean>(false);
   readonly aiLoading = signal<boolean>(false);
   readonly selectedAiModel = signal<AiModelChoice>('altair');
-  readonly aiOccasionControl = new FormControl('', {
-    nonNullable: true,
-  });
+  readonly aiOccasionControl = new FormControl('', { nonNullable: true });
   readonly outfitSets = signal<OutfitSet[]>([]);
   readonly selectedOutfitSet = signal<OutfitSet | null>(null);
   readonly aiResponseText = signal<string>('');
@@ -157,18 +137,6 @@ export class PosComponent implements OnInit {
       this.isCashSufficient()
     );
   });
-
-  getProductImage(product: Product): string | undefined {
-    if (!product.imagenes || product.imagenes.length === 0) return undefined;
-    const first = product.imagenes[0];
-    if (typeof first === 'string') return first;
-    return first?.url;
-  }
-
-  getCategoryName(catId: number): string {
-    const found = this.categories().find((c) => c.id === catId);
-    return found ? found.nombre : 'Moda';
-  }
 
   ngOnInit(): void {
     this.branchService.loadBranches();
@@ -231,13 +199,6 @@ export class PosComponent implements OnInit {
     }
   }
 
-  onSelectBranch(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    if (target?.value) {
-      this.setBranchById(Number(target.value));
-    }
-  }
-
   branchName(branchId: number | null): string {
     if (!branchId) return 'Ninguna';
     const found = this.branchService.branches().find((b) => b.id === branchId);
@@ -249,17 +210,20 @@ export class PosComponent implements OnInit {
     this.loadProducts();
   }
 
+  getProductImage(product: Product): string | undefined {
+    if (!product.imagenes || product.imagenes.length === 0) return undefined;
+    const first = product.imagenes[0];
+    if (typeof first === 'string') return first;
+    return first?.url;
+  }
+
   // MODAL DE VARIANTES & STOCK
   openVariantModal(rawProduct: Product): void {
     this.selectedProduct.set(rawProduct);
     this.variantModalOpen.set(true);
     this.loadingVariants.set(true);
-    this.selectedColor.set(null);
-    this.selectedSize.set(null);
-    this.selectedVariant.set(null);
     this.productStockRows.set([]);
 
-    // Cargar producto completo con todas sus variantes reales + disponibilidad por sede
     forkJoin({
       fullProduct: this.api.product(rawProduct.id),
       stockRows: this.api.productAvailability(rawProduct.id).pipe(catchError(() => of([]))),
@@ -268,25 +232,6 @@ export class PosComponent implements OnInit {
         this.selectedProduct.set(fullProduct);
         this.productStockRows.set(stockRows);
         this.loadingVariants.set(false);
-
-        const variants = fullProduct.variantes || [];
-        const branchId = this.selectedBranchId();
-
-        // Buscar variante disponible en esta sucursal o fallback a la primera activa
-        const inBranch = variants.find((v) => {
-          if (!v.activo) return false;
-          if (!branchId) return v.stock_disponible > 0;
-          const match = stockRows.find(
-            (r) => r.variante_id === v.id && r.sucursal_id === branchId,
-          );
-          return (match?.stock_disponible ?? 0) > 0;
-        });
-
-        const activeDefault = inBranch || variants.find((v) => v.activo) || variants[0];
-        if (activeDefault) {
-          this.selectColor(activeDefault.color);
-          this.selectSize(activeDefault.talla);
-        }
       },
       error: () => {
         this.loadingVariants.set(false);
@@ -300,47 +245,11 @@ export class PosComponent implements OnInit {
     this.selectedProduct.set(null);
   }
 
-  selectColor(color: string): void {
-    this.selectedColor.set(color);
-    this.updateActiveVariant();
-  }
-
-  selectSize(size: string): void {
-    this.selectedSize.set(size);
-    this.updateActiveVariant();
-  }
-
-  private updateActiveVariant(): void {
-    const p = this.selectedProduct();
-    const c = this.selectedColor();
-    const s = this.selectedSize();
-    if (!p?.variantes || !c || !s) {
-      this.selectedVariant.set(null);
-      return;
-    }
-    const match = p.variantes.find((v) => v.color === c && v.talla === s && v.activo) || null;
-    this.selectedVariant.set(match);
-  }
-
-  getVariantBranchStock(variantId: number): number {
-    const branchId = this.selectedBranchId();
-    if (!branchId) return 0;
-    const match = this.productStockRows().find(
-      (r) => r.variante_id === variantId && r.sucursal_id === branchId,
-    );
-    if (match) return match.stock_disponible;
-
-    const p = this.selectedProduct();
-    const v = p?.variantes?.find((x) => x.id === variantId);
-    return v?.stock_disponible ?? 0;
-  }
-
-  addSelectedVariantToTicket(): void {
+  onAddVariantToTicket(event: { variant: ProductVariant; maxStock: number }): void {
     const product = this.selectedProduct();
-    const variant = this.selectedVariant();
     const branchId = this.selectedBranchId();
 
-    if (!product || !variant) {
+    if (!product || !event.variant) {
       this.toast.show('Selecciona color y talla', 'info');
       return;
     }
@@ -350,29 +259,28 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    const availableStock = this.getVariantBranchStock(variant.id);
-    if (availableStock <= 0) {
+    if (event.maxStock <= 0) {
       this.toast.show('Sin stock disponible en esta sucursal', 'error');
       return;
     }
 
     this.addItemToTicket({
-      variantId: variant.id,
+      variantId: event.variant.id,
       productId: product.id,
       name: product.nombre,
       brand: product.marca || 'DrapeMind',
-      color: variant.color,
-      colorHex: variant.codigo_color,
-      size: variant.talla,
-      sku: variant.sku,
+      color: event.variant.color,
+      colorHex: event.variant.codigo_color,
+      size: event.variant.talla,
+      sku: event.variant.sku,
       price: Number(product.precio),
       quantity: 1,
-      maxStock: availableStock,
-      image: variant.imagen || this.getProductImage(product) || undefined,
+      maxStock: event.maxStock,
+      image: event.variant.imagen || this.getProductImage(product) || undefined,
     });
 
     this.closeVariantModal();
-    this.toast.show(`Agregado: ${product.nombre} (${variant.talla})`, 'success');
+    this.toast.show(`Agregado: ${product.nombre} (${event.variant.talla})`, 'success');
   }
 
   addItemToTicket(newItem: PosTicketItem): void {
@@ -434,7 +342,7 @@ export class PosComponent implements OnInit {
   }
 
   // GESTIÓN DE CLIENTES
-  setCustomerMode(mode: 'WALK_IN' | 'REGISTERED'): void {
+  setCustomerMode(mode: CustomerMode): void {
     this.customerMode.set(mode);
     if (mode === 'WALK_IN') {
       this.selectedCustomer.set(null);
@@ -454,50 +362,30 @@ export class PosComponent implements OnInit {
     });
   }
 
-  selectCustomer(cust: User): void {
-    this.selectedCustomer.set(cust);
+  selectCustomer(user: User): void {
+    this.selectedCustomer.set(user);
     this.customerSearchResults.set([]);
-    this.customerSearchControl.setValue(cust.nombre);
-    this.toast.show(`Cliente asignado: ${cust.nombre}`, 'info');
-  }
-
-  clearSelectedCustomer(): void {
-    this.selectedCustomer.set(null);
     this.customerSearchControl.setValue('');
+    this.toast.show(`Cliente asignado: ${user.nombre}`, 'info');
   }
 
-  // ATALAYER SUGERENCIAS RÁPIDAS DE EFECTIVO
-  setExactCash(): void {
-    this.cashReceivedControl.setValue(this.total());
+  clearCustomer(): void {
+    this.selectedCustomer.set(null);
   }
 
-  addCash(amount: number): void {
-    const current = Number(this.cashReceivedControl.value || 0);
-    this.cashReceivedControl.setValue(current + amount);
+  setPaymentMethod(method: PaymentMethod): void {
+    this.paymentMethod.set(method);
   }
 
-  // SUGERIR OUTFIT IA CON MODELOS MINI, DINÁMICO Y ALTAIR
+  // ASISTENTE DE OUTFITS IA
   openAiOutfitModal(): void {
     this.aiModalOpen.set(true);
-    this.outfitSets.set([]);
     this.selectedOutfitSet.set(null);
     this.aiResponseText.set('');
-
-    const firstItem = this.ticketItems()[0];
-    if (firstItem) {
-      this.aiOccasionControl.setValue(`Combinar con ${firstItem.name} (${firstItem.color})`);
-    } else {
-      this.aiOccasionControl.setValue('');
-    }
   }
 
   closeAiOutfitModal(): void {
     this.aiModalOpen.set(false);
-    this.selectedOutfitSet.set(null);
-  }
-
-  selectAiModel(model: AiModelChoice): void {
-    this.selectedAiModel.set(model);
   }
 
   setAiModel(model: AiModelChoice): void {
@@ -534,7 +422,6 @@ export class PosComponent implements OnInit {
         return;
       }
 
-      // Roles estéticos de moda
       const rolesOrder: Array<'SUPERIOR' | 'INFERIOR' | 'CALZADO' | 'ACCESORIO'> = [
         'SUPERIOR',
         'INFERIOR',
@@ -566,7 +453,6 @@ export class PosComponent implements OnInit {
         };
       };
 
-      // 1. Intentar parsear propuestas estructuradas del texto ("Opción 1: ... IDs: [938, 946]")
       const optionRegex = /(?:\*\*|\#\#)?\s*Opci[oó]n\s*(\d+)[^:\n]*:?\s*([^\n*]+)?([\s\S]*?)(?=(?:\*\*|\#\#)?\s*Opci[oó]n\s*\d+|Recomendaci[oó]n|$)/gi;
       const parsedSets: OutfitSet[] = [];
       let match: RegExpExecArray | null;
@@ -611,13 +497,11 @@ export class PosComponent implements OnInit {
         }
       }
 
-      // Si se parsearon opciones estructuradas con éxito, renderizarlas
       if (parsedSets.length > 0) {
         this.outfitSets.set(parsedSets);
         return;
       }
 
-      // 2. Fallback: buscar cualquier lista de IDs en el texto [123, 456]
       const genericIdMatch = answerText.match(/IDs?:?\s*\[([0-9,\s]+)\]/i);
       if (genericIdMatch) {
         const ids = genericIdMatch[1]
@@ -648,7 +532,6 @@ export class PosComponent implements OnInit {
         }
       }
 
-      // 3. Fallback final: Tomar como MÁXIMO 3 prendas coordinadas (NUNCA todas las 30 de la BD)
       const limited = rawProducts.slice(0, 3);
       const fallbackPieces = limited.map((p, idx) => createPiece(p, idx));
       this.outfitSets.set([
@@ -683,14 +566,6 @@ export class PosComponent implements OnInit {
     });
   }
 
-  viewOutfitDetail(set: OutfitSet): void {
-    this.selectedOutfitSet.set(set);
-  }
-
-  backToOutfitList(): void {
-    this.selectedOutfitSet.set(null);
-  }
-
   addWholeOutfitToTicket(set: OutfitSet): void {
     const branchId = this.selectedBranchId();
     if (!branchId) {
@@ -698,7 +573,6 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    let addedCount = 0;
     set.pieces.forEach((piece) => {
       this.api.product(piece.productId).subscribe({
         next: (fullProduct) => {
@@ -720,7 +594,6 @@ export class PosComponent implements OnInit {
               maxStock: Math.max(1, variant.stock_disponible),
               image: variant.imagen || this.getProductImage(fullProduct) || undefined,
             });
-            addedCount++;
           }
         },
       });

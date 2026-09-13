@@ -5,6 +5,7 @@ export interface User {
   nombre: string;
   email: string;
   telefono: string | null;
+  nit_ci?: string | null;
   rol: UserRole;
   estado: 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO';
   created_at: string;

@@ -1,0 +1,234 @@
+@if (open) {
+  <div class="modal-scrim" (click)="onClose()"></div>
+  <div class="ai-outfit-dialog" role="dialog" aria-modal="true">
+    <div class="ai-dialog-header">
+      <div class="header-sparkle-title">
+        <svg class="sparkle-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+        </svg>
+        <div>
+          <h3>Personal Stylist IA — Sugerencias de Outfit</h3>
+          <small>Modelos de recomendación inteligente en mostrador</small>
+        </div>
+      </div>
+      <button type="button" class="btn-popup-close" (click)="onClose()" aria-label="Cerrar modal">&times;</button>
+    </div>
+
+    <div class="ai-dialog-body">
+      <!-- AI MODEL SELECTOR TABS -->
+      <div class="ai-model-selector-bar">
+        <span class="model-select-label">Modelo de Estilo IA:</span>
+        <div class="model-tabs">
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedModel === 'mini'"
+            (click)="onSelectModel('mini')"
+          >
+            <span class="model-name">Mini</span>
+            <small class="model-desc">Rápido y Directo</small>
+          </button>
+
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedModel === 'dinamico'"
+            (click)="onSelectModel('dinamico')"
+          >
+            <span class="model-name">Dinámico</span>
+            <small class="model-desc">Moda Balanceado</small>
+          </button>
+
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedModel === 'altair'"
+            (click)="onSelectModel('altair')"
+          >
+            <span class="model-name">Altair</span>
+            <small class="model-desc">Curaduría Atelier Pro</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- PROMPT SEARCH BAR -->
+      <div class="ai-prompt-bar">
+        <label>Ocasión, estilo o presupuesto deseado:</label>
+        <div class="prompt-input-group">
+          <input
+            [formControl]="occasionControl"
+            type="text"
+            placeholder="Ej. 'algo casual menos de 300bs', 'vestido de gala', 'ropa urbana'..."
+            (keydown.enter)="onGenerate()"
+          />
+          <button
+            type="button"
+            class="btn-ai-generate"
+            [disabled]="loading || !occasionControl.value.trim()"
+            (click)="onGenerate()"
+          >
+            @if (loading) {
+              <span class="spinner-sm"></span>
+              <span>Generando Outfit...</span>
+            } @else {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+              <span>Sugerir Outfit IA</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (responseText) {
+        <div class="ai-response-box">
+          <p>{{ responseText }}</p>
+        </div>
+      }
+
+      <!-- VIEW 1: OUTFIT CARDS (SELECCIÓN DE CONJUNTOS COMPLETOS) -->
+      @if (!selectedOutfitSet) {
+        <div class="outfits-container">
+          @if (outfitSets.length > 0) {
+            <div class="outfit-cards-header">
+              <span class="section-title">Conjuntos Completos Sugeridos ({{ outfitSets.length }})</span>
+              <small class="section-caption">Haz clic en un card para inspeccionar el outfit completo con todas sus prendas</small>
+            </div>
+
+            <div class="outfit-cards-grid">
+              @for (set of outfitSets; track set.id) {
+                <div class="outfit-card" (click)="onViewDetail(set)">
+                  <div class="outfit-card-top">
+                    <span class="outfit-badge">{{ set.modelName }}</span>
+                    <span class="pieces-badge">{{ set.pieces.length }} prendas</span>
+                  </div>
+
+                  <h4 class="outfit-card-title">{{ set.title }}</h4>
+                  <p class="outfit-card-narrative">{{ set.rationale }}</p>
+
+                  <!-- MINI GALLERY DE LAS PRENDAS EN EL CONJUNTO -->
+                  <div class="outfit-pieces-collage">
+                    @for (piece of set.pieces; track piece.productId) {
+                      <div class="collage-item" [title]="piece.roleLabel + ': ' + piece.name">
+                        @if (piece.image) {
+                          <img [src]="piece.image" [alt]="piece.name" />
+                        } @else {
+                          <div class="collage-placeholder">{{ piece.role.charAt(0) }}</div>
+                        }
+                        <span class="collage-role-tag">{{ piece.roleLabel }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="outfit-card-foot">
+                    <div class="outfit-price-wrap">
+                      <span class="price-label">Total Outfit:</span>
+                      <strong class="price-val">Bs. {{ set.totalPrice | number:'1.2-2' }}</strong>
+                    </div>
+                    <button type="button" class="btn-inspect-outfit">
+                      <span>Ver Outfit Completo</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- VIEW 2: FULL OUTFIT INSPECTOR (TODO EL OUTFIT COMPLETO) -->
+      @if (selectedOutfitSet; as outfit) {
+        <div class="outfit-full-view">
+          <div class="inspector-nav-bar">
+            <button type="button" class="btn-back-outfits" (click)="onBackToList()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              <span>Volver a opciones de conjuntos</span>
+            </button>
+            <span class="model-badge-inspector">{{ outfit.modelName }}</span>
+          </div>
+
+          <div class="outfit-showcase-header">
+            <h3 class="showcase-title">{{ outfit.title }}</h3>
+            <p class="showcase-rationale">{{ outfit.rationale }}</p>
+          </div>
+
+          <!-- GRID DE TODAS LAS PRENDAS COORDINADAS DEL OUTFIT -->
+          <div class="full-pieces-grid">
+            @for (piece of outfit.pieces; track piece.productId) {
+              <div class="full-piece-card">
+                <div class="piece-thumb-wrap">
+                  @if (piece.image) {
+                    <img [src]="piece.image" [alt]="piece.name" />
+                  } @else {
+                    <div class="piece-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                      </svg>
+                    </div>
+                  }
+                  <span class="piece-role-badge">{{ piece.roleLabel }}</span>
+                </div>
+
+                <div class="piece-info">
+                  <span class="piece-brand">{{ piece.brand }}</span>
+                  <h4 class="piece-name">{{ piece.name }}</h4>
+                  <div class="piece-specs">
+                    @if (piece.color) {
+                      <span class="spec-pill">{{ piece.color }}</span>
+                    }
+                    @if (piece.size) {
+                      <span class="spec-pill">Talla {{ piece.size }}</span>
+                    }
+                  </div>
+                  <div class="piece-price-row">
+                    <strong class="piece-price">Bs. {{ piece.price | number:'1.2-2' }}</strong>
+                    <button
+                      type="button"
+                      class="btn-add-single-piece"
+                      (click)="onAddSinglePiece(piece)"
+                      title="Elegir talla y agregar solo esta prenda"
+                    >
+                      + Prenda suelta
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- BOTTOM ACTION BAR FOR COMPLETE OUTFIT -->
+          <div class="outfit-action-banner">
+            <div class="banner-summary">
+              <span class="banner-pieces">{{ outfit.pieces.length }} prendas coordinadas listas para añadir</span>
+              <div class="banner-total">
+                <span class="total-lbl">TOTAL LOOK COMPLETO:</span>
+                <strong class="total-amount">Bs. {{ outfit.totalPrice | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-add-whole-outfit"
+              (click)="onAddWholeOutfit(outfit)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+              <span>Añadir Todo el Outfit al Ticket ({{ outfit.pieces.length }} prendas)</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="ai-dialog-footer">
+      <button type="button" class="btn-secondary" (click)="onClose()">Cerrar</button>
+    </div>
+  </div>
+}

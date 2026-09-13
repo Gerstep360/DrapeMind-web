@@ -1,0 +1,316 @@
+<aside class="pos-ticket-panel">
+  <!-- CUSTOMER SECTION -->
+  <div class="customer-section">
+    <div class="customer-mode-toggle">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="customerMode === 'WALK_IN'"
+        (click)="setCustomerMode('WALK_IN')"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>Mostrador (Sin registro)</span>
+      </button>
+
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="customerMode === 'REGISTERED'"
+        (click)="setCustomerMode('REGISTERED')"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/>
+          <line x1="23" y1="11" x2="17" y2="11"/>
+        </svg>
+        <span>Cliente Registrado</span>
+      </button>
+    </div>
+
+    @if (customerMode === 'WALK_IN') {
+      <div class="customer-walkin-fields">
+        <div class="field-col">
+          <label>Nombre / Razón Social:</label>
+          <input
+            [formControl]="guestNameControl"
+            type="text"
+            placeholder="Ej. Cliente de Mostrador"
+          />
+        </div>
+        <div class="field-col">
+          <label>NIT / CI (Opcional):</label>
+          <input
+            [formControl]="guestDocControl"
+            type="text"
+            placeholder="Ej. 6849201018"
+          />
+        </div>
+      </div>
+    } @else {
+      <div class="customer-registered-fields">
+        @if (selectedCustomer; as cust) {
+          <div class="selected-customer-pill">
+            <div class="cust-info">
+              <strong>{{ cust.nombre }}</strong>
+              <small>{{ cust.email }} · Doc: {{ cust.nit_ci || 'S/N' }}</small>
+            </div>
+            <button
+              type="button"
+              class="btn-clear-cust"
+              (click)="onClearCustomer()"
+              title="Cambiar cliente"
+            >
+              &times;
+            </button>
+          </div>
+        } @else {
+          <div class="customer-search-wrap">
+            <div class="search-input-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                [formControl]="customerSearchControl"
+                type="text"
+                placeholder="Buscar cliente por nombre, email o CI..."
+              />
+            </div>
+
+            @if (isSearchingCustomers) {
+              <div class="cust-search-loading">
+                <span class="spinner-sm"></span>
+                <span>Buscando clientes registrados...</span>
+              </div>
+            }
+
+            @if (customerSearchResults.length > 0) {
+              <div class="cust-results-dropdown">
+                @for (u of customerSearchResults; track u.id) {
+                  <div class="cust-item" (click)="onSelectCustomer(u)">
+                    <strong>{{ u.nombre }}</strong>
+                    <span>{{ u.email }} · CI: {{ u.nit_ci || 'N/A' }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- TICKET ITEMS LIST -->
+  <div class="pos-ticket-items">
+    <div class="ticket-header">
+      <div class="ticket-title-row">
+        <h3>Ticket de Compra</h3>
+        <span class="ticket-counter-badge">{{ totalPieces }} prendas</span>
+      </div>
+      @if (ticketItems.length > 0) {
+        <button type="button" class="btn-clear-ticket" (click)="onClearTicket()">
+          Vaciar
+        </button>
+      }
+    </div>
+
+    <div class="ticket-scroll-list">
+      @if (ticketItems.length === 0) {
+        <div class="ticket-empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <p>El ticket está vacío</p>
+          <small>Selecciona prendas del catálogo para cobrar en mostrador</small>
+        </div>
+      } @else {
+        @for (item of ticketItems; track item.variantId) {
+          <div class="ticket-item-row">
+            <div class="item-thumb">
+              @if (item.image) {
+                <img [src]="item.image" [alt]="item.name" />
+              } @else {
+                <div class="item-thumb-placeholder">DM</div>
+              }
+            </div>
+
+            <div class="item-info">
+              <span class="item-brand">{{ item.brand }}</span>
+              <strong class="item-name">{{ item.name }}</strong>
+              <div class="item-specs">
+                <span class="spec-pill color-pill">
+                  <span class="dot" [style.background-color]="item.colorHex || '#444'"></span>
+                  {{ item.color }}
+                </span>
+                <span class="spec-pill size-pill">Talla {{ item.size }}</span>
+              </div>
+              <div class="item-unit-price">
+                Bs. {{ item.price | number:'1.2-2' }} c/u
+              </div>
+            </div>
+
+            <div class="item-actions">
+              <div class="qty-stepper">
+                <button
+                  type="button"
+                  class="stepper-btn"
+                  (click)="onDecrement(item.variantId)"
+                >
+                  -
+                </button>
+                <span class="qty-val">{{ item.quantity }}</span>
+                <button
+                  type="button"
+                  class="stepper-btn"
+                  [disabled]="item.quantity >= item.maxStock"
+                  (click)="onIncrement(item.variantId)"
+                >
+                  +
+                </button>
+              </div>
+
+              <div class="item-subtotal">
+                Bs. {{ (item.price * item.quantity) | number:'1.2-2' }}
+              </div>
+
+              <button
+                type="button"
+                class="btn-remove-item"
+                (click)="onRemove(item.variantId)"
+                title="Quitar prenda"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- PAYMENT & CHECKOUT BOTTOM SECTION -->
+  <div class="pos-payment-footer">
+    <!-- METHOD TABS -->
+    <div class="payment-methods-tabs">
+      <button
+        type="button"
+        class="pay-tab"
+        [class.active]="paymentMethod === 'EFECTIVO'"
+        (click)="setPaymentMethod('EFECTIVO')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Efectivo</span>
+      </button>
+
+      <button
+        type="button"
+        class="pay-tab"
+        [class.active]="paymentMethod === 'TARJETA'"
+        (click)="setPaymentMethod('TARJETA')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <span>Tarjeta</span>
+      </button>
+
+      <button
+        type="button"
+        class="pay-tab"
+        [class.active]="paymentMethod === 'QR'"
+        (click)="setPaymentMethod('QR')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>QR Simple</span>
+      </button>
+    </div>
+
+    <!-- DYNAMIC METHOD INPUTS -->
+    <div class="payment-method-details">
+      @if (paymentMethod === 'EFECTIVO') {
+        <div class="cash-calc-row">
+          <div class="cash-input-wrap">
+            <label>Monto Recibido:</label>
+            <div class="input-with-symbol">
+              <span class="currency-symbol">Bs.</span>
+              <input
+                [formControl]="cashReceivedControl"
+                type="number"
+                step="0.50"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div class="cash-change-display" [class.negative]="!isCashSufficient">
+            <label>Cambio / Vuelto:</label>
+            <strong class="change-amount">Bs. {{ cashChange | number:'1.2-2' }}</strong>
+            @if (!isCashSufficient && total > 0) {
+              <small class="cash-warning">Monto insuficiente</small>
+            }
+          </div>
+        </div>
+      } @else if (paymentMethod === 'TARJETA') {
+        <div class="ref-input-group">
+          <label>Código de Autorización / Lote Terminal POS:</label>
+          <input
+            [formControl]="cardRefControl"
+            type="text"
+            placeholder="Ej. AUT-894120 / LOTE-04"
+          />
+        </div>
+      } @else if (paymentMethod === 'QR') {
+        <div class="ref-input-group">
+          <label>Nro. de Comprobante / Transacción QR:</label>
+          <input
+            [formControl]="qrRefControl"
+            type="text"
+            placeholder="Ej. TRANS-BCP-94812"
+          />
+        </div>
+      }
+    </div>
+
+    <!-- SUMMARY ROW & TOTAL -->
+    <div class="ticket-totals-row">
+      <div class="total-breakdown">
+        <span>Total a Pagar:</span>
+        <strong class="total-highlight">Bs. {{ total | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <!-- SUBMIT SALE BUTTON -->
+    <button
+      type="button"
+      class="btn-submit-pos"
+      [disabled]="!canSubmitSale"
+      (click)="onSubmit()"
+    >
+      @if (isSubmitting) {
+        <span class="spinner-sm"></span>
+        <span>Registrando Venta en Caja...</span>
+      } @else {
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>COBRAR E IMPRIMIR COMPROBANTE (Bs. {{ total | number:'1.2-2' }})</span>
+      }
+    </button>
+  </div>
+</aside>

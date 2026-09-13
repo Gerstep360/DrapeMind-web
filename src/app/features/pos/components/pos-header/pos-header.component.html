@@ -1,0 +1,43 @@
+<header class="pos-header">
+  <div class="pos-header__left">
+    <div class="pos-badge">
+      <span class="pulse-dot"></span>
+      <span>TERMINAL POS CAJA</span>
+    </div>
+    <h1 class="pos-title">Punto de Venta Presencial</h1>
+  </div>
+
+  <div class="pos-header__center">
+    <div class="branch-selector-wrap">
+      <svg class="branch-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span class="label-text">Sede Actual:</span>
+      <select [ngModel]="selectedBranchId" (ngModelChange)="onBranchChange($event)">
+        @for (b of branches; track b.id) {
+          <option [value]="b.id" [selected]="b.id === selectedBranchId">
+            {{ b.nombre }} ({{ b.codigo }})
+          </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="pos-header__right">
+    <button type="button" class="btn-ai-upsell" (click)="onTriggerAiOutfit()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+        <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+      </svg>
+      <span>Sugerir Outfit IA</span>
+    </button>
+
+    <div class="pos-user-badge">
+      <span class="avatar-sm">{{ currentUser?.nombre?.charAt(0) || 'U' }}</span>
+      <div class="user-text">
+        <strong>{{ currentUser?.nombre || 'Usuario' }}</strong>
+        <small>{{ currentUser?.rol || 'CAJERO' }}</small>
+      </div>
+    </div>
+  </div>
+</header>

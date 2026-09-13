@@ -1,0 +1,99 @@
+<div class="pos-catalog-panel">
+  <!-- SEARCH & CATEGORIES -->
+  <div class="pos-catalog-tools">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        [formControl]="searchControl"
+        type="search"
+        placeholder="Buscar por nombre de prenda, marca o SKU..."
+      />
+    </div>
+
+    <div class="pos-category-scroll">
+      <button
+        type="button"
+        class="cat-chip"
+        [class.active]="selectedCategory === null"
+        (click)="onSelectCategory(null)"
+      >
+        Todas
+      </button>
+      @for (c of categories; track c.id) {
+        <button
+          type="button"
+          class="cat-chip"
+          [class.active]="selectedCategory === c.id"
+          (click)="onSelectCategory(c.id)"
+        >
+          {{ c.nombre }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <div class="pos-products-scroll">
+    @if (loading) {
+      <div class="pos-loading-state">
+        <div class="spinner"></div>
+        <span>Cargando catálogo de tienda...</span>
+      </div>
+    } @else {
+      @if (products.length === 0) {
+        <div class="pos-empty-catalog">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <h4>No se encontraron prendas</h4>
+          <p>Prueba con otros términos de búsqueda o selecciona otra categoría.</p>
+        </div>
+      } @else {
+        <div class="pos-products-grid">
+          @for (product of products; track product.id) {
+            <div class="pos-product-card" (click)="onSelectProduct(product)">
+              <div class="pos-card-thumb">
+                @if (getProductImage(product); as imgUrl) {
+                  <img [src]="imgUrl" [alt]="product.nombre" loading="lazy" />
+                } @else {
+                  <div class="thumb-placeholder">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </div>
+                }
+                @if (product.variantes && product.variantes.length > 0) {
+                  <span class="badge-variants">{{ product.variantes.length }} var.</span>
+                }
+              </div>
+
+              <div class="pos-card-info">
+                <div class="pos-card-meta">
+                  <span class="brand-tag">{{ product.marca || 'DrapeMind' }}</span>
+                  <span class="category-tag">{{ getCategoryName(product.categoria_id) }}</span>
+                </div>
+                <h3 class="pos-card-title">{{ product.nombre }}</h3>
+                <div class="pos-card-foot">
+                  <span class="pos-card-price">Bs. {{ product.precio | number:'1.2-2' }}</span>
+                  <button type="button" class="btn-select-garment" title="Ver opciones y tallas">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,114 @@
+@if (open && product) {
+  <div class="modal-scrim" (click)="onClose()"></div>
+  <div class="variant-popup-dialog" role="dialog" aria-modal="true">
+    <div class="popup-header">
+      <div>
+        <p class="popup-eyebrow">{{ product.marca || 'DrapeMind' }} · Sede: {{ branchName || 'Showroom Central' }}</p>
+        <h3 class="popup-title">{{ product.nombre }}</h3>
+      </div>
+      <button type="button" class="btn-popup-close" (click)="onClose()" aria-label="Cerrar modal">&times;</button>
+    </div>
+
+    <div class="popup-body">
+      @if (loading) {
+        <div class="popup-loading">
+          <div class="spinner"></div>
+          <span>Verificando disponibilidad de stock en sede...</span>
+        </div>
+      } @else {
+        <!-- COLOR SELECTOR: AGRUPADO POR TONALIDADES ÚNICAS -->
+        <div class="variant-group">
+          <div class="group-label-row">
+            <label class="group-label">Color:</label>
+            @if (selectedColor(); as activeColor) {
+              <span class="active-color-name">{{ activeColor }}</span>
+            }
+          </div>
+
+          <div class="colors-row">
+            @for (item of distinctColors(); track item.color) {
+              <button
+                type="button"
+                class="color-chip"
+                [class.selected]="selectedColor()?.toLowerCase() === item.color.toLowerCase()"
+                (click)="selectColor(item.color)"
+              >
+                <span
+                  class="color-dot"
+                  [style.background-color]="item.hex || '#333'"
+                ></span>
+                <span>{{ item.color }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- SIZE SELECTOR: TALLAS DISPONIBLES SEGÚN EL COLOR SELECCIONADO -->
+        <div class="variant-group">
+          <label class="group-label">Talla disponible en sede:</label>
+          <div class="sizes-row">
+            @for (variant of availableSizes(); track variant.id) {
+              @let stockInBranch = getVariantBranchStock(variant.id);
+              <button
+                type="button"
+                class="size-chip"
+                [class.selected]="selectedSize() === variant.talla"
+                [class.out-of-stock]="stockInBranch <= 0"
+                [disabled]="stockInBranch <= 0"
+                (click)="selectSize(variant.talla)"
+              >
+                <span class="size-letter">{{ variant.talla }}</span>
+                <span class="size-stock-badge">{{ stockInBranch }} unid.</span>
+              </button>
+            }
+            @if (availableSizes().length === 0) {
+              <p class="no-sizes-hint">No hay tallas registradas para este color.</p>
+            }
+          </div>
+        </div>
+
+        <!-- SELECTED VARIANT SUMMARY -->
+        @if (selectedVariant(); as v) {
+          @let branchStock = getVariantBranchStock(v.id);
+          <div class="variant-availability-summary" [class.in-stock]="branchStock > 0" [class.zero-stock]="branchStock <= 0">
+            <div class="summary-left">
+              <strong>SKU: {{ v.sku }}</strong>
+              <p>Precio unitario: <strong>Bs. {{ product.precio | number:'1.2-2' }}</strong></p>
+            </div>
+            <div class="summary-right">
+              @if (branchStock > 0) {
+                <span class="badge-stock-ok">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{{ branchStock }} disponibles en esta sede</span>
+                </span>
+              } @else {
+                <span class="badge-stock-zero">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <span>Sin existencias en esta sede</span>
+                </span>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="popup-footer">
+      <button type="button" class="btn-secondary" (click)="onClose()">Cancelar</button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!selectedVariant() || getVariantBranchStock(selectedVariant()!.id) <= 0"
+        (click)="onAddSelectedVariant()"
+      >
+        <span>+ Agregar al Ticket</span>
+      </button>
+    </div>
+  </div>
+}
