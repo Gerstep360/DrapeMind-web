@@ -650,10 +650,15 @@
         }
 
         .total-amount {
-          font-size: 1.15rem;
+          font-size: 1.05rem;
           font-weight: 900;
           letter-spacing: -0.02em;
           color: #FFFFFF;
+
+          // Bs 519.77 BOB siempre junto.
+          white-space: nowrap;
+
+          text-align: right;
         }
       }
     }
