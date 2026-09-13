@@ -1,6 +1,5 @@
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import jsQR from 'jsqr';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
@@ -10,7 +9,7 @@ import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-reservations',
-  imports: [DatePipe, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './reservations.component.html',
   styleUrl: './reservations.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,15 +55,43 @@ export class ReservationsComponent {
     });
   }
   readonly branches = signal<Branch[]>([]);
-  readonly branchId = signal(0);
+  readonly branchId = signal<number>(0);
   readonly statusFilter = signal('');
   readonly loading = signal(true);
   readonly loadError = signal('');
   readonly query = signal('');
-  readonly visibleReservations = computed(() => this.reservations().filter(item =>
-    (!this.statusFilter() || item.estado === this.statusFilter()) &&
-    (!this.query().trim() || [item.id, item.codigo_publico, item.observacion, this.branchName(item.sucursal_id)]
-      .join(' ').toLowerCase().includes(this.query().trim().toLowerCase()))));
+
+  readonly visibleReservations = computed(() => {
+    const items = this.reservations();
+    if (!items || !Array.isArray(items)) return [];
+    const q = (this.query() || '').trim().toLowerCase();
+    const st = this.statusFilter() || '';
+    const bId = Number(this.branchId()) || 0;
+
+    return items.filter((item) => {
+      if (!item) return false;
+      // Filtrar por sucursal específica si no es 0 ("Todas mis sucursales")
+      if (bId > 0 && item.sucursal_id && Number(item.sucursal_id) !== bId) {
+        return false;
+      }
+      // Filtrar por estado si está seleccionado
+      if (st && item.estado !== st) {
+        return false;
+      }
+      // Búsqueda libre
+      if (q) {
+        const bName = this.branchName(item.sucursal_id);
+        const code = this.reservationCode(item);
+        const idStr = String(item.id ?? '');
+        const obs = item.observacion || '';
+        const pub = item.codigo_publico ? String(item.codigo_publico) : '';
+        const searchTarget = `${idStr} ${code} ${pub} ${obs} ${bName} ${item.estado || ''}`.toLowerCase();
+        if (!searchTarget.includes(q)) return false;
+      }
+      return true;
+    });
+  });
+
   readonly pendingCancel = signal<Reservation | null>(null);
   readonly cancelDialog = viewChild<ElementRef<HTMLDialogElement>>('cancelDialog');
   readonly qrDialog = viewChild<ElementRef<HTMLDialogElement>>('qrDialog');
@@ -89,11 +116,15 @@ export class ReservationsComponent {
       this.stopCamera();
     });
     if (this.auth.user()?.rol !== 'CLIENTE') {
-      this.api.assignedBranches().subscribe({ next: (branches) => this.branches.set(branches) });
+      this.api.assignedBranches().subscribe({
+        next: (branches) => this.branches.set(Array.isArray(branches) ? branches : []),
+      });
     }
     effect(() => {
       const event = this.events.events().at(0);
-      if (event?.type.startsWith('reservation_')) this.load();
+      if (event?.type?.startsWith('reservation_')) {
+        untracked(() => this.load());
+      }
     });
     this.load();
   }
@@ -102,28 +133,65 @@ export class ReservationsComponent {
     const version = ++this.requestVersion;
     this.loadError.set('');
     this.loading.set(true);
+    const bId = Number(this.branchId()) || 0;
     const request =
-      this.auth.user()?.rol === 'CLIENTE' ? this.api.myReservations() : this.api.reservations(this.statusFilter(), this.branchId());
+      this.auth.user()?.rol === 'CLIENTE'
+        ? this.api.myReservations()
+        : this.api.reservations(this.statusFilter() || undefined, bId > 0 ? bId : undefined);
+
     request.subscribe({
       next: (items) => {
         if (version !== this.requestVersion) return;
-        this.reservations.set(items);
+        this.reservations.set(Array.isArray(items) ? items : []);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
         if (version !== this.requestVersion) return;
         this.loading.set(false);
-        this.loadError.set('No pudimos consultar las reservas. Tus datos no se han modificado.');
+        this.loadError.set(err?.error?.detail || 'No pudimos consultar las reservas. Tus datos no se han modificado.');
       },
     });
   }
 
-  reservationCode(reservation: Reservation): string {
+  onBranchFilterChange(val: string | number): void {
+    this.branchId.set(Number(val) || 0);
+    this.load();
+  }
+
+  onStatusFilterChange(val: string): void {
+    this.statusFilter.set(val || '');
+    this.load();
+  }
+
+  formatId(id: number | string | null | undefined): string {
+    if (id === null || id === undefined) return '0000';
+    return String(id).padStart(4, '0');
+  }
+
+  formatDate(dateVal: string | null | undefined): string {
+    if (!dateVal) return '—';
+    try {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('es-BO', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(d);
+    } catch {
+      return '—';
+    }
+  }
+
+  reservationCode(reservation: Reservation | null | undefined): string {
+    if (!reservation) return 'RES-0000';
     if (reservation.codigo_publico) {
       const clean = String(reservation.codigo_publico).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
       return `RES-${clean.slice(0, 8)}`;
     }
-    return `RES-${reservation.id.toString().padStart(4, '0')}`;
+    return `RES-${this.formatId(reservation.id)}`;
   }
 
   async openScannerDialog(): Promise<void> {
@@ -378,20 +446,35 @@ export class ReservationsComponent {
     });
   }
 
-  timeProgress(reservation: Reservation): number {
+  timeProgress(reservation: Reservation | null | undefined): number {
+    if (!reservation?.fecha_reserva || !reservation?.vence_at) return 100;
     const start = new Date(reservation.fecha_reserva).getTime();
     const end = new Date(reservation.vence_at).getTime();
     const now = Date.now();
-    return end > start ? Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100)) : 100;
+    if (isNaN(start) || isNaN(end) || end <= start) return 100;
+    const pct = ((now - start) / (end - start)) * 100;
+    return Math.max(0, Math.min(100, Math.round(pct)));
   }
 
-  branchName(id: number | null): string {
-    return this.branches().find(branch => branch.id === id)?.nombre ?? (id ? 'Sucursal #' + id : 'Sin sucursal');
+  branchName(id: number | null | undefined): string {
+    if (id === null || id === undefined) return 'Sin sucursal';
+    const numId = Number(id);
+    const found = this.branches().find((branch) => branch.id === numId);
+    return found?.nombre ?? `Sucursal #${numId}`;
   }
 
-  stateLabel(state: string): string {
-    return ({PENDIENTE: 'Por recibir', CONFIRMADA: 'Visita confirmada', EN_PREPARACION: 'En preparación',
-      LISTA: 'Lista para recojo', RETIRADA: 'Cliente atendido', CONVERTIDA: 'Convertida en compra',
-      CANCELADA: 'Cancelada', VENCIDA: 'Vencida'} as Record<string, string>)[state] ?? state;
+  stateLabel(state: string | null | undefined): string {
+    if (!state) return 'Desconocido';
+    const labels: Record<string, string> = {
+      PENDIENTE: 'Por recibir',
+      CONFIRMADA: 'Visita confirmada',
+      EN_PREPARACION: 'En preparación',
+      LISTA: 'Lista para recojo',
+      RETIRADA: 'Cliente atendido',
+      CONVERTIDA: 'Convertida en compra',
+      CANCELADA: 'Cancelada',
+      VENCIDA: 'Vencida',
+    };
+    return labels[state] ?? state;
   }
 }
