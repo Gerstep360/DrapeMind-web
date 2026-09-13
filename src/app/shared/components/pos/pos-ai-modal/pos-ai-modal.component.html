@@ -1,23 +1,32 @@
 @if (open) {
   <div class="modal-scrim" (click)="onClose()"></div>
   <div class="ai-outfit-dialog" role="dialog" aria-modal="true">
+    <!-- DIALOG HEADER -->
     <div class="ai-dialog-header">
       <div class="header-sparkle-title">
-        <svg class="sparkle-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-          <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
-        </svg>
+        <div class="sparkle-badge">
+          <svg class="sparkle-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+          </svg>
+        </div>
         <div>
           <h3>Personal Stylist IA — Sugerencias en Mostrador</h3>
-          <small>Recomendaciones coordinadas para agregar directamente al ticket de venta</small>
+          <small>Curaduría de moda en tiempo real sincronizada con el ticket de venta</small>
         </div>
       </div>
-      <button type="button" class="btn-popup-close" (click)="onClose()" aria-label="Cerrar modal">&times;</button>
+      <button type="button" class="btn-popup-close" (click)="onClose()" aria-label="Cerrar modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
 
+    <!-- DIALOG BODY -->
     <div class="ai-dialog-body">
       @if (contextSummary) {
         <div class="pos-context-banner">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -28,7 +37,7 @@
 
       <!-- AI MODEL SELECTOR TABS -->
       <div class="ai-model-selector-bar">
-        <span class="model-select-label">Modelo de Estilo IA:</span>
+        <span class="model-select-label">Motor de Inteligencia de Moda:</span>
         <div class="model-tabs">
           <button
             type="button"
@@ -36,6 +45,11 @@
             [class.active]="selectedModel === 'mini'"
             (click)="onSelectModel('mini')"
           >
+            <div class="model-tab-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
             <span class="model-name">Mini</span>
             <small class="model-desc">Rápido y Directo</small>
           </button>
@@ -46,6 +60,13 @@
             [class.active]="selectedModel === 'dinamico'"
             (click)="onSelectModel('dinamico')"
           >
+            <div class="model-tab-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                <polyline points="2 17 12 22 22 17"/>
+                <polyline points="2 12 12 17 22 12"/>
+              </svg>
+            </div>
             <span class="model-name">Dinámico</span>
             <small class="model-desc">Moda Balanceado</small>
           </button>
@@ -56,6 +77,11 @@
             [class.active]="selectedModel === 'altair'"
             (click)="onSelectModel('altair')"
           >
+            <div class="model-tab-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+            </div>
             <span class="model-name">Altair</span>
             <small class="model-desc">Curaduría Atelier Pro</small>
           </button>
@@ -69,7 +95,7 @@
           <input
             [formControl]="occasionControl"
             type="text"
-            placeholder="Ej. 'algo casual menos de 300bs', 'vestido de gala', 'ropa urbana'..."
+            placeholder="Ej. 'algo casual menos de 300bs', 'vestido de gala', 'look urbano'..."
             (keydown.enter)="onGenerate()"
           />
           <button
@@ -80,81 +106,175 @@
           >
             @if (loading) {
               <span class="spinner-sm"></span>
-              <span>Generando Outfit...</span>
+              <span>Generando Outfits...</span>
             } @else {
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                 <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
               </svg>
               <span>Sugerir Outfit IA</span>
             }
           </button>
         </div>
+
+        <!-- QUICK OCCASION SUGGESTIONS -->
+        <div class="ai-quick-chips">
+          <span class="chips-label">Sugerencias rápidas:</span>
+          <div class="chips-list">
+            @for (chip of quickSuggestions; track chip.label) {
+              <button
+                type="button"
+                class="quick-chip-btn"
+                [disabled]="loading"
+                (click)="onApplySuggestion(chip.query)"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+                </svg>
+                <span>{{ chip.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
       </div>
 
+      <!-- ALTAIR AI EXPLANATION & RECOMMENDATION (RICH MARKDOWN) -->
       @if (responseText || recommendationText) {
         <div class="ai-response-box">
           <div class="ai-response-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
-            </svg>
-            <span>Personal Stylist Altair</span>
+            <div class="ai-avatar-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+            </div>
+            <div class="ai-header-titles">
+              <span class="ai-stylist-name">Personal Stylist Altair</span>
+              <span class="ai-stylist-sub">Curaduría Editorial</span>
+            </div>
           </div>
+
           @if (responseText) {
-            <p class="ai-intro-text">{{ responseText }}</p>
+            <div class="ai-intro-text ai-markdown" [innerHTML]="renderMarkdown(responseText)"></div>
           }
+
           @if (recommendationText) {
             <div class="ai-recommendation-callout">
-              <span class="callout-icon">💡</span>
-              <p>{{ recommendationText }}</p>
+              <span class="callout-icon" aria-hidden="true">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 18h6"/>
+                  <path d="M10 22h4"/>
+                  <path d="M8.5 14.5A6 6 0 1 1 15.5 14.5C14.5 15.3 14 16 14 18h-4c0-2-.5-2.7-1.5-3.5Z"/>
+                </svg>
+              </span>
+              <div class="callout-content ai-markdown" [innerHTML]="renderMarkdown(recommendationText)"></div>
             </div>
           }
         </div>
       }
 
-      <!-- VIEW 1: OUTFIT CARDS -->
+      <!-- VIEW 1: COORDINATED OUTFIT CARDS -->
       @if (!selectedOutfitSet) {
         <div class="outfits-container">
           @if (outfitSets.length > 0) {
             <div class="outfit-cards-header">
-              <span class="section-title">Conjuntos Coordinados ({{ outfitSets.length }})</span>
-              <small class="section-caption">Inspecciona las prendas o agrégalas al ticket</small>
+              <div class="header-left">
+                <span class="section-title">Conjuntos Coordinados ({{ outfitSets.length }})</span>
+                <small class="section-caption">Selecciona un conjunto para ver detalles o agrégalo directamente al ticket</small>
+              </div>
             </div>
 
             <div class="outfit-cards-grid">
               @for (set of outfitSets; track set.id) {
                 <div class="outfit-card" (click)="onViewDetail(set)">
+                  <!-- CARD TOP -->
                   <div class="outfit-card-top">
-                    <span class="outfit-badge">{{ set.modelName }}</span>
+                    <div class="card-look-meta">
+                      <span class="look-index-badge">LOOK 0{{ $index + 1 }}</span>
+                      <span class="match-score-badge">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+                        </svg>
+                        <span>{{ getMatchScore(set, $index) }}% Match</span>
+                      </span>
+                    </div>
                     <span class="pieces-badge">{{ set.pieces.length }} prendas</span>
                   </div>
 
-                  <h4 class="outfit-card-title">{{ set.title }}</h4>
-                  <p class="outfit-card-narrative">{{ set.rationale }}</p>
+                  <!-- TITLE & NARRATIVE -->
+                  <div class="outfit-card-info">
+                    <h4 class="outfit-card-title">{{ set.title }}</h4>
+                    <p class="outfit-card-narrative">{{ set.rationale }}</p>
+                  </div>
 
+                  <!-- VISUAL COLLAGE -->
                   <div class="outfit-pieces-collage">
                     @for (piece of set.pieces; track piece.productId) {
-                      <div class="collage-item" [title]="piece.roleLabel + ': ' + piece.name">
+                      <div class="collage-item" [title]="piece.roleLabel + ': ' + piece.name + ' (Bs. ' + piece.price + ')'">
                         @if (piece.image) {
-                          <img [src]="piece.image" [alt]="piece.name" />
+                          <img [src]="piece.image" [alt]="piece.name" loading="lazy" />
                         } @else {
-                          <div class="collage-placeholder">{{ piece.role.charAt(0) }}</div>
+                          <div class="collage-placeholder">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                              <line x1="3" y1="6" x2="21" y2="6"/>
+                            </svg>
+                          </div>
                         }
                         <span class="collage-role-tag">{{ piece.roleLabel }}</span>
                       </div>
                     }
                   </div>
 
+                  <!-- CARD FOOTER & QUICK ACTIONS -->
                   <div class="outfit-card-foot">
                     <div class="outfit-price-wrap">
-                      <span class="price-label">Total:</span>
+                      <span class="price-label">Total Conjunto:</span>
                       <strong class="price-val">Bs. {{ set.totalPrice | number:'1.2-2' }}</strong>
                     </div>
-                    <button type="button" class="btn-inspect-outfit">
-                      <span>Ver Prendas</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"/>
-                      </svg>
-                    </button>
+
+                    <div class="card-action-group">
+                      <button
+                        type="button"
+                        class="btn-inspect-outfit"
+                        title="Ver prendas individuales y tallas"
+                      >
+                        <span>Ver Look</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn-quick-add-outfit"
+                        [class.btn-added-state]="isOutfitAdded(set.id)"
+                        (click)="$event.stopPropagation(); onAddWholeOutfit(set)"
+                        title="Añadir todas las prendas de este look directamente al ticket"
+                      >
+                        @if (isOutfitAdded(set.id)) {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                          <span>¡Añadido!</span>
+                        } @else {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="12" y1="11" x2="12" y2="17"/>
+                            <line x1="9" y1="14" x2="15" y2="14"/>
+                          </svg>
+                          <span>+ Todo</span>
+                        }
+                      </button>
+                    </div>
                   </div>
                 </div>
               }
@@ -168,29 +288,35 @@
         <div class="outfit-full-view">
           <div class="inspector-nav-bar">
             <button type="button" class="btn-back-outfits" (click)="onBackToList()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"/>
               </svg>
-              <span>Volver a sugerencias</span>
+              <span>Volver a todas las opciones</span>
             </button>
-            <span class="model-badge-inspector">{{ outfit.modelName }}</span>
+            <div class="inspector-badges">
+              <span class="model-badge-inspector">{{ outfit.modelName }}</span>
+              <span class="match-badge-inspector">Look Completo Coordinado</span>
+            </div>
           </div>
 
           <div class="outfit-showcase-header">
-            <h3 class="showcase-title">{{ outfit.title }}</h3>
+            <div class="showcase-title-row">
+              <h3 class="showcase-title">{{ outfit.title }}</h3>
+              <span class="showcase-pieces-count">{{ outfit.pieces.length }} prendas en este look</span>
+            </div>
             <p class="showcase-rationale">{{ outfit.rationale }}</p>
           </div>
 
-          <!-- GRID DE PRENDAS -->
+          <!-- GRID DE PRENDAS INDIVIDUALES -->
           <div class="full-pieces-grid">
             @for (piece of outfit.pieces; track piece.productId) {
               <div class="full-piece-card">
                 <div class="piece-thumb-wrap">
                   @if (piece.image) {
-                    <img [src]="piece.image" [alt]="piece.name" />
+                    <img [src]="piece.image" [alt]="piece.name" loading="lazy" />
                   } @else {
                     <div class="piece-placeholder">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
                         <line x1="3" y1="6" x2="21" y2="6"/>
                       </svg>
@@ -202,23 +328,42 @@
                 <div class="piece-info">
                   <span class="piece-brand">{{ piece.brand }}</span>
                   <h4 class="piece-name">{{ piece.name }}</h4>
+
                   <div class="piece-specs">
                     @if (piece.color) {
-                      <span class="spec-pill">{{ piece.color }}</span>
+                      <span class="spec-pill">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        <span>{{ piece.color }}</span>
+                      </span>
                     }
                     @if (piece.size) {
-                      <span class="spec-pill">Talla {{ piece.size }}</span>
+                      <span class="spec-pill spec-pill-size">Talla {{ piece.size }}</span>
                     }
                   </div>
+
                   <div class="piece-price-row">
                     <strong class="piece-price">Bs. {{ piece.price | number:'1.2-2' }}</strong>
                     <button
                       type="button"
                       class="btn-add-single-piece"
+                      [class.btn-added-piece-state]="isPieceAdded(piece.productId)"
                       (click)="onAddSinglePiece(piece)"
-                      title="Agregar esta prenda al ticket de mostrador"
+                      title="Agregar esta prenda específica al ticket de mostrador"
                     >
-                      + Al Ticket
+                      @if (isPieceAdded(piece.productId)) {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span>¡Agregado!</span>
+                      } @else {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"/>
+                          <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Al Ticket</span>
+                      }
                     </button>
                   </div>
                 </div>
@@ -229,7 +374,7 @@
           <!-- BANNER DE ACCIÓN COMPLETA -->
           <div class="outfit-action-banner">
             <div class="banner-summary">
-              <span class="banner-pieces">{{ outfit.pieces.length }} prendas coordinadas listas para caja</span>
+              <span class="banner-pieces">{{ outfit.pieces.length }} prendas coordinadas listas para añadir</span>
               <div class="banner-total">
                 <span class="total-lbl">TOTAL LOOK COMPLETO:</span>
                 <strong class="total-amount">Bs. {{ outfit.totalPrice | number:'1.2-2' }}</strong>
@@ -239,20 +384,31 @@
             <button
               type="button"
               class="btn-add-whole-outfit"
+              [class.btn-added-state]="isOutfitAdded(outfit.id)"
               (click)="onAddWholeOutfit(outfit)"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
-              </svg>
-              <span>Añadir Todo el Outfit al Ticket ({{ outfit.pieces.length }} prendas)</span>
+              @if (isOutfitAdded(outfit.id)) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>¡Look Completo Añadido al Ticket!</span>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+                </svg>
+                <span>Añadir Todo el Outfit al Ticket ({{ outfit.pieces.length }} prendas)</span>
+              }
             </button>
           </div>
         </div>
       }
     </div>
 
+    <!-- DIALOG FOOTER -->
     <div class="ai-dialog-footer">
-      <button type="button" class="btn-secondary" (click)="onClose()">Cerrar</button>
+      <button type="button" class="btn-secondary" (click)="onClose()">
+        <span>Cerrar</span>
+      </button>
     </div>
   </div>
 }

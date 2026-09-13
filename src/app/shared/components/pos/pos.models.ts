@@ -27,6 +27,7 @@ export interface OutfitPiece {
   roleLabel: string;
   color?: string;
   size?: string;
+  inTicket?: boolean;
 }
 
 export interface OutfitSet {
@@ -38,6 +39,8 @@ export interface OutfitSet {
   rationale: string;
   totalPrice: number;
   pieces: OutfitPiece[];
+  matchScore?: number;
+  tags?: string[];
 }
 
 export interface DistinctColor {
