@@ -10,19 +10,25 @@
     </div>
 
     <div class="pos-header__center">
-      <label class="branch-selector-wrap">
-        <span class="label-text">Sede Despacho:</span>
+      <div class="branch-selector-wrap">
+        <svg class="branch-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="label-text">Sede Actual:</span>
         <select [value]="selectedBranchId()" (change)="onSelectBranch($event)">
           @for (b of branchService.branches(); track b.id) {
             <option [value]="b.id">{{ b.nombre }} ({{ b.codigo }})</option>
           }
         </select>
-      </label>
+      </div>
     </div>
 
     <div class="pos-header__right">
       <button type="button" class="btn-ai-upsell" (click)="openAiOutfitModal()">
-        <span class="sparkle">✦</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+        </svg>
         <span>Sugerir Outfit IA</span>
       </button>
 
@@ -131,7 +137,11 @@
             [class.active]="customerMode() === 'WALK_IN'"
             (click)="setCustomerMode('WALK_IN')"
           >
-            <span>👤 Sin Cuenta (Mostrador)</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>Sin Cuenta (Mostrador)</span>
           </button>
           <button
             type="button"
@@ -139,7 +149,12 @@
             [class.active]="customerMode() === 'REGISTERED'"
             (click)="setCustomerMode('REGISTERED')"
           >
-            <span>✦ Cliente Registrado</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <span>Cliente Registrado</span>
           </button>
         </div>
 
@@ -157,7 +172,7 @@
                 placeholder="NIT / CI (Opcional)"
               />
             </div>
-            <p class="hint-text">Venta inmediata al paso — Sin necesidad de cuenta registrada.</p>
+            <p class="hint-text">Venta inmediata en caja sin cuenta de usuario.</p>
           </div>
         } @else {
           <div class="registered-client-box">
@@ -257,9 +272,15 @@
             </div>
           } @empty {
             <div class="ticket-empty-state">
-              <div class="ticket-empty-icon">🛒</div>
+              <div class="ticket-empty-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              </div>
               <h4>Ticket Vacío</h4>
-              <p>Haz clic en cualquier prenda del catálogo izquierdo para agregarla al mostrador.</p>
+              <p>Selecciona prendas del catálogo para añadirlas al mostrador.</p>
             </div>
           }
         </div>
@@ -287,7 +308,12 @@
             [class.active]="paymentMethod() === 'EFECTIVO'"
             (click)="paymentMethod.set('EFECTIVO')"
           >
-            💵 Efectivo
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="6" width="20" height="12" rx="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <path d="M6 12h.01M18 12h.01"/>
+            </svg>
+            <span>Efectivo</span>
           </button>
           <button
             type="button"
@@ -295,7 +321,11 @@
             [class.active]="paymentMethod() === 'TARJETA'"
             (click)="paymentMethod.set('TARJETA')"
           >
-            💳 Tarjeta POS
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            <span>Tarjeta POS</span>
           </button>
           <button
             type="button"
@@ -303,7 +333,13 @@
             [class.active]="paymentMethod() === 'QR'"
             (click)="paymentMethod.set('QR')"
           >
-            📱 QR Simple
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>QR Simple</span>
           </button>
         </div>
 
@@ -376,7 +412,9 @@
             <span class="spinner-sm"></span>
             <span>Registrando Venta en Caja...</span>
           } @else {
-            <span class="sparkle">✦</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
             <span>COBRAR E IMPRIMIR COMPROBANTE (Bs. {{ total() | number:'1.2-2' }})</span>
           }
         </button>
@@ -391,7 +429,7 @@
   <div class="variant-popup-dialog" role="dialog">
     <div class="popup-header">
       <div>
-        <p class="popup-eyebrow">{{ product.marca || 'DrapeMind' }} · {{ branchName(selectedBranchId()) }}</p>
+        <p class="popup-eyebrow">{{ product.marca || 'DrapeMind' }} · Sede: {{ branchName(selectedBranchId()) }}</p>
         <h3 class="popup-title">{{ product.nombre }}</h3>
       </div>
       <button type="button" class="btn-popup-close" (click)="closeVariantModal()">&times;</button>
@@ -460,9 +498,21 @@
             </div>
             <div class="summary-right">
               @if (branchStock > 0) {
-                <span class="badge-stock-ok">✓ {{ branchStock }} disponibles en esta sede</span>
+                <span class="badge-stock-ok">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{{ branchStock }} disponibles en esta sede</span>
+                </span>
               } @else {
-                <span class="badge-stock-zero">⚠ Sin existencias en esta sede</span>
+                <span class="badge-stock-zero">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <span>Sin existencias en esta sede</span>
+                </span>
               }
             </div>
           </div>
@@ -490,23 +540,62 @@
   <div class="ai-outfit-dialog" role="dialog">
     <div class="ai-dialog-header">
       <div class="header-sparkle-title">
-        <span class="sparkle-lg">✦</span>
+        <svg class="sparkle-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+        </svg>
         <div>
-          <h3>Personal Stylist IA — Sugerencias en Mostrador</h3>
-          <small>Asistencia inteligente para ventas cruzadas y recomendaciones en tiempo real</small>
+          <h3>Personal Stylist IA — Sugerencias de Outfit</h3>
+          <small>Modelos de recomendación inteligente en mostrador</small>
         </div>
       </div>
       <button type="button" class="btn-popup-close" (click)="closeAiOutfitModal()">&times;</button>
     </div>
 
     <div class="ai-dialog-body">
+      <!-- AI MODEL SELECTOR TABS -->
+      <div class="ai-model-selector-bar">
+        <span class="model-select-label">Modelo de Estilo IA:</span>
+        <div class="model-tabs">
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedAiModel() === 'mini'"
+            (click)="setAiModel('mini')"
+          >
+            <span class="model-name">Mini</span>
+            <small class="model-desc">Gemma 2B Rápido</small>
+          </button>
+
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedAiModel() === 'dinamico'"
+            (click)="setAiModel('dinamico')"
+          >
+            <span class="model-name">Dinámico</span>
+            <small class="model-desc">Moda Balanceado</small>
+          </button>
+
+          <button
+            type="button"
+            class="model-tab-btn"
+            [class.active]="selectedAiModel() === 'altair'"
+            (click)="setAiModel('altair')"
+          >
+            <span class="model-name">Altair</span>
+            <small class="model-desc">Curaduría Atelier Pro</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- PROMPT SEARCH BAR -->
       <div class="ai-prompt-bar">
-        <label>Ocasión o estilo a complementar:</label>
+        <label>Ocasión o estilo deseado:</label>
         <div class="prompt-input-group">
           <input
             [formControl]="aiOccasionControl"
             type="text"
-            placeholder="Ej. 'Cena de gala formal', 'Prenda superior para jeans oscuros'..."
+            placeholder="Ej. 'Cena de gala formal', 'Cóctel de verano', 'Look urbano casual'..."
           />
           <button
             type="button"
@@ -516,9 +605,12 @@
           >
             @if (aiLoading()) {
               <span class="spinner-sm"></span>
-              <span>Generando...</span>
+              <span>Generando Outfit...</span>
             } @else {
-              <span>✦ Sugerir Combinación</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+              <span>Sugerir Outfit IA</span>
             }
           </button>
         </div>
@@ -530,21 +622,142 @@
         </div>
       }
 
-      @if (aiSuggestedProducts().length > 0) {
-        <div class="ai-suggestions-list">
-          <span class="list-title">Prendas sugeridas del catálogo para agregar:</span>
-          <div class="suggestions-grid">
-            @for (sug of aiSuggestedProducts(); track sug.id) {
-              <div class="sug-card">
-                <div class="sug-info">
-                  <strong>{{ sug.nombre }}</strong>
-                  <span class="sug-price">Bs. {{ sug.precio | number:'1.2-2' }}</span>
+      <!-- VIEW 1: OUTFIT CARDS (SELECCIÓN DE CONJUNTOS COMPLETOS) -->
+      @if (!selectedOutfitSet()) {
+        <div class="outfits-container">
+          @if (outfitSets().length > 0) {
+            <div class="outfit-cards-header">
+              <span class="section-title">Conjuntos Completos Sugeridos ({{ outfitSets().length }})</span>
+              <small class="section-caption">Haz clic en un card para inspeccionar el outfit completo con todas sus prendas</small>
+            </div>
+
+            <div class="outfit-cards-grid">
+              @for (set of outfitSets(); track set.id) {
+                <div class="outfit-card" (click)="viewOutfitDetail(set)">
+                  <div class="outfit-card-top">
+                    <span class="outfit-badge">{{ set.modelName }}</span>
+                    <span class="pieces-badge">{{ set.pieces.length }} prendas</span>
+                  </div>
+
+                  <h4 class="outfit-card-title">{{ set.title }}</h4>
+                  <p class="outfit-card-narrative">{{ set.rationale }}</p>
+
+                  <!-- MINI GALLERY DE LAS PRENDAS EN EL CONJUNTO -->
+                  <div class="outfit-pieces-collage">
+                    @for (piece of set.pieces; track piece.productId) {
+                      <div class="collage-item" [title]="piece.roleLabel + ': ' + piece.name">
+                        @if (piece.image) {
+                          <img [src]="piece.image" [alt]="piece.name" />
+                        } @else {
+                          <div class="collage-placeholder">{{ piece.role.charAt(0) }}</div>
+                        }
+                        <span class="collage-role-tag">{{ piece.roleLabel }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="outfit-card-foot">
+                    <div class="outfit-price-wrap">
+                      <span class="price-label">Total Outfit:</span>
+                      <strong class="price-val">Bs. {{ set.totalPrice | number:'1.2-2' }}</strong>
+                    </div>
+                    <button type="button" class="btn-inspect-outfit">
+                      <span>Ver Outfit Completo</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <button type="button" class="btn-add-sug" (click)="addSuggestedProductToSale(sug)">
-                  + Seleccionar
-                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- VIEW 2: FULL OUTFIT INSPECTOR (TODO EL OUTFIT COMPLETO) -->
+      @if (selectedOutfitSet(); as outfit) {
+        <div class="outfit-full-view">
+          <div class="inspector-nav-bar">
+            <button type="button" class="btn-back-outfits" (click)="backToOutfitList()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              <span>Volver a opciones de conjuntos</span>
+            </button>
+            <span class="model-badge-inspector">{{ outfit.modelName }}</span>
+          </div>
+
+          <div class="outfit-showcase-header">
+            <h3 class="showcase-title">{{ outfit.title }}</h3>
+            <p class="showcase-rationale">{{ outfit.rationale }}</p>
+          </div>
+
+          <!-- GRID DE TODAS LAS PRENDAS COORDINADAS DEL OUTFIT -->
+          <div class="full-pieces-grid">
+            @for (piece of outfit.pieces; track piece.productId) {
+              <div class="full-piece-card">
+                <div class="piece-thumb-wrap">
+                  @if (piece.image) {
+                    <img [src]="piece.image" [alt]="piece.name" />
+                  } @else {
+                    <div class="piece-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                      </svg>
+                    </div>
+                  }
+                  <span class="piece-role-badge">{{ piece.roleLabel }}</span>
+                </div>
+
+                <div class="piece-info">
+                  <span class="piece-brand">{{ piece.brand }}</span>
+                  <h4 class="piece-name">{{ piece.name }}</h4>
+                  <div class="piece-specs">
+                    @if (piece.color) {
+                      <span class="spec-pill">{{ piece.color }}</span>
+                    }
+                    @if (piece.size) {
+                      <span class="spec-pill">Talla {{ piece.size }}</span>
+                    }
+                  </div>
+                  <div class="piece-price-row">
+                    <strong class="piece-price">Bs. {{ piece.price | number:'1.2-2' }}</strong>
+                    <button
+                      type="button"
+                      class="btn-add-single-piece"
+                      (click)="addSinglePieceFromOutfit(piece)"
+                      title="Elegir talla y agregar solo esta prenda"
+                    >
+                      + Prenda suelta
+                    </button>
+                  </div>
+                </div>
               </div>
             }
+          </div>
+
+          <!-- BOTTOM ACTION BAR FOR COMPLETE OUTFIT -->
+          <div class="outfit-action-banner">
+            <div class="banner-summary">
+              <span class="banner-pieces">{{ outfit.pieces.length }} prendas coordinadas listas para añadir</span>
+              <div class="banner-total">
+                <span class="total-lbl">TOTAL LOOK COMPLETO:</span>
+                <strong class="total-amount">Bs. {{ outfit.totalPrice | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-add-whole-outfit"
+              (click)="addWholeOutfitToTicket(outfit)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
+              </svg>
+              <span>Añadir Todo el Outfit al Ticket ({{ outfit.pieces.length }} prendas)</span>
+            </button>
           </div>
         </div>
       }
