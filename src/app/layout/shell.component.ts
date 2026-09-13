@@ -17,6 +17,7 @@ export type NavIcon =
   | 'inventory'
   | 'reservations'
   | 'orders'
+  | 'pos'
   | 'stylist'
   | 'account';
 
@@ -63,6 +64,12 @@ export class ShellComponent {
       icon: 'orders',
       route: '/orders',
       roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
+    },
+    {
+      label: 'Caja POS',
+      icon: 'pos',
+      route: '/pos',
+      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'],
     },
     {
       label: 'Reservas',

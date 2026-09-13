@@ -13,59 +13,7 @@
   }
 </section>
 
-<!-- AI STYLING CONCIERGE BANNER -->
-<section class="ai-concierge-banner" aria-label="Asistente de moda IA">
-  <div class="ai-concierge-banner__content">
-    <div class="ai-concierge-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-      </svg>
-      <span>Personal Stylist AI Concierge</span>
-    </div>
-    <h2>Explora la Colección por Ocasión y Estilo</h2>
-    <p>Filtra instantáneamente las mejores prendas según tu ocasión o ingresa lo que estás buscando para ver opciones en stock.</p>
-
-    <div class="ai-concierge-chips">
-      <button type="button" class="ai-chip" (click)="filterByCollection('CENA')">
-        Cena &amp; Noche Elegante
-      </button>
-      <button type="button" class="ai-chip" (click)="filterByCollection('POLERAS_TOP')">
-        Poleras de Alta Gama
-      </button>
-      <button type="button" class="ai-chip" (click)="filterByCollection('CASUAL_ECONOMICO')">
-        Casual &lt; Bs 300
-      </button>
-      <button type="button" class="ai-chip" (click)="filterByCollection('TODOS')">
-        Ver Todo el Catálogo
-      </button>
-    </div>
-  </div>
-
-  <form class="ai-concierge-form" (ngSubmit)="onConciergeSearch()">
-    <input
-      [formControl]="aiQueryControl"
-      type="text"
-      placeholder="Filtrar por 'lino', 'seda', 'negro', 'blanco', 'camisa'..."
-    />
-    <button type="submit" class="button button--primary" [disabled]="!aiQueryControl.value.trim()">
-      <span>Filtrar Colección</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="22" y1="2" x2="11" y2="13"/>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-      </svg>
-    </button>
-    <button
-      type="button"
-      class="ai-combine-btn"
-      (click)="askAiFromCatalog()"
-      [disabled]="!aiQueryControl.value.trim()"
-    >
-      Pedir recomendación
-    </button>
-  </form>
-</section>
-
-<!-- FILTERS TOOLBAR -->
+<!-- FILTERS TOOLBAR WITH INTEGRATED AI STYLIST FILTER -->
 <section class="catalog-tools" aria-label="Filtros de catalogo">
   <div class="search-and-gender">
     <label class="search-field">
@@ -76,6 +24,21 @@
       </svg>
       <input [formControl]="search" type="search" placeholder="Buscar por polera, camisa, jeans, color o estilo..." />
     </label>
+
+    <div class="ai-filter-trigger-wrap">
+      <button
+        type="button"
+        class="btn-ai-trigger"
+        [class.active]="aiPanelOpen() || activeAiFilter()"
+        (click)="toggleAiPanel()"
+      >
+        <span class="ai-sparkle">✦</span>
+        <span>Filtro Stylist IA</span>
+        @if (activeAiFilter()) {
+          <span class="ai-active-dot"></span>
+        }
+      </button>
+    </div>
 
     <div class="gender-chips" aria-label="Filtrar por género">
       @for (g of ['TODOS', 'HOMBRE', 'MUJER', 'UNISEX']; track g) {
@@ -90,6 +53,60 @@
       }
     </div>
   </div>
+
+  <!-- DOCKED ELEGANT AI CAPSULE (NON-INTRUSIVE) -->
+  @if (aiPanelOpen()) {
+    <div class="ai-docked-capsule">
+      <div class="ai-capsule-header">
+        <div class="ai-capsule-title">
+          <span class="sparkle">✦</span>
+          <strong>Personal Stylist AI Concierge</strong>
+          <small>Encuentra prendas por ocasión, fit o estilo en stock real</small>
+        </div>
+        <button type="button" class="btn-close-ai" (click)="toggleAiPanel()" title="Cerrar panel IA">&times;</button>
+      </div>
+
+      <form class="ai-capsule-search" (ngSubmit)="onConciergeSearch()">
+        <input
+          [formControl]="aiQueryControl"
+          type="text"
+          placeholder="Ej. 'vestido lino para boda de día', 'camisa blanca formal', 'pantalón cargo beige'..."
+        />
+        <button type="submit" class="btn-ai-apply" [disabled]="!aiQueryControl.value.trim()">
+          Filtrar con IA
+        </button>
+        <button type="button" class="btn-ai-recommend" (click)="askAiFromCatalog()">
+          ✦ Abrir en Stylist Studio ↗
+        </button>
+      </form>
+
+      <div class="ai-quick-pills">
+        <span class="pills-label">Inspiración rápida:</span>
+        <button type="button" class="ai-quick-pill" (click)="applyAiFilter('Cena Elegante Noche')">
+          Cena Elegante
+        </button>
+        <button type="button" class="ai-quick-pill" (click)="applyAiFilter('Poleras de Alta Gama')">
+          Poleras Top
+        </button>
+        <button type="button" class="ai-quick-pill" (click)="applyAiFilter('Casual Urbano')">
+          Casual Urbano
+        </button>
+        <button type="button" class="ai-quick-pill" (click)="applyAiFilter('Lino &amp; Verano')">
+          Lino &amp; Verano
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (activeAiFilter()) {
+    <div class="active-ai-filter-bar">
+      <span class="active-ai-pill">
+        <span class="sparkle">✦</span>
+        <span>Filtro IA activo: <strong>"{{ activeAiFilter() }}"</strong></span>
+        <button type="button" class="btn-clear-ai" (click)="clearAiFilter()" title="Quitar filtro IA">&times;</button>
+      </span>
+    </div>
+  }
 
   <div class="category-tabs">
     <button
@@ -126,6 +143,7 @@
     </button>
   </div>
 </section>
+
 
 <!-- PRODUCTS GRID -->
 @if (loading()) {
@@ -257,6 +275,32 @@
       </div>
     }
   </section>
+
+  @if (products().length > 0) {
+    <div class="catalog-pagination-bar">
+      <p class="pagination-info">
+        Mostrando <strong>{{ products().length }}</strong> prendas en el perchero
+      </p>
+      @if (hasMore()) {
+        <button
+          type="button"
+          class="btn-load-more"
+          [disabled]="loadingMore()"
+          (click)="loadMore()"
+        >
+          @if (loadingMore()) {
+            <span class="spinner-sm"></span>
+            <span>Cargando más prendas...</span>
+          } @else {
+            <span class="sparkle">✦</span>
+            <span>Cargar más prendas (+48)</span>
+          }
+        </button>
+      } @else {
+        <p class="pagination-end">✓ Has explorado todas las prendas de esta selección</p>
+      }
+    </div>
+  }
 }
 
 <!-- PRODUCT DETAIL & VARIANT MODAL -->

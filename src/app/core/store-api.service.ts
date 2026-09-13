@@ -53,10 +53,60 @@ export class StoreApiService {
     let params = new HttpParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        params = params.set(key, String(value));
+        let paramKey = key;
+        if (key === 'gender') paramKey = 'genero';
+        if (key === 'max_price') paramKey = 'precio_max';
+        params = params.set(paramKey, String(value));
       }
     });
     return this.http.get<Product[]>(`${this.runtime.apiUrl}/catalog/products`, { params });
+  }
+
+  searchCustomers(query: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.runtime.apiUrl}/admin/customers/search`, {
+      params: { q: query },
+    });
+  }
+
+  createPosSale(payload: {
+    sucursal_id: number;
+    cliente_id?: number | null;
+    items: Array<{ variante_id: number; cantidad: number; precio_unitario: number }>;
+    metodo_pago: string;
+    numero_factura?: string | null;
+  }): Observable<{
+    pedido_id: number;
+    total: number;
+    estado: string;
+    pago_estado: string;
+    mensaje: string;
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/admin/sales/pos`, payload);
+  }
+
+  completeOutfit(payload: {
+    producto_base_id: number;
+    ocasion?: string;
+    presupuesto_max?: number;
+  }): Observable<{
+    sesion_id: number;
+    interaccion_id: number;
+    respuesta: string;
+    productos: any[];
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/complete`, payload);
+  }
+
+  generateOutfit(payload: {
+    ocasion: string;
+    presupuesto_max?: number;
+  }): Observable<{
+    sesion_id: number;
+    interaccion_id: number;
+    respuesta: string;
+    productos: any[];
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/generate`, payload);
   }
 
   product(id: number): Observable<Product> {

@@ -1,0 +1,562 @@
+<div class="pos-layout">
+  <!-- TOP TOOLBAR -->
+  <header class="pos-header">
+    <div class="pos-header__left">
+      <div class="pos-badge">
+        <span class="pulse-dot"></span>
+        <span>TERMINAL POS CAJA</span>
+      </div>
+      <h1 class="pos-title">Punto de Venta Presencial</h1>
+    </div>
+
+    <div class="pos-header__center">
+      <label class="branch-selector-wrap">
+        <span class="label-text">Sede Despacho:</span>
+        <select [value]="selectedBranchId()" (change)="onSelectBranch($event)">
+          @for (b of branchService.branches(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }} ({{ b.codigo }})</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="pos-header__right">
+      <button type="button" class="btn-ai-upsell" (click)="openAiOutfitModal()">
+        <span class="sparkle">✦</span>
+        <span>Sugerir Outfit IA</span>
+      </button>
+
+      <div class="pos-user-badge">
+        <span class="avatar-sm">{{ auth.user()?.nombre?.charAt(0) }}</span>
+        <div class="user-text">
+          <strong>{{ auth.user()?.nombre }}</strong>
+          <small>{{ auth.user()?.rol }}</small>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE: 2 COLUMNS -->
+  <div class="pos-body">
+    <!-- LEFT COLUMN: GARMENTS & SELECTION -->
+    <section class="pos-catalog-panel">
+      <!-- SEARCH & CATEGORIES -->
+      <div class="pos-catalog-tools">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            [formControl]="searchControl"
+            type="search"
+            placeholder="Buscar por nombre de prenda, marca o SKU..."
+          />
+        </div>
+
+        <div class="pos-category-scroll">
+          <button
+            type="button"
+            class="cat-chip"
+            [class.active]="selectedCategory() === null"
+            (click)="setCategory(null)"
+          >
+            Todas
+          </button>
+          @for (c of categories(); track c.id) {
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="selectedCategory() === c.id"
+              (click)="setCategory(c.id)"
+            >
+              {{ c.nombre }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- PRODUCTS GRID -->
+      <div class="pos-products-scroll">
+        @if (loadingCatalog()) {
+          <div class="pos-loading-state">
+            <div class="spinner"></div>
+            <span>Cargando catálogo de tienda...</span>
+          </div>
+        } @else {
+          <div class="pos-products-grid">
+            @for (product of products(); track product.id) {
+              <div class="pos-product-card" (click)="openVariantModal(product)">
+                <div class="pos-card-thumb">
+                  @if (getProductImage(product); as imgUrl) {
+                    <img [src]="imgUrl" [alt]="product.nombre" loading="lazy" />
+                  } @else {
+                    <div class="thumb-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                      </svg>
+                    </div>
+                  }
+                  <span class="cat-badge">{{ getCategoryName(product.categoria_id) }}</span>
+                </div>
+
+                <div class="pos-card-info">
+                  <p class="card-brand">{{ product.marca || 'DrapeMind' }}</p>
+                  <h4 class="card-title">{{ product.nombre }}</h4>
+                  <div class="card-footer">
+                    <span class="card-price">Bs. {{ product.precio | number:'1.2-2' }}</span>
+                    <span class="btn-pick-variant">+ Elegir Talla</span>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="pos-empty-catalog">
+                <p>No se encontraron prendas con los criterios de búsqueda.</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: ORDER TICKET & BILLING -->
+    <aside class="pos-ticket-panel">
+      <!-- CLIENT SELECTOR (ACCOUNT vs NO ACCOUNT) -->
+      <div class="customer-section">
+        <div class="customer-mode-toggle">
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="customerMode() === 'WALK_IN'"
+            (click)="setCustomerMode('WALK_IN')"
+          >
+            <span>👤 Sin Cuenta (Mostrador)</span>
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="customerMode() === 'REGISTERED'"
+            (click)="setCustomerMode('REGISTERED')"
+          >
+            <span>✦ Cliente Registrado</span>
+          </button>
+        </div>
+
+        @if (customerMode() === 'WALK_IN') {
+          <div class="walk-in-box">
+            <div class="walk-in-inputs">
+              <input
+                [formControl]="guestNameControl"
+                type="text"
+                placeholder="Nombre cliente / Razón Social (Opcional)"
+              />
+              <input
+                [formControl]="guestDocControl"
+                type="text"
+                placeholder="NIT / CI (Opcional)"
+              />
+            </div>
+            <p class="hint-text">Venta inmediata al paso — Sin necesidad de cuenta registrada.</p>
+          </div>
+        } @else {
+          <div class="registered-client-box">
+            @if (selectedCustomer(); as cust) {
+              <div class="selected-customer-pill">
+                <div class="cust-info">
+                  <strong>{{ cust.nombre }}</strong>
+                  <small>{{ cust.email }} · {{ cust.telefono || 'Sin tel.' }}</small>
+                </div>
+                <button type="button" class="btn-remove-cust" (click)="clearSelectedCustomer()" title="Cambiar cliente">
+                  &times;
+                </button>
+              </div>
+            } @else {
+              <div class="customer-search-wrap">
+                <input
+                  [formControl]="customerSearchControl"
+                  type="search"
+                  placeholder="Buscar por nombre, correo o teléfono..."
+                />
+                @if (isSearchingCustomers()) {
+                  <span class="spinner-inline"></span>
+                }
+              </div>
+
+              @if (customerSearchResults().length > 0) {
+                <div class="customer-dropdown-results">
+                  @for (c of customerSearchResults(); track c.id) {
+                    <div class="customer-dropdown-item" (click)="selectCustomer(c)">
+                      <strong>{{ c.nombre }}</strong>
+                      <small>{{ c.email }} · Tel: {{ c.telefono || 'N/A' }}</small>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- TICKET ITEMS LIST -->
+      <div class="ticket-items-container">
+        <div class="ticket-header-row">
+          <span class="ticket-title">Ticket de Venta ({{ totalPieces() }} prendas)</span>
+          @if (ticketItems().length > 0) {
+            <button type="button" class="btn-clear-ticket" (click)="clearTicket()">
+              Vaciar
+            </button>
+          }
+        </div>
+
+        <div class="ticket-items-scroll">
+          @for (item of ticketItems(); track item.variantId) {
+            <div class="ticket-row">
+              <div class="ticket-item-thumb">
+                @if (item.image) {
+                  <img [src]="item.image" [alt]="item.name" />
+                } @else {
+                  <div class="thumb-mini">DM</div>
+                }
+              </div>
+
+              <div class="ticket-item-details">
+                <strong class="item-name">{{ item.name }}</strong>
+                <div class="item-tags">
+                  <span class="tag-variant">Talla {{ item.size }}</span>
+                  <span class="tag-variant">{{ item.color }}</span>
+                  <span class="tag-stock">Stock: {{ item.maxStock }}</span>
+                </div>
+                <div class="item-pricing">
+                  <span class="unit-price">Bs. {{ item.price | number:'1.2-2' }} c/u</span>
+                </div>
+              </div>
+
+              <div class="ticket-item-stepper">
+                <button type="button" class="step-btn" (click)="decrementItem(item.variantId)">-</button>
+                <span class="item-qty">{{ item.quantity }}</span>
+                <button
+                  type="button"
+                  class="step-btn"
+                  [disabled]="item.quantity >= item.maxStock"
+                  (click)="incrementItem(item.variantId)"
+                >
+                  +
+                </button>
+              </div>
+
+              <div class="ticket-item-total">
+                <strong>Bs. {{ (item.price * item.quantity) | number:'1.2-2' }}</strong>
+                <button type="button" class="btn-delete-row" (click)="removeItem(item.variantId)" title="Eliminar fila">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="ticket-empty-state">
+              <div class="ticket-empty-icon">🛒</div>
+              <h4>Ticket Vacío</h4>
+              <p>Haz clic en cualquier prenda del catálogo izquierdo para agregarla al mostrador.</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- BILLING & PAYMENT SETTLEMENT -->
+      <div class="ticket-checkout-section">
+        <!-- TOTAL DISPLAY -->
+        <div class="pos-total-card">
+          <div class="total-row subtotal">
+            <span>Subtotal:</span>
+            <span>Bs. {{ subtotal() | number:'1.2-2' }}</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>TOTAL A COBRAR:</span>
+            <strong>Bs. {{ total() | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <!-- PAYMENT METHOD SELECTOR -->
+        <div class="pos-payment-tabs">
+          <button
+            type="button"
+            class="pay-tab"
+            [class.active]="paymentMethod() === 'EFECTIVO'"
+            (click)="paymentMethod.set('EFECTIVO')"
+          >
+            💵 Efectivo
+          </button>
+          <button
+            type="button"
+            class="pay-tab"
+            [class.active]="paymentMethod() === 'TARJETA'"
+            (click)="paymentMethod.set('TARJETA')"
+          >
+            💳 Tarjeta POS
+          </button>
+          <button
+            type="button"
+            class="pay-tab"
+            [class.active]="paymentMethod() === 'QR'"
+            (click)="paymentMethod.set('QR')"
+          >
+            📱 QR Simple
+          </button>
+        </div>
+
+        <!-- PAYMENT SPECIFICS -->
+        @if (paymentMethod() === 'EFECTIVO') {
+          <div class="cash-calculator">
+            <div class="cash-input-row">
+              <label>Monto recibido en efectivo (Bs.):</label>
+              <div class="input-with-currency">
+                <span class="curr">Bs.</span>
+                <input
+                  [formControl]="cashReceivedControl"
+                  type="number"
+                  step="0.50"
+                  min="0"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div class="cash-quick-buttons">
+              <button type="button" class="btn-quick-cash" (click)="setExactCash()">Exacto</button>
+              <button type="button" class="btn-quick-cash" (click)="addCash(20)">+20</button>
+              <button type="button" class="btn-quick-cash" (click)="addCash(50)">+50</button>
+              <button type="button" class="btn-quick-cash" (click)="addCash(100)">+100</button>
+              <button type="button" class="btn-quick-cash" (click)="addCash(200)">+200</button>
+            </div>
+
+            <div class="cash-change-banner" [class.insufficient]="!isCashSufficient()">
+              @if (isCashSufficient()) {
+                <div class="change-ok">
+                  <span class="change-label">CAMBIO / VUELTO A ENTREGAR:</span>
+                  <strong class="change-val">Bs. {{ cashChange() | number:'1.2-2' }}</strong>
+                </div>
+              } @else {
+                <div class="change-err">
+                  <span>Monto insuficiente (Faltan Bs. {{ (total() - (cashReceivedControl.value || 0)) | number:'1.2-2' }})</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (paymentMethod() === 'TARJETA') {
+          <div class="card-ref-box">
+            <label>N° Voucher / Lote POS:</label>
+            <input
+              [formControl]="cardRefControl"
+              type="text"
+              placeholder="Ej. POS-LOTE-849201"
+            />
+          </div>
+        } @else {
+          <div class="qr-ref-box">
+            <label>N° Referencia Transacción QR:</label>
+            <input
+              [formControl]="qrRefControl"
+              type="text"
+              placeholder="Ej. TRANS-BCP-94812"
+            />
+          </div>
+        }
+
+        <!-- SUBMIT SALE BUTTON -->
+        <button
+          type="button"
+          class="btn-submit-pos"
+          [disabled]="!canSubmitSale()"
+          (click)="submitSale()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-sm"></span>
+            <span>Registrando Venta en Caja...</span>
+          } @else {
+            <span class="sparkle">✦</span>
+            <span>COBRAR E IMPRIMIR COMPROBANTE (Bs. {{ total() | number:'1.2-2' }})</span>
+          }
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- MODAL: SELECCIONAR VARIANTE (COLOR, TALLA & STOCK POR SUCURSAL) -->
+@if (variantModalOpen() && selectedProduct(); as product) {
+  <div class="modal-scrim" (click)="closeVariantModal()"></div>
+  <div class="variant-popup-dialog" role="dialog">
+    <div class="popup-header">
+      <div>
+        <p class="popup-eyebrow">{{ product.marca || 'DrapeMind' }} · {{ branchName(selectedBranchId()) }}</p>
+        <h3 class="popup-title">{{ product.nombre }}</h3>
+      </div>
+      <button type="button" class="btn-popup-close" (click)="closeVariantModal()">&times;</button>
+    </div>
+
+    <div class="popup-body">
+      @if (loadingVariants()) {
+        <div class="popup-loading">
+          <div class="spinner"></div>
+          <span>Verificando disponibilidad de stock en sede...</span>
+        </div>
+      } @else {
+        <!-- COLOR SELECTOR -->
+        <div class="variant-group">
+          <label class="group-label">Color:</label>
+          <div class="colors-row">
+            @for (variant of product.variantes; track variant.id) {
+              @if (variant.activo) {
+                <button
+                  type="button"
+                  class="color-chip"
+                  [class.selected]="selectedColor() === variant.color"
+                  (click)="selectColor(variant.color)"
+                >
+                  <span
+                    class="color-dot"
+                    [style.background-color]="variant.codigo_color || '#333'"
+                  ></span>
+                  <span>{{ variant.color }}</span>
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- SIZE SELECTOR -->
+        <div class="variant-group">
+          <label class="group-label">Talla disponible en sede:</label>
+          <div class="sizes-row">
+            @for (variant of product.variantes; track variant.id) {
+              @if (variant.activo && (!selectedColor() || variant.color === selectedColor())) {
+                @let stockInBranch = getVariantBranchStock(variant.id);
+                <button
+                  type="button"
+                  class="size-chip"
+                  [class.selected]="selectedSize() === variant.talla"
+                  [class.out-of-stock]="stockInBranch <= 0"
+                  [disabled]="stockInBranch <= 0"
+                  (click)="selectSize(variant.talla)"
+                >
+                  <span class="size-letter">{{ variant.talla }}</span>
+                  <span class="size-stock-badge">{{ stockInBranch }} unid.</span>
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- SELECTED VARIANT SUMMARY -->
+        @if (selectedVariant(); as v) {
+          @let branchStock = getVariantBranchStock(v.id);
+          <div class="variant-availability-summary" [class.in-stock]="branchStock > 0" [class.zero-stock]="branchStock <= 0">
+            <div class="summary-left">
+              <strong>SKU: {{ v.sku }}</strong>
+              <p>Precio unitario: <strong>Bs. {{ product.precio | number:'1.2-2' }}</strong></p>
+            </div>
+            <div class="summary-right">
+              @if (branchStock > 0) {
+                <span class="badge-stock-ok">✓ {{ branchStock }} disponibles en esta sede</span>
+              } @else {
+                <span class="badge-stock-zero">⚠ Sin existencias en esta sede</span>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="popup-footer">
+      <button type="button" class="btn-secondary" (click)="closeVariantModal()">Cancelar</button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!selectedVariant() || getVariantBranchStock(selectedVariant()!.id) <= 0"
+        (click)="addSelectedVariantToTicket()"
+      >
+        <span>+ Agregar al Ticket</span>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- MODAL: ASISTENTE DE OUTFITS IA PARA VENDEDORES -->
+@if (aiModalOpen()) {
+  <div class="modal-scrim" (click)="closeAiOutfitModal()"></div>
+  <div class="ai-outfit-dialog" role="dialog">
+    <div class="ai-dialog-header">
+      <div class="header-sparkle-title">
+        <span class="sparkle-lg">✦</span>
+        <div>
+          <h3>Personal Stylist IA — Sugerencias en Mostrador</h3>
+          <small>Asistencia inteligente para ventas cruzadas y recomendaciones en tiempo real</small>
+        </div>
+      </div>
+      <button type="button" class="btn-popup-close" (click)="closeAiOutfitModal()">&times;</button>
+    </div>
+
+    <div class="ai-dialog-body">
+      <div class="ai-prompt-bar">
+        <label>Ocasión o estilo a complementar:</label>
+        <div class="prompt-input-group">
+          <input
+            [formControl]="aiOccasionControl"
+            type="text"
+            placeholder="Ej. 'Cena de gala formal', 'Prenda superior para jeans oscuros'..."
+          />
+          <button
+            type="button"
+            class="btn-ai-generate"
+            [disabled]="aiLoading() || !aiOccasionControl.value.trim()"
+            (click)="generateAiSuggestions()"
+          >
+            @if (aiLoading()) {
+              <span class="spinner-sm"></span>
+              <span>Generando...</span>
+            } @else {
+              <span>✦ Sugerir Combinación</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (aiResponseText()) {
+        <div class="ai-response-box">
+          <p>{{ aiResponseText() }}</p>
+        </div>
+      }
+
+      @if (aiSuggestedProducts().length > 0) {
+        <div class="ai-suggestions-list">
+          <span class="list-title">Prendas sugeridas del catálogo para agregar:</span>
+          <div class="suggestions-grid">
+            @for (sug of aiSuggestedProducts(); track sug.id) {
+              <div class="sug-card">
+                <div class="sug-info">
+                  <strong>{{ sug.nombre }}</strong>
+                  <span class="sug-price">Bs. {{ sug.precio | number:'1.2-2' }}</span>
+                </div>
+                <button type="button" class="btn-add-sug" (click)="addSuggestedProductToSale(sug)">
+                  + Seleccionar
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="ai-dialog-footer">
+      <button type="button" class="btn-secondary" (click)="closeAiOutfitModal()">Cerrar</button>
+    </div>
+  </div>
+}
+
+<!-- COMPROBANTE OFICIAL CON CÓDIGO QR Y DESCARGA DIRECTA -->
+@if (receiptModalOpen() && completedOrderId(); as id) {
+  <app-receipt-modal [orderId]="id" (close)="closeReceiptModal()" />
+}

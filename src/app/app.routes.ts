@@ -63,6 +63,11 @@ export const routes: Routes = [
           import('./features/orders/orders.component').then((m) => m.OrdersComponent),
       },
       {
+        path: 'pos',
+        title: 'Punto de Venta POS | DrapeMind',
+        loadComponent: () => import('./features/pos/pos.component').then((m) => m.PosComponent),
+      },
+      {
         path: 'ai-studio',
         title: 'Asistente IA | DrapeMind',
         loadComponent: () =>

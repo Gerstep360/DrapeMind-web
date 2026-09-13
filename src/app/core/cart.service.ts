@@ -39,7 +39,9 @@ export class CartService {
 
   open(): void {
     this.isOpen.set(true);
-    this.loadCart();
+    if (!this.loading() && !this.cart()) {
+      this.loadCart();
+    }
   }
 
   close(): void {
@@ -54,7 +56,7 @@ export class CartService {
     }
   }
 
-  addItem(variantId: number, quantity = 1, customMessage?: string): void {
+  addItem(variantId: number, quantity = 1, customMessage?: string, openDrawer = false): void {
     if (!this.auth.isAuthenticated()) {
       this.toast.show('Inicia sesión para agregar productos al carrito', 'error');
       return;
@@ -64,6 +66,9 @@ export class CartService {
       next: (cart) => {
         this.cart.set(cart);
         this.loading.set(false);
+        if (openDrawer) {
+          this.isOpen.set(true);
+        }
         this.toast.show(customMessage || 'Prenda agregada a tu carrito', 'success');
       },
       error: (err) => {

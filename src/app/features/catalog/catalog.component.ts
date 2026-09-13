@@ -41,6 +41,14 @@ export class CatalogComponent {
 
   // AI Concierge
   readonly aiQueryControl = new FormControl('', { nonNullable: true });
+  readonly aiPanelOpen = signal<boolean>(false);
+  readonly activeAiFilter = signal<string>('');
+
+  // Pagination (+8000 items)
+  readonly offset = signal<number>(0);
+  readonly limit = 48;
+  readonly hasMore = signal<boolean>(true);
+  readonly loadingMore = signal<boolean>(false);
 
   // Filters
   readonly selectedCategory = signal<number | null>(null);
@@ -159,12 +167,14 @@ export class CatalogComponent {
   load(): void {
     forkJoin({
       categories: this.api.categories(),
-      products: this.api.products({ limit: 60 }),
+      products: this.api.products({ limit: this.limit, offset: 0 }),
       favorites: this.api.favorites(),
     }).subscribe({
       next: ({ categories, products, favorites }) => {
         this.categories.set(categories);
         this.products.set(products);
+        this.offset.set(products.length);
+        this.hasMore.set(products.length >= this.limit);
         this.favoriteIds.set(new Set(favorites.map((product) => product.id)));
         this.loading.set(false);
       },
@@ -172,25 +182,52 @@ export class CatalogComponent {
     });
   }
 
-  loadProducts(): void {
-    this.loading.set(true);
+  loadProducts(append = false): void {
+    if (append) {
+      if (this.loadingMore() || !this.hasMore()) return;
+      this.loadingMore.set(true);
+    } else {
+      this.loading.set(true);
+      this.offset.set(0);
+      this.hasMore.set(true);
+    }
+
+    const currentOffset = append ? this.offset() : 0;
     const gender = this.selectedGender() === 'TODOS' ? undefined : this.selectedGender();
+    const query = this.search.value.trim() || this.activeAiFilter() || undefined;
+
     this.api
       .products({
-        q: this.search.value,
+        q: query,
         categoria_id: this.selectedCategory(),
-        gender: gender,
-        max_price: this.maxPriceFilter(),
-        limit: 60,
+        genero: gender,
+        precio_max: this.maxPriceFilter(),
+        offset: currentOffset,
+        limit: this.limit,
         con_stock: false,
       })
       .subscribe({
-        next: (products) => {
-          this.products.set(products);
-          this.loading.set(false);
+        next: (incoming) => {
+          if (append) {
+            this.products.update((prev) => [...prev, ...incoming]);
+            this.offset.set(currentOffset + incoming.length);
+            this.loadingMore.set(false);
+          } else {
+            this.products.set(incoming);
+            this.offset.set(incoming.length);
+            this.loading.set(false);
+          }
+          this.hasMore.set(incoming.length >= this.limit);
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          if (append) this.loadingMore.set(false);
+          else this.loading.set(false);
+        },
       });
+  }
+
+  loadMore(): void {
+    this.loadProducts(true);
   }
 
   resetFilters(): void {
@@ -198,56 +235,77 @@ export class CatalogComponent {
     this.selectedGender.set('TODOS');
     this.selectedCategory.set(null);
     this.maxPriceFilter.set(null);
-    this.loadProducts();
+    this.activeAiFilter.set('');
+    this.aiQueryControl.setValue('');
+    this.loadProducts(false);
   }
 
   chooseCategory(id: number | null): void {
     this.selectedCategory.set(id);
-    this.loadProducts();
+    this.loadProducts(false);
   }
 
   chooseGender(gender: string): void {
     this.selectedGender.set(gender);
-    this.loadProducts();
+    this.loadProducts(false);
   }
 
   chooseMaxPrice(max: number | null): void {
     this.maxPriceFilter.set(max);
-    this.loadProducts();
+    this.loadProducts(false);
+  }
+
+  toggleAiPanel(): void {
+    this.aiPanelOpen.update((v) => !v);
+  }
+
+  applyAiFilter(query: string): void {
+    const q = query.trim();
+    if (!q) return;
+    this.activeAiFilter.set(q);
+    this.aiQueryControl.setValue(q);
+    this.search.setValue(q, { emitEvent: false });
+    this.loadProducts(false);
+  }
+
+  clearAiFilter(): void {
+    this.activeAiFilter.set('');
+    this.aiQueryControl.setValue('');
+    this.search.setValue('', { emitEvent: false });
+    this.loadProducts(false);
   }
 
   filterByCollection(theme: 'CENA' | 'POLERAS_TOP' | 'CASUAL_ECONOMICO' | 'TODOS'): void {
     if (theme === 'POLERAS_TOP') {
-      this.search.setValue('Polera');
+      this.search.setValue('Polera', { emitEvent: false });
       this.maxPriceFilter.set(null);
       this.selectedCategory.set(null);
     } else if (theme === 'CASUAL_ECONOMICO') {
-      this.search.setValue('');
+      this.search.setValue('', { emitEvent: false });
       this.maxPriceFilter.set(300);
       this.selectedCategory.set(null);
     } else if (theme === 'CENA') {
-      this.search.setValue('Camisa');
+      this.search.setValue('Camisa', { emitEvent: false });
       this.maxPriceFilter.set(null);
       this.selectedCategory.set(null);
     } else {
-      this.search.setValue('');
+      this.search.setValue('', { emitEvent: false });
       this.maxPriceFilter.set(null);
       this.selectedCategory.set(null);
       this.selectedGender.set('TODOS');
     }
-    this.loadProducts();
+    this.loadProducts(false);
   }
 
   onConciergeSearch(): void {
     const query = this.aiQueryControl.value.trim();
     if (query) {
-      this.search.setValue(query);
-      this.loadProducts();
+      this.applyAiFilter(query);
     }
   }
 
   askAiFromCatalog(): void {
-    const query = this.aiQueryControl.value.trim();
+    const query = this.aiQueryControl.value.trim() || this.activeAiFilter();
     if (!query) return;
     void this.router.navigate(['/ai-studio'], {
       queryParams: {
@@ -412,8 +470,8 @@ export class CatalogComponent {
       this.toast.show('Selecciona color y talla primero', 'error');
       return;
     }
-    this.cart.addItem(variant.id, this.selectedQty());
     this.closeDetail();
+    this.cart.addItem(variant.id, this.selectedQty(), undefined, false);
   }
 
   buyNowFromModal(): void {
@@ -422,9 +480,8 @@ export class CatalogComponent {
       this.toast.show('Selecciona color y talla primero', 'error');
       return;
     }
-    this.cart.addItem(variant.id, this.selectedQty());
     this.closeDetail();
-    this.cart.open();
+    this.cart.addItem(variant.id, this.selectedQty(), undefined, true);
   }
 
   saveProduct(): void {
