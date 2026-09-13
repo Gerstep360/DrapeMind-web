@@ -76,98 +76,73 @@
             <button class="button button--small" type="button" (click)="downloadReceipt(order)">Descargar comprobante</button>
           }
           <!-- OPINION Y COBRO EN EFECTIVO PARA EL VENDEDOR / ADMIN -->
+          <!-- GESTIÓN DE COBRO EN EFECTIVO PARA VENDEDOR — AMIGABLE, INTUITIVO Y LIGERO -->
           @if (auth.user()?.rol !== 'CLIENTE' && order.estado === 'PENDIENTE_PAGO') {
             <div class="seller-cash-card">
-              <div class="seller-cash-header">
-                <div class="cash-badge-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="12" x="2" y="6" rx="2"/>
-                    <circle cx="12" cy="12" r="2"/>
-                    <path d="M6 12h.01M18 12h.01"/>
-                  </svg>
+              <div class="seller-cash-card__head">
+                <div class="cash-card-title-group">
+                  <span class="cash-card-tag">Cobro en Tienda</span>
+                  <span class="cash-card-sub">Total a cobrar: <strong>Bs {{ order.total | number: '1.2-2' }}</strong></span>
                 </div>
-                <div class="cash-header-info">
-                  <strong>Cobro en Efectivo en Mostrador</strong>
-                  <span>El cliente debe abonar <strong>Bs {{ order.total | number: '1.2-2' }}</strong> en caja</span>
-                </div>
+
+                @if (getCashChange(order.id, order.total) > 0) {
+                  <span class="cash-change-pill cash-change-pill--positive">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <span>Vuelto: Bs {{ getCashChange(order.id, order.total) | number: '1.2-2' }}</span>
+                  </span>
+                } @else if (isCashInsufficient(order.id, order.total)) {
+                  <span class="cash-change-pill cash-change-pill--missing">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>Faltan Bs {{ getMissingCash(order.id, order.total) | number: '1.2-2' }}</span>
+                  </span>
+                }
               </div>
 
-              <!-- CALCULADORA DIRECTA DE PAGO EN EFECTIVO Y CAMBIO -->
-              <div class="cash-calculator-body">
-                <div class="cash-input-column">
-                  <div class="cash-label-row">
-                    <label for="order-cash-input-{{ order.id }}">Monto Recibido del Cliente:</label>
-                    <button
-                      type="button"
-                      class="btn-order-exact"
-                      (click)="setExactCash(order.id, order.total)"
-                      title="Cobrar importe exacto sin cambio"
-                    >
-                      Exacto (Bs. {{ order.total | number: '1.2-2' }})
-                    </button>
-                  </div>
-
-                  <div class="cash-input-wrap">
-                    <span class="currency-tag">Bs.</span>
-                    <input
-                      id="order-cash-input-{{ order.id }}"
-                      type="number"
-                      step="0.50"
-                      min="0"
-                      [placeholder]="order.total.toString()"
-                      [value]="getCashReceived(order.id) ?? ''"
-                      (input)="onOrderCashInput(order.id, $event)"
-                    />
-                  </div>
-
-                  <!-- BILLETES RÁPIDOS SUGERIDOS -->
-                  <div class="order-quick-bills">
-                    @for (bill of getQuickBills(order.total); track bill) {
-                      <button
-                        type="button"
-                        class="order-bill-chip"
-                        [class.active]="getCashReceived(order.id) === bill"
-                        (click)="setCashReceived(order.id, bill)"
-                      >
-                        Bs. {{ bill }}
-                      </button>
-                    }
-                  </div>
+              <!-- FILA AMIGABLE: INPUT COMPACTO + CHIPS HORIZONTALES -->
+              <div class="seller-cash-card__row">
+                <div class="cash-inline-input">
+                  <span class="currency-prefix">Bs.</span>
+                  <input
+                    type="number"
+                    step="0.50"
+                    min="0"
+                    placeholder="Monto recibido"
+                    [value]="getCashReceived(order.id) ?? ''"
+                    (input)="onOrderCashInput(order.id, $event)"
+                  />
                 </div>
 
-                <div
-                  class="cash-change-column"
-                  [class.is-sufficient]="getCashReceived(order.id) !== null && !isCashInsufficient(order.id, order.total)"
-                  [class.is-insufficient]="isCashInsufficient(order.id, order.total)"
-                >
-                  <span class="change-label">Cambio / Vuelto a Entregar:</span>
-                  <strong class="change-amount">
-                    Bs. {{ getCashChange(order.id, order.total) | number: '1.2-2' }}
-                  </strong>
-
-                  @if (isCashInsufficient(order.id, order.total)) {
-                    <span class="change-status-warning">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                      </svg>
-                      <span>Faltan Bs. {{ getMissingCash(order.id, order.total) | number: '1.2-2' }}</span>
-                    </span>
-                  } @else if (getCashReceived(order.id) !== null && getCashChange(order.id, order.total) > 0) {
-                    <span class="change-status-success">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      <span>Entregar al cliente</span>
-                    </span>
+                <div class="cash-quick-pills">
+                  <button
+                    type="button"
+                    class="quick-pill"
+                    [class.quick-pill--active]="getCashReceived(order.id) === order.total"
+                    (click)="setExactCash(order.id, order.total)"
+                  >
+                    Exacto
+                  </button>
+                  @for (bill of getQuickBills(order.total); track bill) {
+                    <button
+                      type="button"
+                      class="quick-pill"
+                      [class.quick-pill--active]="getCashReceived(order.id) === bill"
+                      (click)="setCashReceived(order.id, bill)"
+                    >
+                      Bs. {{ bill }}
+                    </button>
                   }
                 </div>
               </div>
 
-              <!-- BOTÓN DE CONFIRMACIÓN CON RESUMEN DINÁMICO -->
+              <!-- BOTÓN DE CONFIRMACIÓN -->
               <button
-                class="btn-confirm-cash-submit"
+                class="cash-confirm-btn"
                 type="button"
                 [disabled]="actionId() === order.id || isCashInsufficient(order.id, order.total)"
                 (click)="confirmCashPayment(order)"
@@ -176,15 +151,13 @@
                   <span class="spinner-sm"></span>
                   <span>Registrando Cobro...</span>
                 } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                   <span>
-                    Confirmar Cobro en Efectivo
+                    Confirmar Cobro
                     @if (getCashChange(order.id, order.total) > 0) {
-                      (Cambio: Bs. {{ getCashChange(order.id, order.total) | number: '1.2-2' }})
-                    } @else {
-                      (Bs. {{ order.total | number: '1.2-2' }})
+                      · Entregar Bs {{ getCashChange(order.id, order.total) | number: '1.2-2' }} de cambio
                     }
                   </span>
                 }
