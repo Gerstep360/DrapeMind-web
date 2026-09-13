@@ -1,0 +1,83 @@
+<div class="pos-layout">
+  <!-- HEADER MODULAR -->
+  <app-pos-header
+    [branches]="branchService.branches()"
+    [selectedBranchId]="selectedBranchId()"
+    [currentUser]="auth.user()"
+    (branchSelected)="setBranchById($event)"
+    (openAiOutfit)="openAiOutfitModal()"
+  />
+
+  <!-- MAIN WORKSPACE: 2 COLUMNAS (CATÁLOGO + TICKET) -->
+  <div class="pos-body">
+    <!-- PANEL DE CATÁLOGO MODULAR -->
+    <app-pos-catalog
+      [products]="products()"
+      [categories]="categories()"
+      [loading]="loadingCatalog()"
+      [selectedCategory]="selectedCategory()"
+      [searchControl]="searchControl"
+      (categorySelected)="setCategory($event)"
+      (productSelected)="openVariantModal($event)"
+    />
+
+    <!-- PANEL DE TICKET Y COBRO MODULAR -->
+    <app-pos-ticket
+      [ticketItems]="ticketItems()"
+      [isSubmitting]="isSubmitting()"
+      [totalPieces]="totalPieces()"
+      [subtotal]="subtotal()"
+      [total]="total()"
+      [cashChange]="cashChange()"
+      [isCashSufficient]="isCashSufficient()"
+      [canSubmitSale]="canSubmitSale()"
+      [customerMode]="customerMode()"
+      [guestNameControl]="guestNameControl"
+      [guestDocControl]="guestDocControl"
+      [customerSearchControl]="customerSearchControl"
+      [customerSearchResults]="customerSearchResults()"
+      [isSearchingCustomers]="isSearchingCustomers()"
+      [selectedCustomer]="selectedCustomer()"
+      [paymentMethod]="paymentMethod()"
+      [cashReceivedControl]="cashReceivedControl"
+      [cardRefControl]="cardRefControl"
+      [qrRefControl]="qrRefControl"
+      (customerModeChange)="setCustomerMode($event)"
+      (customerSelect)="selectCustomer($event)"
+      (clearCustomer)="clearCustomer()"
+      (increment)="incrementItem($event)"
+      (decrement)="decrementItem($event)"
+      (remove)="removeItem($event)"
+      (clearTicket)="clearTicket()"
+      (paymentMethodChange)="setPaymentMethod($event)"
+      (submit)="submitSale()"
+    />
+  </div>
+</div>
+
+<!-- MODAL: VER PRENDA Y SELECCIONAR VARIANTE (COLOR ÚNICO Y TALLAS DEPENDIENTES) -->
+<app-pos-product-modal
+  [open]="variantModalOpen()"
+  [product]="selectedProduct()"
+  [productStockRows]="productStockRows()"
+  [loading]="loadingVariants()"
+  [branchId]="selectedBranchId()"
+  [branchName]="branchName(selectedBranchId())"
+  (close)="closeVariantModal()"
+  (addToTicket)="onAddVariantToTicket($event)"
+/>
+
+<!-- El POS usa el mismo compositor, modos y conversación real de Altair. -->
+<app-altair-launcher
+  [open]="aiModalOpen()"
+  [modal]="true"
+  title="Diseña para esta venta"
+  description="Altair tendrá en cuenta el ticket y la sucursal antes de consultar catálogo o stock."
+  [context]="altairPosContext()"
+  (closed)="closeAiOutfitModal()"
+/>
+
+<!-- MODAL: COMPROBANTE OFICIAL ELECTRÓNICO CON QR -->
+@if (receiptModalOpen() && completedOrderId(); as id) {
+  <app-receipt-modal [orderId]="id" (close)="closeReceiptModal()" />
+}

@@ -16,9 +16,9 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 
-import { StoreApiService } from '../../../core/store-api.service';
-import { ToastService } from '../../../core/toast.service';
-import { ReceiptData } from '../../../core/models';
+import { CommerceApiService } from '@core/api/commerce-api.service';
+import { ToastService } from '@core/toast.service';
+import { ReceiptData } from '@core/models';
 
 @Component({
   selector: 'app-receipt-modal',
@@ -29,7 +29,7 @@ import { ReceiptData } from '../../../core/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReceiptModalComponent {
-  private readonly api = inject(StoreApiService);
+  private readonly api = inject(CommerceApiService);
   private readonly toast = inject(ToastService);
 
   readonly orderId = input.required<number>();

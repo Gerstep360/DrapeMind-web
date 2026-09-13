@@ -1,0 +1,596 @@
+:host {
+      display: block;
+      margin: 16px 0;
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* CONTAINER: Warm editorial white surface conforming to DrapeMind Design System */
+    .dm-stripe-card {
+      background: #FFFFFF;
+      border: 1px solid #E1E3DA;
+      border-radius: 28px;
+      padding: clamp(18px, 5vw, 28px) clamp(16px, 5.5vw, 28px);
+      color: #10110F;
+      box-shadow: 0 14px 36px rgba(16, 17, 15, 0.08);
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    /* HEADER */
+    .dm-stripe-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stripe-brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .stripe-svg-logo {
+      width: 44px;
+      height: 26px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(99, 91, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    .stripe-brand-titles {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .stripe-brand-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #10110F;
+      letter-spacing: -0.2px;
+    }
+
+    .stripe-brand-sub {
+      font-size: 11px;
+      color: #7B7F75;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dm-pill-sandbox {
+      background-color: #EEFF9D;
+      background-image: repeating-linear-gradient(-45deg, rgba(16, 17, 15, 0.12) 0 4px, transparent 4px 10px);
+      color: #10110F;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.4px;
+      box-shadow: 0 2px 8px rgba(223, 255, 63, 0.35);
+      white-space: nowrap;
+    }
+
+    .dm-pill-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #E8F8EE;
+      color: #1E7E34;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    /* ACCEPTED CARDS TRUST ROW */
+    .accepted-cards-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: -4px 0 18px;
+    }
+
+    .accepted-label {
+      font-size: 12px;
+      color: #7B7F75;
+      font-weight: 600;
+      margin-right: 2px;
+    }
+
+    .card-chip {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #E1E3DA;
+      background: #F8F9F2;
+      color: #40433D;
+    }
+
+    /* LUXURY EDITORIAL CREDIT CARD */
+    .editorial-card-wrap {
+      perspective: 1000px;
+      margin-bottom: 22px;
+    }
+
+    .editorial-credit-card {
+      background: linear-gradient(135deg, #10110F 0%, #1A1C16 65%, #25291F 100%);
+      border: 1px solid rgba(223, 255, 63, 0.35);
+      border-radius: 20px;
+      padding: clamp(18px, 5vw, 24px) clamp(18px, 6vw, 28px);
+      color: #FFFFFF;
+      box-shadow: 0 16px 36px rgba(16, 17, 15, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .card-glass-glow {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(223, 255, 63, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 26px;
+      gap: 12px;
+    }
+
+    .chip-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gold-chip {
+      width: 40px;
+      height: 30px;
+      background: linear-gradient(135deg, #E6CA65 0%, #C49E00 100%);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+      flex-shrink: 0;
+    }
+
+    .chip-circuit {
+      position: absolute;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      width: 100%;
+    }
+
+    .chip-circuit.c-1 { top: 35%; }
+    .chip-circuit.c-2 { top: 65%; }
+
+    .contactless-waves {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .card-monogram-badge {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+    }
+
+    .card-brand-label {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #DFFF3F;
+    }
+
+    .card-number-stream {
+      font-family: 'Space Mono', 'Courier New', monospace;
+      font-size: clamp(15px, 4.6vw, 21px);
+      font-weight: 700;
+      letter-spacing: clamp(1.5px, 0.7vw, 3.5px);
+      color: #FFFFFF;
+      margin-bottom: 22px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .meta-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .meta-field-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+    }
+
+    .meta-field-val {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #F4F5EA;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .text-right { text-align: right; }
+
+    /* EDITORIAL CONTROLS */
+    .dm-controls-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dm-fields-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+    }
+
+    .dm-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .dm-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #40433D;
+      letter-spacing: -0.1px;
+    }
+
+    .dm-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 16px;
+      background-color: #F8F9F2;
+      border: 1.5px solid #E1E3DA;
+      border-radius: 16px;
+      color: #10110F;
+      font-size: 14px;
+      font-weight: 600;
+      box-sizing: border-box;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .dm-input:focus-visible {
+      border-color: #10110F;
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(223, 255, 63, 0.35);
+    }
+
+    .dm-select-wrap {
+      position: relative;
+    }
+
+    .dm-select {
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      padding-right: 40px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2340433D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px 16px;
+      text-overflow: ellipsis;
+    }
+
+    .cvc-group {
+      max-width: 110px;
+    }
+
+    .text-center { text-align: center; }
+
+    .sandbox-info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #F4F5EA;
+      border: 1px solid #E1E3DA;
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+
+    .info-sparkle {
+      color: #10110F;
+      font-weight: 900;
+      font-size: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .sandbox-info-banner p {
+      margin: 0;
+      font-size: 12px;
+      color: #686B63;
+      line-height: 1.5;
+    }
+
+    .sandbox-info-banner strong {
+      color: #10110F;
+    }
+
+    /* PRIMARY ELECTRIC LIME CTA BUTTON */
+    .dm-btn-pay {
+      width: 100%;
+      height: 52px;
+      background: #DFFF3F;
+      color: #10110F;
+      border: none;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(223, 255, 63, 0.4);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-sizing: border-box;
+    }
+
+    .dm-btn-pay:hover:not(:disabled) {
+      background: #D2F632;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(223, 255, 63, 0.5);
+    }
+
+    .dm-btn-pay:focus-visible {
+      outline: 2px solid #10110F;
+      outline-offset: 3px;
+    }
+
+    .dm-btn-pay:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .dm-btn-secondary {
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: #FFFFFF;
+      color: #10110F;
+      border: 1.5px solid #E1E3DA;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dm-btn-secondary:hover {
+      background: #F0F1EB;
+    }
+
+    .dm-btn-secondary:focus-visible {
+      outline: 2px solid #10110F;
+      outline-offset: 2px;
+    }
+
+    .dm-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(16, 17, 15, 0.2);
+      border-top-color: #10110F;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .dm-spinner--lg {
+      width: 26px;
+      height: 26px;
+      border-width: 3px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* REAL STRIPE BOX */
+    .real-stripe-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .stripe-elements-mount-slot {
+      margin: 12px 0;
+      min-height: 50px;
+      background: #FFFFFF;
+      padding: 12px;
+      border: 1px solid #E1E3DA;
+      border-radius: 16px;
+    }
+
+    .stripe-loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 32px 16px;
+      text-align: center;
+    }
+
+    .stripe-loading-state p {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #686B63;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .actions-row .dm-btn-pay {
+      flex: 1;
+    }
+
+    /* APPROVED CARD & ALERT */
+    .dm-approved-card {
+      background: #E8F8EE;
+      border: 1px solid #A3E6B5;
+      border-radius: 18px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .approved-seal {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #1E7E34;
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .approved-text h4 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #1E7E34;
+    }
+
+    .approved-text p {
+      margin: 0;
+      font-size: 13px;
+      color: #2F5233;
+    }
+
+    .dm-alert {
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dm-alert--error {
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      color: #B91C1C;
+    }
+
+    /* POWERED BY STRIPE FOOTER */
+    .stripe-powered-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #EFF0E8;
+      color: #9A9D93;
+    }
+
+    .stripe-powered-footer span {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .dm-status-caption {
+      font-size: 12px;
+      text-align: center;
+      margin-top: 14px;
+      color: #7B7F75;
+      font-weight: 600;
+    }
+
+    /* RESPONSIVE: below tablet width, tighten spacing and stack side-by-side controls */
+    @media (max-width: 560px) {
+      .dm-stripe-card {
+        border-radius: 22px;
+      }
+
+      .dm-fields-row {
+        grid-template-columns: 1fr;
+      }
+
+      .cvc-group {
+        max-width: none;
+      }
+
+      .actions-row {
+        flex-direction: column;
+      }
+
+      .actions-row .dm-btn-secondary {
+        width: 100%;
+      }
+
+      .card-meta-row {
+        flex-wrap: wrap;
+      }
+
+      .dm-btn-pay {
+        font-size: 14px;
+      }
+    }
+
+    /* RESPONSIVE: very narrow phones — drop secondary header text, tighten the card face */
+    @media (max-width: 360px) {
+      .stripe-brand-sub {
+        display: none;
+      }
+
+      .card-head-row {
+        margin-bottom: 20px;
+      }
+
+      .card-number-stream {
+        margin-bottom: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dm-spinner,
+      .dm-btn-pay {
+        animation-duration: 0.001ms !important;
+        transition: none !important;
+      }
+    }

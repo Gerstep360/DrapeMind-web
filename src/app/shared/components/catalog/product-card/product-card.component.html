@@ -1,0 +1,105 @@
+<article
+  class="product-card"
+  role="button"
+  tabindex="0"
+  (click)="open()"
+  (keydown.enter)="open()"
+  (keydown.space)="open(); $event.preventDefault()"
+>
+  <div class="product-card__visual">
+    <button
+      class="favorite-toggle"
+      type="button"
+      [class.favorite-toggle--active]="favorite"
+      (click)="toggleFavorite($event)"
+      [attr.aria-label]="favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        [attr.fill]="favorite ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="1.8"
+      >
+        <path
+          d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"
+        />
+      </svg>
+    </button>
+
+    @if (imageUrl(); as image) {
+      <img [src]="image" [alt]="product.nombre" loading="lazy" (error)="markImageAsUnavailable()" />
+    } @else {
+      <div class="product-editorial-placeholder" [attr.data-type]="garmentType()">
+        <div class="editorial-icon-badge" aria-hidden="true">
+          @switch (garmentType()) {
+            @case ('top') {
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"
+                />
+              </svg>
+            }
+            @case ('bottom') {
+              <svg viewBox="0 0 24 24"><path d="M4 4h16v3l-2 13h-4l-2-9-2 9H6L4 7V4Z" /></svg>
+            }
+            @case ('shoes') {
+              <svg viewBox="0 0 24 24">
+                <path d="M3 17h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2Z" />
+                <path d="M3 17V8a4 4 0 0 1 4-4h2l2 4 4 3 6 1v5H3Z" />
+              </svg>
+            }
+            @case ('accessory') {
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="7" />
+                <polyline points="12 9 12 12 13.5 13.5" />
+                <path
+                  d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"
+                />
+              </svg>
+            }
+            @default {
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+                />
+              </svg>
+            }
+          }
+        </div>
+        <span class="editorial-cat-tag">{{ garmentLabel() }}</span>
+        <span class="editorial-prep-notice">Fotografía en preparación</span>
+        <span class="editorial-showroom-pill">Muestra en showroom</span>
+      </div>
+    }
+
+    <div class="visual-badges">
+      <span class="quality-tag">Q{{ product.calidad_nivel }}</span>
+      @if (product.genero_objetivo) {
+        <span class="gender-tag">{{ product.genero_objetivo }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="product-card__body">
+    <div class="product-card__title-row">
+      <p class="brand-name">{{ product.marca || 'DrapeMind Studio' }}</p>
+      <h2>{{ product.nombre }}</h2>
+    </div>
+
+    <div class="product-card__price-row">
+      <strong class="price-val">Bs {{ product.precio | number: '1.2-2' }}</strong>
+      <span class="stock-pill" [class.stock-low]="(product.stock_disponible ?? 0) <= 3">
+        {{
+          (product.stock_disponible ?? 0) > 0 ? product.stock_disponible + ' en stock' : 'Agotado'
+        }}
+      </span>
+    </div>
+
+    <p class="product-card__desc">{{ product.descripcion }}</p>
+    <div class="product-card__actions">
+      <button class="select-btn" type="button">Ver prenda y seleccionar talla</button>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,236 @@
+<div class="receipt-public-page">
+      <!-- NAVBAR FLOTANTE (spec §8) -->
+      <nav class="dm-navbar">
+        <div class="brand-monogram" aria-hidden="true">DM</div>
+        <div class="brand-text-col">
+          <span class="brand-name">DrapeMind Atelier</span>
+          <span class="brand-sub">Comprobante digital de tu compra</span>
+        </div>
+        <a routerLink="/" class="dm-btn dm-btn--primary dm-store-btn">
+          Explorar colección
+          <span aria-hidden="true">→</span>
+        </a>
+      </nav>
+
+      <main class="page-container">
+        @if (loading()) {
+          <!-- Skeleton en vez de spinner gigante (spec §29) -->
+          <div class="skeleton-wrap" role="status" aria-live="polite">
+            <span class="sr-only">Cargando tu comprobante…</span>
+            <div class="skeleton-hero">
+              <div class="dm-skeleton skeleton-pill" aria-hidden="true"></div>
+              <div class="dm-skeleton skeleton-title" aria-hidden="true"></div>
+              <div class="dm-skeleton skeleton-line" aria-hidden="true"></div>
+            </div>
+            <div class="skeleton-card" aria-hidden="true">
+              <div class="dm-skeleton skeleton-row skeleton-row--wide"></div>
+              <div class="skeleton-grid">
+                <div class="dm-skeleton skeleton-block"></div>
+                <div class="dm-skeleton skeleton-block"></div>
+                <div class="dm-skeleton skeleton-block"></div>
+                <div class="dm-skeleton skeleton-block"></div>
+              </div>
+              <div class="dm-skeleton skeleton-row"></div>
+              <div class="dm-skeleton skeleton-row"></div>
+              <div class="dm-skeleton skeleton-row skeleton-row--short"></div>
+            </div>
+          </div>
+        } @else if (error()) {
+          <div class="error-card">
+            <div class="error-icon" aria-hidden="true">✕</div>
+            <h2>Comprobante no disponible</h2>
+            <p>{{ error() }}</p>
+            <a routerLink="/" class="dm-btn dm-btn--primary">Volver a la tienda</a>
+          </div>
+        } @else {
+          <!--
+            "as" solo se permite en el @if primario de una cadena, nunca en
+            un @else if (Angular lo rechaza con NG5002) — por eso el estado
+            de éxito va en un @if anidado dentro de este @else en lugar de
+            encadenarlo como "@else if (receipt(); as r)".
+          -->
+          @if (receipt(); as r) {
+          <!-- HERO DE VERIFICACIÓN -->
+          <header class="verification-hero">
+            <div class="verified-badge">
+              <span aria-hidden="true">✦</span>
+              Verificado por DrapeMind
+            </div>
+            <h1 class="hero-title">Comprobante de compra</h1>
+            <p class="hero-sub">
+              Este comprobante confirma los datos de tu compra en <strong>DrapeMind Atelier</strong>.
+              Puedes descargarlo, imprimirlo o guardar este enlace para consultarlo cuando lo necesites.
+            </p>
+            <div class="auth-meta-row">
+              <span class="meta-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                {{ r.order.created_at ? (r.order.created_at | date: 'dd/MM/yyyy HH:mm') : 'Fecha reciente' }}
+              </span>
+              <span class="meta-tag meta-tag--folio">
+                #DM-ORD-{{ r.order.id.toString().padStart(5, '0') }}
+              </span>
+            </div>
+          </header>
+
+          <!-- ACCIONES -->
+          <div class="actions-bar">
+            <button
+              type="button"
+              class="dm-btn dm-btn--primary"
+              (click)="downloadPdf()"
+              [disabled]="generatingPdf()"
+            >
+              @if (generatingPdf()) {
+                <span class="mini-spinner" aria-hidden="true"></span>
+                Generando PDF…
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Descargar PDF
+              }
+            </button>
+            <button type="button" class="dm-btn dm-btn--secondary" (click)="print()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect width="12" height="8" x="6" y="14"/>
+              </svg>
+              Imprimir
+            </button>
+          </div>
+
+          @if (pdfError()) {
+            <p class="pdf-error-toast" role="alert">✕ {{ pdfError() }}</p>
+          }
+
+          <!-- COMPROBANTE IMPRIMIBLE / DESCARGABLE -->
+          <article #printableCard class="receipt-card">
+            <div class="card-header">
+              <div class="card-brand">
+                <div class="seal-box" aria-hidden="true">DM</div>
+                <div>
+                  <h2 class="card-title">DRAPEMIND ATELIER BOLIVIA</h2>
+                  <p class="card-sub">Alta Costura Contemporánea · Confección de Autor</p>
+                  <p class="card-legal">NIT: 7492019012 · Reg. Com. 49102-SCZ · Santa Cruz, Bolivia</p>
+                </div>
+              </div>
+              <div class="status-box">
+                <span class="status-pill status-pill--{{ statusMeta().tone }}">
+                  <span aria-hidden="true">●</span>
+                  {{ statusMeta().label }}
+                </span>
+                <span class="folio-code">#DM-ORD-{{ r.order.id.toString().padStart(5, '0') }}</span>
+              </div>
+            </div>
+
+            <div class="hairline"></div>
+
+            <div class="info-grid">
+              <div class="info-cell">
+                <span class="info-label">Cliente titular</span>
+                <strong class="info-value">{{ r.cliente.nombre }}</strong>
+                <span class="info-hint">{{ r.cliente.email || 'Email no registrado' }}</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">Sucursal / showroom</span>
+                <strong class="info-value">{{ r.sucursal.nombre }}</strong>
+                <span class="info-hint">{{ r.sucursal.direccion }}, {{ r.sucursal.ciudad }}</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">Fecha de emisión</span>
+                <strong class="info-value">{{ r.order.created_at ? (r.order.created_at | date: 'dd/MM/yyyy HH:mm') : 'Fecha reciente' }}</strong>
+                <span class="info-hint">Canal: {{ r.order.canal }} Online</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">Modalidad de entrega</span>
+                <strong class="info-value">{{ r.order.tipo_entrega === 'RECOJO' ? 'Retiro en showroom' : 'Envío express a domicilio' }}</strong>
+                <span class="info-hint">Código: {{ r.order.codigo_publico }}</span>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Prenda / concepto</th>
+                    <th scope="col">SKU</th>
+                    <th scope="col">Variante</th>
+                    <th scope="col" class="text-center">Cant</th>
+                    <th scope="col" class="text-right">P. unit.</th>
+                    <th scope="col" class="text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of r.items; track item.id) {
+                    <tr>
+                      <td><strong>{{ item.nombre }}</strong></td>
+                      <td><code class="sku-code">{{ item.sku }}</code></td>
+                      <td><span class="variant-tag">{{ item.color }} · Talla {{ item.talla }}</span></td>
+                      <td class="text-center">{{ item.cantidad }}</td>
+                      <td class="text-right">Bs {{ item.precio_unitario | number: '1.2-2' }}</td>
+                      <td class="text-right"><strong>Bs {{ item.subtotal | number: '1.2-2' }}</strong></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="totals-section">
+              <div class="payment-info-box">
+                <span class="info-label">Método de pago</span>
+                <div class="pay-method-pill">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                    <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+                  </svg>
+                  <span>{{ r.payments[0]?.metodo || 'Pago directo' }}</span>
+                  <span class="pay-check">✓ Pago confirmado</span>
+                </div>
+                <p class="pay-ref">Ref: <code>{{ r.payments[0]?.referencia || r.order.codigo_publico }}</code></p>
+                @if (r.order.observacion) {
+                  <p class="order-notes">Nota: {{ r.order.observacion }}</p>
+                }
+              </div>
+
+              <div class="totals-card">
+                <div class="tot-row">
+                  <span>Subtotal</span>
+                  <strong>Bs {{ r.order.subtotal | number: '1.2-2' }}</strong>
+                </div>
+                <div class="tot-row">
+                  <span>Envío</span>
+                  <strong>{{ r.order.costo_envio > 0 ? ('Bs ' + (r.order.costo_envio | number: '1.2-2')) : 'Gratis' }}</strong>
+                </div>
+                @if (r.order.descuento > 0) {
+                  <div class="tot-row discount">
+                    <span>Descuento</span>
+                    <strong>− Bs {{ r.order.descuento | number: '1.2-2' }}</strong>
+                  </div>
+                }
+                <div class="tot-row total-highlight">
+                  <span class="tot-final-lbl">Total cancelado</span>
+                  <span class="tot-final-val">Bs {{ r.order.total | number: '1.2-2' }} BOB</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-security-footer">
+              <div class="security-seal">
+                <div class="qr-preview-badge" aria-hidden="true">DM</div>
+                <div>
+                  <strong>Comprobante verificado</strong>
+                  <p>Código de verificación: <code>{{ r.order.codigo_publico }}</code></p>
+                </div>
+              </div>
+              <p class="policy-note">
+                Garantía DrapeMind: tienes 30 días para hacer cambios en cualquier sucursal presentando este comprobante, digital o impreso.
+              </p>
+            </div>
+          </article>
+          }
+        }
+      </main>
+    </div>

@@ -1,12 +1,12 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Branch } from './models';
-import { StoreApiService } from './store-api.service';
+import { BranchInventoryApiService } from './api/branch-inventory-api.service';
 
 const SELECTED_BRANCH_KEY = 'drapemind_selected_branch_id';
 
 @Injectable({ providedIn: 'root' })
 export class BranchService {
-  private readonly api = inject(StoreApiService);
+  private readonly api = inject(BranchInventoryApiService);
 
   readonly branches = signal<Branch[]>([]);
   readonly selectedBranchId = signal<number | null>(this.readStoredBranchId());

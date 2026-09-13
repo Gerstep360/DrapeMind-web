@@ -1,36 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AiSocketService } from '../core/ai-socket.service';
-import { AuthService } from '../core/auth.service';
-import { CartService } from '../core/cart.service';
-import { EventsSocketService } from '../core/events-socket.service';
-import { UserRole } from '../core/models';
-import { ToastService } from '../core/toast.service';
-import { CartDrawerComponent } from './cart-drawer/cart-drawer.component';
-
-import { BranchService } from '../core/branch.service';
-import { Branch } from '../core/models';
-
-export type NavIcon =
-  | 'dashboard'
-  | 'catalog'
-  | 'inventory'
-  | 'reservations'
-  | 'orders'
-  | 'pos'
-  | 'stylist'
-  | 'account';
-
-interface NavItem {
-  label: string;
-  icon: NavIcon;
-  route: string;
-  roles: UserRole[];
-}
+import { AiSocketService } from '@core/ai-socket.service';
+import { AuthService } from '@core/auth.service';
+import { CartService } from '@core/cart.service';
+import { EventsSocketService } from '@core/events-socket.service';
+import { ToastService } from '@core/toast.service';
+import { CartDrawerComponent } from '@shared/components/cart/cart-drawer/cart-drawer.component';
+import { BranchService } from '@core/branch.service';
+import { Branch } from '@core/models';
+import { navigationForRole } from '@core/navigation/package-navigation';
+import { NavIconComponent } from '@shared/components/navigation/nav-icon/nav-icon.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, NavIconComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,60 +29,8 @@ export class ShellComponent {
   readonly menuOpen = signal(false);
   readonly isBranchDropdownOpen = signal(false);
 
-  private readonly allNav: NavItem[] = [
-    {
-      label: 'Colección',
-      icon: 'catalog',
-      route: '/catalog',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-    {
-      label: 'Personal Stylist',
-      icon: 'stylist',
-      route: '/ai-studio',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-    {
-      label: 'Pedidos & Ventas',
-      icon: 'orders',
-      route: '/orders',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-    {
-      label: 'Caja POS',
-      icon: 'pos',
-      route: '/pos',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'],
-    },
-    {
-      label: 'Reservas',
-      icon: 'reservations',
-      route: '/reservations',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-    {
-      label: 'Mi Cuenta',
-      icon: 'account',
-      route: '/account',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-    {
-      label: 'Inventario',
-      icon: 'inventory',
-      route: '/inventory',
-      roles: ['ADMIN', 'ENCARGADO'],
-    },
-    {
-      label: 'Panel General',
-      icon: 'dashboard',
-      route: '/dashboard',
-      roles: ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'],
-    },
-  ];
-
   readonly navigation = computed(() => {
-    const role = this.auth.user()?.rol;
-    return role ? this.allNav.filter((item) => item.roles.includes(role)) : [];
+    return navigationForRole(this.auth.user()?.rol);
   });
 
   constructor() {
@@ -108,7 +39,11 @@ export class ShellComponent {
 
     // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
-    if (user && user.has_style_profile === false && this.auth.onboardingSkippedForUser() !== user.id) {
+    if (
+      user &&
+      user.has_style_profile === false &&
+      this.auth.onboardingSkippedForUser() !== user.id
+    ) {
       void this.router.navigate(['/onboarding']);
     }
   }
@@ -120,7 +55,10 @@ export class ShellComponent {
   chooseBranch(branch: Branch): void {
     this.branchService.selectBranch(branch);
     this.isBranchDropdownOpen.set(false);
-    this.toasts.show(`Sucursal activa: ${branch.nombre}. Disponibilidad física sincronizada.`, 'info');
+    this.toasts.show(
+      `Sucursal activa: ${branch.nombre}. Disponibilidad física sincronizada.`,
+      'info',
+    );
   }
 
   openBranchSelectorModal(): void {

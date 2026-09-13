@@ -1,0 +1,49 @@
+@if (open) {
+  <section
+    class="altair-launcher"
+    [class.altair-launcher--modal]="modal"
+    aria-label="Asistente Altair"
+  >
+    @if (modal) {
+      <button
+        class="altair-launcher__scrim"
+        type="button"
+        aria-label="Cerrar Altair"
+        (click)="closed.emit()"
+      ></button>
+    }
+    <div class="altair-launcher__surface">
+      <header class="altair-launcher__header">
+        <span class="altair-launcher__mark" aria-hidden="true">✦</span>
+        <div>
+          <p>Asistente compartido</p>
+          <h2>{{ title }}</h2>
+          <span>{{ description }}</span>
+        </div>
+        @if (modal) {
+          <button
+            class="altair-launcher__close"
+            type="button"
+            aria-label="Cerrar"
+            (click)="closed.emit()"
+          >
+            ×
+          </button>
+        }
+      </header>
+      @if (context) {
+        <p class="altair-launcher__context"><strong>En esta vista</strong>{{ context }}</p>
+      }
+      <app-chat-composer
+        [activeModel]="model()"
+        (modelChange)="selectModel($event)"
+        (sendMessage)="submit($event)"
+        (openOutfitBuilder)="openOutfitBuilder()"
+      />
+      <p class="altair-launcher__foot">
+        La consulta continuará en Altair para conservar el chat, las cards y las confirmaciones
+        reales.
+      </p>
+    </div>
+  </section>
+}

@@ -1,6 +1,12 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from './auth.service';
-import { AgentTraceStep, AiPresentationMode, AiSocketEvent, ChatMessage, ChatSession } from './models';
+import {
+  AgentTraceStep,
+  AiPresentationMode,
+  AiSocketEvent,
+  ChatMessage,
+  ChatSession,
+} from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -117,13 +123,23 @@ export class AiSocketService {
 
         if (valid.length > 0) {
           // Restoring a snapshot does not restore its WebSocket request.
-          this.sessions.set(valid.map((session) => ({
-            ...session,
-            messages: session.messages.map((message) => message.pending ? {
-              ...message, pending: false, error: true,
-              content: (message.content || '') + '\n\nLa conexión anterior se interrumpió. Puedes enviar tu consulta de nuevo.',
-            } : message),
-          })));
+          this.sessions.set(
+            valid.map((session) => ({
+              ...session,
+              messages: session.messages.map((message) =>
+                message.pending
+                  ? {
+                      ...message,
+                      pending: false,
+                      error: true,
+                      content:
+                        (message.content || '') +
+                        '\n\nLa conexión anterior se interrumpió. Puedes enviar tu consulta de nuevo.',
+                    }
+                  : message,
+              ),
+            })),
+          );
           this.saveSessionsToStorage();
           this.activeSessionId.set(valid[0].id);
           return;
@@ -189,8 +205,8 @@ export class AiSocketService {
 
   async deleteSession(sessionId: string): Promise<void> {
     if (this.isBusy() || this.remoteBusy) return;
-    const session = this.sessions().find(item => item.id === sessionId);
-    if (!await this.deleteRemote(session?.backendSessionId)) return;
+    const session = this.sessions().find((item) => item.id === sessionId);
+    if (!(await this.deleteRemote(session?.backendSessionId))) return;
     this.sessions.update((list) => list.filter((s) => s.id !== sessionId));
     if (this.sessions().length === 0) {
       this.createNewSession('Nueva Conversación');
@@ -202,7 +218,7 @@ export class AiSocketService {
 
   async clearConversation(): Promise<void> {
     if (this.isBusy() || this.remoteBusy) return;
-    if (!await this.deleteRemote(this.currentSession().backendSessionId)) return;
+    if (!(await this.deleteRemote(this.currentSession().backendSessionId))) return;
     const activeId = this.activeSessionId();
     this.sessions.update((list) =>
       list.map((s) =>
@@ -232,9 +248,14 @@ export class AiSocketService {
       return true;
     } catch (error: any) {
       if (error?.status === 404) return true;
-      this.toast.show('No se pudo eliminar el chat del servidor. Reintenta al finalizar la consulta.', 'error');
+      this.toast.show(
+        'No se pudo eliminar el chat del servidor. Reintenta al finalizar la consulta.',
+        'error',
+      );
       return false;
-    } finally { this.remoteBusy = false; }
+    } finally {
+      this.remoteBusy = false;
+    }
   }
 
   async selectProduct(id: number): Promise<void> {
@@ -243,12 +264,18 @@ export class AiSocketService {
     if (!chat.backendSessionId) return;
     this.remoteBusy = true;
     try {
-      const result = await firstValueFrom(this.http.post<{followup: string}>(
-        this.runtime.apiUrl + '/ai/sessions/' + chat.backendSessionId + '/selection', {product_id: id}));
+      const result = await firstValueFrom(
+        this.http.post<{ followup: string }>(
+          this.runtime.apiUrl + '/ai/sessions/' + chat.backendSessionId + '/selection',
+          { product_id: id },
+        ),
+      );
       if (this.activeSessionId() === chat.id) this.sendMessage(result.followup);
     } catch {
       this.toast.show('Esta opción ya no está disponible en el chat. Consulta de nuevo.', 'error');
-    } finally { this.remoteBusy = false; }
+    } finally {
+      this.remoteBusy = false;
+    }
   }
 
   connect(): void {
@@ -299,7 +326,9 @@ export class AiSocketService {
             ...last,
             pending: false,
             error: true,
-            content: last.content || 'Error de red en canal WebSocket (conexión rechazada o caída de red).',
+            content:
+              last.content ||
+              'Error de red en canal WebSocket (conexión rechazada o caída de red).',
             durationMs: Math.max(0, Date.now() - this.responseStartedAt),
           };
         }
@@ -325,9 +354,12 @@ export class AiSocketService {
       } else if (event.code === 4403) {
         errorMsg = `Acceso denegado por CORS (Código 4403: ${event.reason || 'Origin no permitido'}).`;
       } else if (event.code === 1006) {
-        errorMsg = 'Conexión WebSocket cerrada inesperadamente (Código 1006: Timeout del proxy Nginx o socket reiniciado).';
+        errorMsg =
+          'Conexión WebSocket cerrada inesperadamente (Código 1006: Timeout del proxy Nginx o socket reiniciado).';
       } else if (event.code === 1000) {
-        errorMsg = event.reason ? `Conexión cerrada: ${event.reason}` : 'Conexión finalizada normalmente.';
+        errorMsg = event.reason
+          ? `Conexión cerrada: ${event.reason}`
+          : 'Conexión finalizada normalmente.';
       } else {
         errorMsg = `Conexión cerrada (Código ${event.code}${event.reason ? ': ' + event.reason : ''}).`;
       }
@@ -360,13 +392,22 @@ export class AiSocketService {
 
   disconnect(): void {
     this.queuedMessage = null;
-    this.sessions.update((sessions) => sessions.map((session) => ({
-      ...session,
-      messages: session.messages.map((message) => message.pending ? {
-        ...message, pending: false, error: true,
-        content: (message.content || '') + '\n\nRespuesta interrumpida al cerrar la conexión.',
-      } : message),
-    })));
+    this.sessions.update((sessions) =>
+      sessions.map((session) => ({
+        ...session,
+        messages: session.messages.map((message) =>
+          message.pending
+            ? {
+                ...message,
+                pending: false,
+                error: true,
+                content:
+                  (message.content || '') + '\n\nRespuesta interrumpida al cerrar la conexión.',
+              }
+            : message,
+        ),
+      })),
+    );
     this.saveSessionsToStorage();
     this.manualDisconnect = true;
     this.clearReconnect();
@@ -424,7 +465,12 @@ export class AiSocketService {
 
   sendMessage(
     content: string,
-    options?: { isCommand?: boolean; commandLabel?: string; mode?: 'mini' | 'dynamic' | 'gemma' },
+    options?: {
+      isCommand?: boolean;
+      commandLabel?: string;
+      mode?: 'mini' | 'dynamic' | 'gemma';
+      context?: string;
+    },
   ): void {
     const clean = content;
     if (!clean.trim() || this.isBusy()) return;
@@ -454,6 +500,9 @@ export class AiSocketService {
       }
     }
 
+    const wireContent = options?.context?.trim()
+      ? `${clean}\n\n[Contexto actual de la interfaz]\n${options.context.trim()}`
+      : clean;
     const userMsgId = `user-${Date.now()}`;
     const assistantMsgId = `assistant-${Date.now()}`;
     const activeId = this.activeSessionId();
@@ -506,9 +555,9 @@ export class AiSocketService {
       this.socket?.readyState === WebSocket.OPEN &&
       ['connected', 'ready'].includes(this.status())
     ) {
-      this.sendChat(clean, options?.mode);
+      this.sendChat(wireContent, options?.mode);
     } else {
-      this.queuedMessage = { content: clean, mode: options?.mode };
+      this.queuedMessage = { content: wireContent, mode: options?.mode };
       this.connect();
     }
   }
@@ -572,8 +621,12 @@ export class AiSocketService {
       const isMini = event.mode === 'mini' || event.model_role === 'scout';
       this.currentThought.set(
         event.status === 'loading'
-          ? (isMini ? 'Preparando Altair Mini…' : 'Preparando Altair…')
-          : (isMini ? 'Pensando con Altair Mini…' : 'Pensando…')
+          ? isMini
+            ? 'Preparando Altair Mini…'
+            : 'Preparando Altair…'
+          : isMini
+            ? 'Pensando con Altair Mini…'
+            : 'Pensando…',
       );
       return;
     }
@@ -587,20 +640,32 @@ export class AiSocketService {
 
     if (event.type === 'tool_result' && event.name) {
       const formatted = event.label || this.formatToolName(event.name);
-      const failed = !!(event.result && typeof event.result === 'object' && 'error' in event.result);
-      this.finishTrace(formatted, failed ? 'La consulta devolvió un error' : this.resultSummary(event.result), failed);
+      const failed = !!(
+        event.result &&
+        typeof event.result === 'object' &&
+        'error' in event.result
+      );
+      this.finishTrace(
+        formatted,
+        failed ? 'La consulta devolvió un error' : this.resultSummary(event.result),
+        failed,
+      );
       return;
     }
 
     if (event.type === 'results') {
-      this.updateLastMessage(activeId, (last) => ({ ...last, actionItems: event.action_items || [] }));
+      this.updateLastMessage(activeId, (last) => ({
+        ...last,
+        actionItems: event.action_items || [],
+      }));
       return;
     }
 
     if (event.type === 'presentation') {
       this.updateLastMessage(activeId, (last) => ({
         ...last,
-        presentationMode: (event.mode as AiPresentationMode) || event.presentation_mode || last.presentationMode,
+        presentationMode:
+          (event.mode as AiPresentationMode) || event.presentation_mode || last.presentationMode,
         responseTitle: event.title || event.response_title || last.responseTitle,
         notices: event.notices || last.notices,
         responseMeta: event.response_meta || last.responseMeta,
@@ -655,9 +720,15 @@ export class AiSocketService {
 
     if (event.type === 'error') {
       if (event.code === 'CHAT_NOT_FOUND') {
-        this.sessions.update((list) => list.map((session) =>
-          session.id === activeId ? { ...session, backendSessionId: null } : session));
-        this.toast.show('Este chat ya no existe en el servidor. La próxima consulta iniciará un contexto nuevo.', 'error');
+        this.sessions.update((list) =>
+          list.map((session) =>
+            session.id === activeId ? { ...session, backendSessionId: null } : session,
+          ),
+        );
+        this.toast.show(
+          'Este chat ya no existe en el servidor. La próxima consulta iniciará un contexto nuevo.',
+          'error',
+        );
       }
       this.stopThinkingTicker();
       this.status.set('error');
@@ -665,11 +736,12 @@ export class AiSocketService {
 
       const trace = this.toolActivity().map((step) =>
         step.state === 'running'
-? { ...step, state: 'error' as const, summary: 'Proceso interrumpido' }
+          ? { ...step, state: 'error' as const, summary: 'Proceso interrumpido' }
           : { ...step },
       );
 
-      const errorMsg = event.message || (event as any).detail || 'No se pudo completar la consulta.';
+      const errorMsg =
+        event.message || (event as any).detail || 'No se pudo completar la consulta.';
       const codeMsg = event.code ? ` (${event.code})` : '';
 
       this.updateLastMessage(activeId, (last) =>
@@ -699,10 +771,7 @@ export class AiSocketService {
     }
   }
 
-  private updateLastMessage(
-    sessionId: string,
-    updater: (last: ChatMessage) => ChatMessage,
-  ): void {
+  private updateLastMessage(sessionId: string, updater: (last: ChatMessage) => ChatMessage): void {
     this.sessions.update((list) =>
       list.map((s) => {
         if (s.id !== sessionId || s.messages.length === 0) return s;

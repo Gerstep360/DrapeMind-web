@@ -1,0 +1,120 @@
+:host {
+  display: block;
+}
+.altair-launcher {
+  position: relative;
+}
+.altair-launcher__surface {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 880px);
+  margin: auto;
+  padding: 1.1rem;
+  border: 1px solid var(--dm-border, #e1e3da);
+  border-radius: 26px;
+  background: linear-gradient(145deg, #fff 0%, #f8f9f2 100%);
+  box-shadow: 0 18px 50px rgba(16, 17, 15, 0.09);
+}
+.altair-launcher__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.85rem;
+  align-items: start;
+  margin-bottom: 0.9rem;
+}
+.altair-launcher__mark {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 14px;
+  background: var(--dm-ink, #10110f);
+  color: var(--dm-lime, #dfff3f);
+  font-size: 1.25rem;
+}
+.altair-launcher__header p {
+  margin: 0;
+  color: var(--dm-text-muted, #73776e);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.altair-launcher__header h2 {
+  margin: 0.12rem 0;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  letter-spacing: -0.035em;
+}
+.altair-launcher__header div > span,
+.altair-launcher__foot {
+  color: var(--dm-text-muted, #73776e);
+  font-size: 0.75rem;
+}
+.altair-launcher__close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--dm-border, #e1e3da);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+.altair-launcher__context {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(223, 255, 63, 0.17);
+  font-size: 0.76rem;
+}
+.altair-launcher__context strong {
+  white-space: nowrap;
+}
+.altair-launcher__foot {
+  margin: 0.65rem 0.35rem 0;
+}
+.altair-launcher--modal {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+.altair-launcher--modal .altair-launcher__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(12, 15, 12, 0.62);
+  backdrop-filter: blur(9px);
+}
+.altair-launcher--modal .altair-launcher__surface {
+  width: min(900px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  animation: altair-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes altair-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
+@media (max-width: 640px) {
+  .altair-launcher__surface {
+    padding: 0.8rem;
+    border-radius: 20px;
+  }
+  .altair-launcher__context {
+    display: grid;
+  }
+  .altair-launcher__foot {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .altair-launcher--modal .altair-launcher__surface {
+    animation: none;
+  }
+}

@@ -1,0 +1,77 @@
+<dialog
+  #scannerDialog
+  class="scanner-dialog"
+  aria-labelledby="scanner-heading"
+  (cancel)="close()"
+  (paste)="onPaste($event)"
+>
+  <div class="scanner-dialog__content">
+    <div class="scanner-dialog__header">
+      <div>
+        <p class="eyebrow">Visión computacional</p>
+        <h2 id="scanner-heading">Escáner óptico de reserva</h2>
+      </div>
+      <button type="button" class="btn-close-scanner" (click)="close()" aria-label="Cerrar escáner">
+        <svg viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    @if (cameraSupported()) {
+      <div class="scanner-viewfinder">
+        <video #scannerVideo playsinline muted></video>
+        <div class="scanner-laser"></div>
+        <div class="scanner-corners" aria-hidden="true">
+          <span class="corner corner--tl"></span><span class="corner corner--tr"></span>
+          <span class="corner corner--bl"></span><span class="corner corner--br"></span>
+        </div>
+      </div>
+      <p class="scanner-hint">Apunta al QR de la reserva para leerlo automáticamente.</p>
+    } @else {
+      <div class="scanner-fallback-box">
+        <div class="scanner-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
+            />
+            <circle cx="12" cy="13" r="3" />
+          </svg>
+        </div>
+        <h3>Captura de comprobante QR</h3>
+        <p class="scanner-desc">
+          Si el navegador bloquea la cámara continua, captura una foto o selecciona una imagen.
+        </p>
+      </div>
+    }
+
+    @if (cameraError()) {
+      <p class="scanner-error-text">{{ cameraError() }}</p>
+    }
+
+    <div class="scanner-actions-bar">
+      <label class="button button--accent scanner-upload-btn">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+          />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        <span>Tomar foto / Subir imagen</span>
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="onFileSelected($event)"
+        />
+      </label>
+      <button class="button button--secondary" type="button" (click)="close()">Cerrar</button>
+    </div>
+
+    <div class="scanner-tip-card">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </svg>
+      <span>También puedes pegar una captura directamente con <kbd>Ctrl+V</kbd>.</span>
+    </div>
+  </div>
+</dialog>

@@ -1,12 +1,12 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { Cart, CartItem } from './models';
-import { StoreApiService } from './store-api.service';
+import { CommerceApiService } from './api/commerce-api.service';
 import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly api = inject(StoreApiService);
+  private readonly api = inject(CommerceApiService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
