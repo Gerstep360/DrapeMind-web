@@ -232,14 +232,17 @@
               </div>
 
               <div class="voucher-security-box">
-                <!-- MOCKUP QR CODE -->
+                <!-- REAL SCANNABLE QR CODE -->
                 <div class="qr-stamp">
-                  <div class="qr-grid-pattern">
-                    <div class="qr-p-corner p-tl"></div>
-                    <div class="qr-p-corner p-tr"></div>
-                    <div class="qr-p-corner p-bl"></div>
-                    <div class="qr-badge-center">DM</div>
-                  </div>
+                  @if (qrCodeDataUrl()) {
+                    <img
+                      [src]="qrCodeDataUrl()"
+                      alt="Código QR de verificación oficial"
+                      class="qr-real-image"
+                    />
+                  } @else {
+                    <div class="qr-loading-placeholder">QR</div>
+                  }
                 </div>
                 <div class="seal-text-col">
                   <div class="seal-official-text">
@@ -247,6 +250,9 @@
                     <small>Firma Digital DrapeMind Cloud ERP</small>
                   </div>
                   <p class="security-hash">HASH: {{ r.order.codigo_publico.substring(0, 16) }}...</p>
+                  <p class="qr-scan-hint">
+                    <span>Escanear para verificar autenticidad en vivo ↗</span>
+                  </p>
                 </div>
               </div>
             </footer>

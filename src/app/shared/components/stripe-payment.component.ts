@@ -20,28 +20,39 @@ import { Payment } from '../../core/models';
 
 @Component({
   selector: 'app-stripe-payment',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
     @if (enabled()) {
-      <section class="stripe-pay-container" aria-label="Pago seguro con tarjeta Stripe">
-        <div class="stripe-header">
-          <div class="stripe-badge-box">
-            <svg class="stripe-icon" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="24" rx="4" fill="#635BFF" />
+      <section class="dm-stripe-card" aria-label="Pago seguro con tarjeta Stripe">
+        <!-- BRAND & MODE HEADER -->
+        <div class="dm-stripe-header">
+          <div class="stripe-brand-badge">
+            <svg class="stripe-svg-logo" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="24" rx="6" fill="#635BFF" />
               <path d="M16.5 10.2c0-.7.6-1 1.5-1 1.4 0 3 .4 4.3 1.1V6.8c-1.4-.6-2.9-.8-4.3-.8-3.6 0-6 1.9-6 5.1 0 5 6.9 4.2 6.9 6.3 0 .8-.7 1.1-1.7 1.1-1.5 0-3.4-.6-4.9-1.5v3.6c1.6.7 3.3 1 4.9 1 3.7 0 6.3-1.8 6.3-5.1 0-5.3-7-4.4-7-6.5z" fill="#fff" />
             </svg>
-            <span class="stripe-title">Pasarela Stripe</span>
+            <div class="stripe-brand-titles">
+              <span class="stripe-brand-name">Stripe Payments</span>
+              <span class="stripe-brand-sub">Transacción Segura Atelier</span>
+            </div>
           </div>
+
           @if (isSandbox()) {
-            <span class="sandbox-pill">SANDBOX TEST MODE</span>
+            <span class="dm-pill-sandbox">✦ MODO SANDBOX</span>
           } @else {
-            <span class="live-pill">PAGO ENCRIPTADO 256-BIT</span>
+            <span class="dm-pill-live">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              ENCRIPTACIÓN 256-BIT
+            </span>
           }
         </div>
 
-        <!-- ERROR STATE -->
+        <!-- ERROR ALERT -->
         @if (error()) {
-          <div class="stripe-alert stripe-alert--error" role="alert">
+          <div class="dm-alert dm-alert--error" role="alert">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
@@ -51,104 +62,121 @@ import { Payment } from '../../core/models';
 
         <!-- APPROVED STATE -->
         @if (approved()) {
-          <div class="stripe-success-card">
-            <div class="success-icon-wrap">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <div class="dm-approved-card">
+            <div class="approved-seal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
-            <div>
-              <h4>¡Pago Aprobado con Éxito!</h4>
-              <p>Tu transacción fue validada en tiempo real. Tu pedido ya está en preparación.</p>
+            <div class="approved-text">
+              <h4>¡Pago Procesado y Aprobado!</h4>
+              <p>Tu orden ha sido confirmada en tiempo real. Tu comprobante oficial ya está disponible.</p>
             </div>
           </div>
         }
 
         <!-- SANDBOX CARDS DEMO VIEW -->
         @if (!approved() && isSandbox()) {
-          <div class="card-visual-wrapper">
-            <div class="luxury-credit-card">
-              <div class="card-top-row">
-                <div class="card-chip">
-                  <div class="chip-line"></div>
-                  <div class="chip-line"></div>
+          <!-- LUXURY EDITORIAL CREDIT CARD PREVIEW -->
+          <div class="editorial-card-wrap">
+            <div class="editorial-credit-card">
+              <div class="card-glass-glow"></div>
+              <div class="card-head-row">
+                <div class="chip-wrapper">
+                  <div class="gold-chip">
+                    <div class="chip-circuit c-1"></div>
+                    <div class="chip-circuit c-2"></div>
+                  </div>
+                  <div class="contactless-waves">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M8.5 16.5a5 5 0 0 1 0-9"/>
+                      <path d="M12 19a8.5 8.5 0 0 0 0-14"/>
+                      <path d="M15.5 21.5a12 12 0 0 0 0-19"/>
+                    </svg>
+                  </div>
                 </div>
-                <div class="contactless-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8.5 16.5a5 5 0 0 1 0-9"/>
-                    <path d="M12 19a8.5 8.5 0 0 0 0-14"/>
-                    <path d="M15.5 21.5a12 12 0 0 0 0-19"/>
-                  </svg>
-                </div>
-                <div class="card-brand">
-                  <span class="brand-text">{{ selectedBrand() }}</span>
+
+                <div class="card-monogram-badge">
+                  <span class="card-brand-label">{{ selectedBrand() }}</span>
                 </div>
               </div>
 
-              <div class="card-number-display">
+              <div class="card-number-stream">
                 {{ cardNumber() }}
               </div>
 
-              <div class="card-bottom-row">
-                <div class="card-holder-group">
-                  <span class="card-label">TITULAR</span>
-                  <span class="card-value">{{ cardHolder().toUpperCase() }}</span>
+              <div class="card-meta-row">
+                <div class="meta-field">
+                  <span class="meta-field-label">TITULAR AUTORIZADO</span>
+                  <span class="meta-field-val">{{ cardHolder().toUpperCase() }}</span>
                 </div>
-                <div class="card-expiry-group">
-                  <span class="card-label">EXPIRA</span>
-                  <span class="card-value">{{ cardExpiry() }}</span>
+                <div class="meta-field text-right">
+                  <span class="meta-field-label">VENCE</span>
+                  <span class="meta-field-val">{{ cardExpiry() }}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="sandbox-controls">
-            <div class="form-group">
-              <label for="cardHolderInput">Nombre en la tarjeta</label>
+          <!-- EDITORIAL INPUT CONTROLS -->
+          <div class="dm-controls-form">
+            <div class="dm-field-group">
+              <label for="cardHolderInput" class="dm-label">Nombre del Titular</label>
               <input
                 id="cardHolderInput"
                 type="text"
-                class="input-control"
+                class="dm-input"
                 [ngModel]="cardHolder()"
                 (ngModelChange)="cardHolder.set($event)"
                 placeholder="Ej. Juan Pérez"
               />
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Tarjeta de Prueba</label>
-                <select class="input-control" [ngModel]="selectedCardType()" (ngModelChange)="changeTestCard($event)">
-                  <option value="visa_ok">Visa Test (4242 •••• 4242) - Éxito</option>
-                  <option value="mc_ok">Mastercard (5555 •••• 4444) - Éxito</option>
-                </select>
+            <div class="dm-fields-row">
+              <div class="dm-field-group">
+                <label for="cardTypeSelect" class="dm-label">Tarjeta de Simulación</label>
+                <div class="dm-select-wrap">
+                  <select
+                    id="cardTypeSelect"
+                    class="dm-input dm-select"
+                    [ngModel]="selectedCardType()"
+                    (ngModelChange)="changeTestCard($event)"
+                  >
+                    <option value="visa_ok">Visa Test (4242 •••• 4242) — Cobro Inmediato</option>
+                    <option value="mc_ok">Mastercard Test (5555 •••• 4444) — Cobro Inmediato</option>
+                  </select>
+                </div>
               </div>
-              <div class="form-group">
-                <label>CVC / CVV</label>
-                <input type="text" class="input-control" value="888" readonly />
+
+              <div class="dm-field-group cvc-group">
+                <label class="dm-label">CVC / CVV</label>
+                <input type="text" class="dm-input text-center" value="888" readonly />
               </div>
             </div>
 
-            <p class="sandbox-note">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
-              Sandbox de Stripe activo. Haz clic abajo para confirmar el cobro sin tarjetas reales.
-            </p>
+            <div class="sandbox-info-banner">
+              <div class="info-sparkle">✦</div>
+              <p>
+                <strong>Entorno Sandbox DrapeMind Activo:</strong> Puedes autorizar el pedido sin debitar dinero real. Se generará tu comprobante oficial con sello de verificación digital.
+              </p>
+            </div>
 
+            <!-- PRIMARY LIME CTA BUTTON -->
             <button
-              class="pay-btn pay-btn--primary"
+              class="dm-btn-pay"
               type="button"
               (click)="paySandbox()"
               [disabled]="busy()"
             >
               @if (busy()) {
-                <span class="spinner"></span> Procesando con Stripe...
+                <span class="dm-spinner"></span>
+                <span>Validando transacción con Stripe...</span>
               } @else {
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect width="20" height="14" x="2" y="5" rx="2"/>
+                  <line x1="2" x2="22" y1="10" stroke="currentColor" stroke-width="2.5"/>
                 </svg>
-                <span>Pagar con Tarjeta (Stripe Sandbox)</span>
+                <span>Confirmar Pago con Tarjeta</span>
               }
             </button>
           </div>
@@ -156,44 +184,48 @@ import { Payment } from '../../core/models';
 
         <!-- REAL STRIPE ELEMENTS MOUNT -->
         @if (!approved() && !isSandbox()) {
-          <div class="real-stripe-box">
+          <div class="real-stripe-wrapper">
             @if (!ready() && !busy()) {
-              <div class="init-box">
-                <p>Listo para conectar con Stripe seguro.</p>
-                <button class="pay-btn pay-btn--secondary" type="button" (click)="prepare()">
-                  Cargar formulario de tarjeta
+              <div class="init-prompt">
+                <p>Listo para conectar con el servidor cifrado de Stripe.</p>
+                <button class="dm-btn-secondary" type="button" (click)="prepare()">
+                  Cargar formulario seguro
                 </button>
               </div>
             }
 
-            <div #elementHost class="stripe-element-mount"></div>
+            <div #elementHost class="stripe-elements-mount-slot"></div>
 
             @if (ready()) {
-              <div class="action-buttons-row">
+              <div class="actions-row">
                 <button
-                  class="pay-btn pay-btn--primary"
+                  class="dm-btn-pay"
                   type="button"
                   (click)="payRealStripe()"
                   [disabled]="busy()"
                 >
-                  {{ busy() ? 'Procesando con Stripe...' : 'Pagar ahora con Stripe' }}
+                  @if (busy()) {
+                    <span class="dm-spinner"></span> Procesando con Stripe...
+                  } @else {
+                    <span>Pagar ahora con Stripe</span>
+                  }
                 </button>
                 <button
-                  class="pay-btn pay-btn--ghost"
+                  class="dm-btn-secondary"
                   type="button"
                   (click)="check()"
                   [disabled]="busy()"
                 >
-                  Consultar estado
+                  Consultar Estado
                 </button>
               </div>
             }
           </div>
         }
 
-        <!-- STATUS BAR -->
+        <!-- STATUS CAPTION -->
         @if (status()) {
-          <p class="status-msg" role="status" aria-live="polite">{{ status() }}</p>
+          <p class="dm-status-caption" role="status" aria-live="polite">{{ status() }}</p>
         }
       </section>
     }
@@ -202,340 +234,434 @@ import { Payment } from '../../core/models';
     :host {
       display: block;
       margin: 16px 0;
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    .stripe-pay-container {
-      background: #0e1015;
-      border: 1px solid rgba(223, 255, 63, 0.25);
-      border-radius: 20px;
-      padding: 22px;
-      color: #f4f5ea;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    /* CONTAINER: Warm editorial white surface conforming to DrapeMind Design System */
+    .dm-stripe-card {
+      background: #FFFFFF;
+      border: 1px solid #E1E3DA;
+      border-radius: 28px;
+      padding: 24px 28px;
+      color: #10110F;
+      box-shadow: 0 14px 36px rgba(16, 17, 15, 0.08);
       position: relative;
-      overflow: hidden;
     }
 
-    .stripe-header {
+    /* HEADER */
+    .dm-stripe-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 18px;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
     }
 
-    .stripe-badge-box {
+    .stripe-brand-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .stripe-icon {
+    .stripe-svg-logo {
       width: 44px;
       height: 26px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(99, 91, 255, 0.4);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(99, 91, 255, 0.25);
+      flex-shrink: 0;
     }
 
-    .stripe-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: 0.3px;
-    }
-
-    .sandbox-pill {
-      background: rgba(223, 255, 63, 0.15);
-      color: #dfff3f;
-      border: 1px solid rgba(223, 255, 63, 0.35);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 999px;
-      letter-spacing: 0.5px;
-    }
-
-    .live-pill {
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.35);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 999px;
-      letter-spacing: 0.5px;
-    }
-
-    /* VIRTUAL CREDIT CARD */
-    .card-visual-wrapper {
-      perspective: 1000px;
-      margin-bottom: 20px;
-    }
-
-    .luxury-credit-card {
-      background: linear-gradient(135deg, #1e222d 0%, #111318 60%, #1a1e27 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 20px 24px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      position: relative;
-    }
-
-    .card-top-row {
+    .stripe-brand-titles {
       display: flex;
+      flex-direction: column;
+    }
+
+    .stripe-brand-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #10110F;
+      letter-spacing: -0.2px;
+    }
+
+    .stripe-brand-sub {
+      font-size: 11px;
+      color: #7B7F75;
+      font-weight: 500;
+    }
+
+    .dm-pill-sandbox {
+      background: #EEFF9D;
+      color: #10110F;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.6px;
+      box-shadow: 0 2px 8px rgba(223, 255, 63, 0.35);
+    }
+
+    .dm-pill-live {
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 6px;
+      background: #E8F8EE;
+      color: #1E7E34;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    /* LUXURY EDITORIAL CREDIT CARD */
+    .editorial-card-wrap {
+      perspective: 1000px;
       margin-bottom: 22px;
     }
 
-    .card-chip {
-      width: 36px;
-      height: 28px;
-      background: linear-gradient(135deg, #e5be01 0%, #c49e00 100%);
+    .editorial-credit-card {
+      background: linear-gradient(135deg, #10110F 0%, #1A1C16 65%, #25291F 100%);
+      border: 1px solid rgba(223, 255, 63, 0.35);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #FFFFFF;
+      box-shadow: 0 16px 36px rgba(16, 17, 15, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-glass-glow {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(223, 255, 63, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 26px;
+    }
+
+    .chip-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gold-chip {
+      width: 40px;
+      height: 30px;
+      background: linear-gradient(135deg, #E6CA65 0%, #C49E00 100%);
       border-radius: 6px;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
     }
 
-    .chip-line {
+    .chip-circuit {
       position: absolute;
       border: 1px solid rgba(0, 0, 0, 0.25);
       width: 100%;
-      top: 35%;
     }
 
-    .chip-line:last-child {
-      top: 65%;
-    }
+    .chip-circuit.c-1 { top: 35%; }
+    .chip-circuit.c-2 { top: 65%; }
 
-    .contactless-icon {
+    .contactless-waves {
       color: rgba(255, 255, 255, 0.5);
     }
 
-    .brand-text {
-      font-size: 16px;
+    .card-monogram-badge {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-brand-label {
+      font-size: 13px;
       font-weight: 900;
       letter-spacing: 1.5px;
-      color: #dfff3f;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      color: #DFFF3F;
     }
 
-    .card-number-display {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 20px;
+    .card-number-stream {
+      font-family: 'Space Mono', 'Courier New', monospace;
+      font-size: 21px;
       font-weight: 700;
-      letter-spacing: 3px;
-      color: #ffffff;
-      margin-bottom: 20px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      letter-spacing: 3.5px;
+      color: #FFFFFF;
+      margin-bottom: 22px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
-    .card-bottom-row {
+    .card-meta-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
 
-    .card-label {
-      display: block;
-      font-size: 9px;
-      letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 2px;
-    }
-
-    .card-value {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      color: #e2e8f0;
-    }
-
-    /* CONTROLS */
-    .sandbox-controls {
+    .meta-field {
       display: flex;
       flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-field-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+    }
+
+    .meta-field-val {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #F4F5EA;
+    }
+
+    .text-right { text-align: right; }
+
+    /* EDITORIAL CONTROLS */
+    .dm-controls-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dm-fields-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
       gap: 14px;
     }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 12px;
+    .dm-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .form-group label {
-      display: block;
+    .dm-label {
       font-size: 12px;
-      font-weight: 600;
-      color: #a0aec0;
-      margin-bottom: 6px;
+      font-weight: 700;
+      color: #40433D;
+      letter-spacing: -0.1px;
     }
 
-    .input-control {
+    .dm-input {
       width: 100%;
-      padding: 10px 14px;
-      background: #181b22;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
-      color: #ffffff;
+      min-height: 48px;
+      padding: 0 16px;
+      background: #F8F9F2;
+      border: 1.5px solid #E1E3DA;
+      border-radius: 16px;
+      color: #10110F;
       font-size: 14px;
+      font-weight: 600;
       box-sizing: border-box;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
 
-    .input-control:focus {
-      border-color: #dfff3f;
+    .dm-input:focus {
+      border-color: #10110F;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(223, 255, 63, 0.35);
     }
 
-    .sandbox-note {
+    .dm-select-wrap {
+      position: relative;
+    }
+
+    .dm-select {
+      appearance: none;
+      cursor: pointer;
+      padding-right: 32px;
+    }
+
+    .cvc-group {
+      max-width: 110px;
+    }
+
+    .text-center { text-align: center; }
+
+    .sandbox-info-banner {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
+      background: #F4F5EA;
+      border: 1px solid #E1E3DA;
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+
+    .info-sparkle {
+      color: #10110F;
+      font-weight: 900;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    .sandbox-info-banner p {
+      margin: 0;
       font-size: 12px;
-      color: #a3a89e;
-      margin: 2px 0 6px;
-      line-height: 1.4;
+      color: #686B63;
+      line-height: 1.5;
     }
 
-    .sandbox-note svg {
-      flex-shrink: 0;
-      color: #dfff3f;
+    .sandbox-info-banner strong {
+      color: #10110F;
     }
 
-    /* BUTTONS */
-    .pay-btn {
+    /* PRIMARY ELECTRIC LIME CTA BUTTON */
+    .dm-btn-pay {
       width: 100%;
-      padding: 14px 20px;
-      border-radius: 12px;
+      height: 52px;
+      background: #DFFF3F;
+      color: #10110F;
+      border: none;
+      border-radius: 999px;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
+      box-shadow: 0 6px 20px rgba(223, 255, 63, 0.4);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    .pay-btn--primary {
-      background: #dfff3f;
-      color: #10110f;
-      box-shadow: 0 4px 16px rgba(223, 255, 63, 0.25);
+    .dm-btn-pay:hover:not(:disabled) {
+      background: #D2F632;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(223, 255, 63, 0.5);
     }
 
-    .pay-btn--primary:hover:not(:disabled) {
-      background: #c8eb2f;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(223, 255, 63, 0.35);
-    }
-
-    .pay-btn--secondary {
-      background: #232731;
-      color: #f4f5ea;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .pay-btn--ghost {
-      background: transparent;
-      color: #a0aec0;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .pay-btn:disabled {
+    .dm-btn-pay:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
     }
 
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(16, 17, 15, 0.2);
-      border-top-color: #10110f;
+    .dm-btn-secondary {
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: #FFFFFF;
+      color: #10110F;
+      border: 1.5px solid #E1E3DA;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dm-btn-secondary:hover {
+      background: #F0F1EB;
+    }
+
+    .dm-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(16, 17, 15, 0.2);
+      border-top-color: #10110F;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.7s linear infinite;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* REAL STRIPE MOUNT */
-    .stripe-element-mount {
-      margin: 14px 0;
+    /* REAL STRIPE BOX */
+    .real-stripe-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .stripe-elements-mount-slot {
+      margin: 12px 0;
       min-height: 50px;
-      background: #ffffff;
+      background: #FFFFFF;
       padding: 12px;
-      border-radius: 12px;
+      border: 1px solid #E1E3DA;
+      border-radius: 16px;
     }
 
-    .action-buttons-row {
+    .actions-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
-    /* ALERTS & SUCCESS */
-    .stripe-alert {
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .stripe-alert--error {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-    }
-
-    .stripe-success-card {
-      background: rgba(34, 197, 94, 0.15);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-      border-radius: 14px;
-      padding: 18px;
+    /* APPROVED CARD & ALERT */
+    .dm-approved-card {
+      background: #E8F8EE;
+      border: 1px solid #A3E6B5;
+      border-radius: 18px;
+      padding: 18px 22px;
       display: flex;
       align-items: center;
       gap: 16px;
-      color: #ffffff;
       margin-bottom: 14px;
     }
 
-    .success-icon-wrap {
+    .approved-seal {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #22c55e;
-      color: #0e1015;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #1E7E34;
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
       flex-shrink: 0;
     }
 
-    .stripe-success-card h4 {
+    .approved-text h4 {
       margin: 0 0 4px;
       font-size: 16px;
-      font-weight: 700;
-      color: #4ade80;
+      font-weight: 800;
+      color: #1E7E34;
     }
 
-    .stripe-success-card p {
+    .approved-text p {
       margin: 0;
       font-size: 13px;
-      color: #e2e8f0;
+      color: #2F5233;
     }
 
-    .status-msg {
+    .dm-alert {
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dm-alert--error {
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      color: #B91C1C;
+    }
+
+    .dm-status-caption {
       font-size: 12px;
       text-align: center;
-      margin-top: 10px;
-      color: #a0aec0;
+      margin-top: 14px;
+      color: #7B7F75;
+      font-weight: 600;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -574,7 +700,6 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
       next: (c) => {
         if (this.destroyed) return;
         this.enabled.set(c.provider === 'stripe' || c.provider === 'mock');
-        // Auto-prepare payment on init
         void this.prepare();
       },
       error: () => {
@@ -614,10 +739,8 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
       this.isSandbox.set(isSandboxMode);
 
       if (isSandboxMode) {
-        // Sandbox mode ready immediately
         this.ready.set(true);
       } else {
-        // Mount real Stripe Elements
         this.stripe = await firstValueFrom(from(loadStripe(pubKey)).pipe(timeout(20000)));
         if (this.destroyed) return;
         if (!this.stripe || !this.host || !intent.client_secret) throw new Error('Stripe JS init error');
@@ -625,17 +748,21 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
         this.elements = this.stripe.elements({
           clientSecret: intent.client_secret,
           appearance: {
-            theme: 'night',
-            variables: { colorPrimary: '#dfff3f', colorBackground: '#181b22', borderRadius: '12px' },
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#10110F',
+              colorBackground: '#FFFFFF',
+              colorText: '#10110F',
+              borderRadius: '16px',
+            },
           },
         });
         this.element = this.elements.create('payment');
         this.element.mount(this.host.nativeElement);
         this.ready.set(true);
       }
-    } catch (e: any) {
+    } catch {
       if (!this.destroyed) {
-        // Fallback to sandbox if stripe API key rejected
         this.isSandbox.set(true);
         this.ready.set(true);
       }
@@ -648,7 +775,7 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
     if (this.busy() || !this.paymentId) return;
     this.busy.set(true);
     this.error.set('');
-    this.status.set('Confirmando pago con Stripe Sandbox...');
+    this.status.set('Confirmando pago seguro con Stripe...');
 
     try {
       const payment = await firstValueFrom(
@@ -657,15 +784,14 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
       if (this.destroyed) return;
 
       this.approved.set(true);
-      this.status.set('¡Pago aprobado por pasarela Stripe!');
+      this.status.set('¡Pago aprobado exitosamente por la pasarela!');
       this.paid.emit(payment);
-    } catch (err: any) {
-      // Fallback to mockConfirm if needed
+    } catch {
       try {
         const payment = await firstValueFrom(this.api.mockConfirmPayment(this.paymentId!));
         if (this.destroyed) return;
         this.approved.set(true);
-        this.status.set('¡Pago aprobado!');
+        this.status.set('¡Pago aprobado exitosamente!');
         this.paid.emit(payment);
       } catch (e: any) {
         if (!this.destroyed) {

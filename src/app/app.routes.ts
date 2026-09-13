@@ -14,6 +14,12 @@ export const routes: Routes = [
       import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
   },
   {
+    path: 'receipt/:id',
+    title: 'Comprobante Oficial Verificado | DrapeMind',
+    loadComponent: () =>
+      import('./features/receipt-view/receipt-view.component').then((m) => m.ReceiptViewComponent),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell.component').then((m) => m.ShellComponent),

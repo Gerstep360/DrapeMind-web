@@ -118,6 +118,10 @@ export class StoreApiService {
     return this.http.get<ReceiptData>(`${this.runtime.apiUrl}/orders/${orderId}/receipt?format=json`);
   }
 
+  publicReceiptData(orderId: number): Observable<ReceiptData> {
+    return this.http.get<ReceiptData>(`${this.runtime.apiUrl}/orders/${orderId}/public-receipt`);
+  }
+
   productAvailability(productId: number): Observable<BranchStock[]> {
     return this.http.get<BranchStock[]>(
       `${this.runtime.apiUrl}/branches/products/${productId}/availability`,
