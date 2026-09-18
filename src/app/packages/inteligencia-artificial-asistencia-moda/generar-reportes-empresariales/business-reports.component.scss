@@ -148,6 +148,92 @@
     }
   }
 
+  /* Selector de Motor de IA */
+  .model-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.85rem 1.15rem;
+    background: #f7f8f3;
+    border-radius: 18px;
+    border: 1px solid rgba(18, 23, 20, 0.06);
+    flex-wrap: wrap;
+
+    .model-selector-label {
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6d756e;
+    }
+
+    .model-pills {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      flex: 1;
+
+      .model-pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #ffffff;
+        border: 1px solid rgba(18, 23, 20, 0.12);
+        border-radius: 999px;
+        padding: 0.45rem 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        .pill-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #8e9990;
+        }
+
+        .pill-title {
+          font-size: 0.8125rem;
+          font-weight: 700;
+          color: #121714;
+        }
+
+        .pill-tag {
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: #7b857c;
+          background: #f0f2eb;
+          padding: 0.15rem 0.5rem;
+          border-radius: 6px;
+        }
+
+        &:hover {
+          background: #fbfcf8;
+          border-color: rgba(18, 23, 20, 0.25);
+        }
+
+        &.active {
+          background: #121714;
+          border-color: #121714;
+
+          .pill-dot {
+            background: #dfff3f;
+            box-shadow: 0 0 8px rgba(223, 255, 63, 0.7);
+          }
+
+          .pill-title {
+            color: #ffffff;
+          }
+
+          .pill-tag {
+            background: rgba(223, 255, 63, 0.2);
+            color: #dfff3f;
+          }
+        }
+      }
+    }
+  }
+
   .query-controls {
     display: flex;
     align-items: flex-end;
@@ -268,6 +354,16 @@
         font-size: 0.875rem;
         font-weight: 600;
         color: #556057;
+      }
+
+      .meta-model-badge {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        color: #121714;
+        background: #eef1e6;
+        border: 1px solid rgba(18, 23, 20, 0.1);
+        padding: 0.2rem 0.65rem;
+        border-radius: 6px;
       }
     }
 

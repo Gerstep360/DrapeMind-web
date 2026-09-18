@@ -242,6 +242,7 @@ export interface ProductAiAssistStudioResponse {
 export interface ExecutiveReportRequest {
   tipo_reporte: 'VENTAS_Y_TENDENCIAS' | 'INVENTARIO_Y_STOCK' | 'ASISTENCIA_IA_Y_CLIENTES' | 'ESTRATEGICO_GLOBAL';
   periodo: 'MES_ACTUAL' | 'TRIMESTRE' | 'HISTORICO';
+  modelo_ia?: 'ALTAIR' | 'ALTAIR_MINI' | 'ALTAIR_VARIABLE';
   enfoque_especifico?: string | null;
 }
 
@@ -255,6 +256,7 @@ export interface ReportTable {
 export interface ExecutiveReportResponse {
   tipo_reporte: string;
   periodo: string;
+  modelo_utilizado?: string;
   indicadores_clave: Record<string, any>;
   resumen_ejecutivo: string;
   diagnostico_rendimiento: string;

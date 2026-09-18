@@ -52,6 +52,26 @@
       }
     </div>
 
+    <!-- Selector de Motor de IA -->
+    <div class="model-selector-row">
+      <span class="model-selector-label">ARQUITECTURA IA:</span>
+      <div class="model-pills">
+        @for (m of aiModels; track m.id) {
+          <button
+            type="button"
+            class="model-pill-btn"
+            [class.active]="selectedModel === m.id"
+            (click)="selectedModel = m.id"
+            [title]="m.desc"
+          >
+            <span class="pill-dot"></span>
+            <span class="pill-title">{{ m.title }}</span>
+            <span class="pill-tag">{{ m.badge }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
     <div class="query-controls">
       <div class="control-item">
         <label>Periodo Temporal</label>
@@ -132,6 +152,9 @@
         <div class="dossier-meta">
           <span class="meta-badge">{{ report()!.tipo_reporte.replace('_', ' ') }}</span>
           <span class="meta-period">Periodo: {{ report()!.periodo.replace('_', ' ') }}</span>
+          @if (report()!.modelo_utilizado) {
+            <span class="meta-model-badge">{{ report()!.modelo_utilizado }}</span>
+          }
         </div>
         <span class="dossier-date">Emitido: {{ report()!.fecha_generacion }}</span>
       </div>
