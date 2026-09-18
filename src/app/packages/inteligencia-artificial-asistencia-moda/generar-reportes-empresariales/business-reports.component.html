@@ -52,24 +52,12 @@
       }
     </div>
 
-    <!-- Selector de Motor de IA -->
+    <!-- Selector de Motor de IA Modular -->
     <div class="model-selector-row">
-      <span class="model-selector-label">ARQUITECTURA IA:</span>
-      <div class="model-pills">
-        @for (m of aiModels; track m.id) {
-          <button
-            type="button"
-            class="model-pill-btn"
-            [class.active]="selectedModel === m.id"
-            (click)="selectedModel = m.id"
-            [title]="m.desc"
-          >
-            <span class="pill-dot"></span>
-            <span class="pill-title">{{ m.title }}</span>
-            <span class="pill-tag">{{ m.badge }}</span>
-          </button>
-        }
-      </div>
+      <app-altair-model-selector
+        [(selectedModel)]="selectedModel"
+        label="Arquitectura del Motor IA"
+      />
     </div>
 
     <div class="query-controls">

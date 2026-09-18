@@ -9,11 +9,13 @@ import { CartDrawerComponent } from '@shared/components/cart/cart-drawer/cart-dr
 import { BranchService } from '@core/branch.service';
 import { Branch } from '@core/models';
 import { navigationForRole } from '@core/navigation/package-navigation';
+import { NotificationService } from '@core/notification.service';
 import { NavIconComponent } from '@shared/components/navigation/nav-icon/nav-icon.component';
+import { NotificationsDrawerComponent } from '@shared/components/notifications/notifications-drawer.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, NavIconComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, NavIconComponent, NotificationsDrawerComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +25,7 @@ export class ShellComponent {
   readonly cart = inject(CartService);
   readonly events = inject(EventsSocketService);
   readonly toasts = inject(ToastService);
+  readonly notifications = inject(NotificationService);
   readonly branchService = inject(BranchService);
   private readonly ai = inject(AiSocketService);
   private readonly router = inject(Router);

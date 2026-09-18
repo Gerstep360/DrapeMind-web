@@ -208,6 +208,10 @@
               <span class="discount-pill" [class.fixed]="promo.tipo_descuento === 'MONTO_FIJO'">
                 @if (promo.tipo_descuento === 'PORCENTAJE') {
                   {{ promo.valor_descuento }}% OFF
+                } @else if (promo.tipo_descuento === 'DOS_POR_UNO') {
+                  2x1 PROMO
+                } @else if (promo.tipo_descuento === 'COMPRA_MINIMA') {
+                  - Bs {{ promo.valor_descuento | number:'1.2-2' }}
                 } @else {
                   - Bs {{ promo.valor_descuento | number:'1.2-2' }}
                 }
@@ -218,6 +222,13 @@
               {{ promo.activo ? 'Activa' : 'Pausada' }}
             </span>
           </div>
+
+          @if (promo.producto_nombre) {
+            <div class="linked-garment-badge">
+              <span class="garment-lbl">Prenda Exclusiva:</span>
+              <span class="garment-title">{{ promo.producto_nombre }}</span>
+            </div>
+          }
 
           @if (promo.descripcion) {
             <p class="promo-desc">{{ promo.descripcion }}</p>
@@ -359,6 +370,30 @@
             </div>
 
             <div class="form-field full-width">
+              <label>Prenda Específica de Catálogo (Opcional para cupones, recomendada para ofertas de prenda)</label>
+              <select
+                class="input-control"
+                [value]="promoForm.get('producto_id')?.value || ''"
+                (change)="selectGarment($any($event.target).value)">
+                <option value="">Aplica a Todo el Catálogo (Promoción Global)</option>
+                @for (p of availableProducts(); track p.id) {
+                  <option [value]="p.id">
+                    #{{ p.id }} — {{ p.nombre }} (Bs {{ p.precio | number:'1.2-2' }})
+                  </option>
+                }
+              </select>
+              @if (selectedGarment(); as g) {
+                <div class="garment-picker-preview">
+                  <div class="preview-info">
+                    <strong>Prenda seleccionada: {{ g.nombre }}</strong>
+                    <span>Categoría: {{ g.categoria_id }} • Precio catálogo: Bs {{ g.precio | number:'1.2-2' }}</span>
+                  </div>
+                  <button type="button" class="btn-clear-garment" (click)="selectGarment(null)">Quitar</button>
+                </div>
+              }
+            </div>
+
+            <div class="form-field full-width">
               <label>Descripción Comercial de la Oferta</label>
               <input
                 type="text"
@@ -369,10 +404,12 @@
             </div>
 
             <div class="form-field">
-              <label>Tipo de Descuento *</label>
+              <label>Tipo de Regla / Descuento *</label>
               <select formControlName="tipo_descuento" class="input-control">
-                <option value="PORCENTAJE">Porcentaje (%)</option>
-                <option value="MONTO_FIJO">Monto Fijo (Bs)</option>
+                <option value="PORCENTAJE">Descuento Porcentual (%)</option>
+                <option value="MONTO_FIJO">Monto Fijo de Rebaja (Bs)</option>
+                <option value="DOS_POR_UNO">Promoción 2x1 en Prenda</option>
+                <option value="COMPRA_MINIMA">Descuento por Superar N Bs</option>
               </select>
             </div>
 
@@ -394,13 +431,13 @@
             </div>
 
             <div class="form-field">
-              <label>Monto Mínimo de Compra (Bs)</label>
+              <label>Monto Mínimo de Compra Requerido (Bs)</label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 formControlName="monto_minimo_compra"
-                placeholder="0 = Sin mínimo"
+                placeholder="0 = Sin mínimo (o ej. 200 por comprar 200 Bs)"
                 class="input-control"
               />
             </div>

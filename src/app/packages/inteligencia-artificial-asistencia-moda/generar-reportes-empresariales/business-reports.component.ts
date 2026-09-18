@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ExecutiveReportRequest, ExecutiveReportResponse } from '@core/models';
 import { ToastService } from '@core/toast.service';
+import { AltairModelSelectorComponent } from '@shared/components/altair/altair-model-selector/altair-model-selector.component';
 
 @Component({
   selector: 'app-business-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AltairModelSelectorComponent],
   templateUrl: './business-reports.component.html',
   styleUrl: './business-reports.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

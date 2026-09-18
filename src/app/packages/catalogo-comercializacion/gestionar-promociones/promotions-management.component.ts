@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminApiService } from '@core/api/admin-api.service';
-import { Promotion, PromotionInput } from '@core/models';
+import { Product, Promotion, PromotionInput } from '@core/models';
 import { ToastService } from '@core/toast.service';
 
 @Component({
@@ -19,10 +19,12 @@ export class PromotionsManagementComponent implements OnInit {
   private readonly toasts = inject(ToastService);
 
   readonly promotions = signal<Promotion[]>([]);
+  readonly availableProducts = signal<Product[]>([]);
+  readonly selectedGarment = signal<Product | null>(null);
   readonly loading = signal(false);
   readonly submitting = signal(false);
   readonly searchQuery = signal('');
-  readonly filterType = signal<'ALL' | 'PORCENTAJE' | 'MONTO_FIJO'>('ALL');
+  readonly filterType = signal<'ALL' | 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA'>('ALL');
   readonly filterActive = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
   readonly modalOpen = signal(false);
@@ -40,11 +42,26 @@ export class PromotionsManagementComponent implements OnInit {
   isDirectPromo(promo: Promotion): boolean {
     const c = (promo.codigo || '').toUpperCase();
     return (
+      !!promo.producto_id ||
       c.startsWith('DIRECTA-') ||
       c.startsWith('OFERTA-') ||
       c.startsWith('PRENDA-') ||
       (promo.descripcion || '').toLowerCase().includes('prenda')
     );
+  }
+
+  selectGarment(prodIdStr: any): void {
+    const id = prodIdStr ? Number(prodIdStr) : null;
+    const prod = id ? (this.availableProducts().find(p => p.id === id) || null) : null;
+    this.selectedGarment.set(prod);
+    this.promoForm.patchValue({ producto_id: id });
+    if (prod && this.promoScope() === 'PRENDA' && !this.editingPromotion()) {
+      const code = `OFERTA-${prod.id}`;
+      this.promoForm.patchValue({
+        codigo: code,
+        descripcion: `Descuento exclusivo en ${prod.nombre}`,
+      });
+    }
   }
 
   // Simulador de cupones
@@ -98,6 +115,14 @@ export class PromotionsManagementComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadPromotions();
+    this.loadProducts();
+  }
+
+  loadProducts(): void {
+    this.adminApi.listProducts({ limit: 100 }).subscribe({
+      next: (prods: Product[]) => this.availableProducts.set(prods || []),
+      error: () => {},
+    });
   }
 
   private initForm(): void {
@@ -110,6 +135,7 @@ export class PromotionsManagementComponent implements OnInit {
       fecha_inicio: [null],
       fecha_fin: [null],
       limite_usos: [null, [Validators.min(1)]],
+      producto_id: [null],
       activo: [true],
     });
   }
@@ -130,6 +156,7 @@ export class PromotionsManagementComponent implements OnInit {
 
   openCreateModal(): void {
     this.editingPromotion.set(null);
+    this.selectedGarment.set(null);
     this.promoScope.set('CUPON');
     this.promoForm.reset({
       codigo: '',
@@ -140,6 +167,7 @@ export class PromotionsManagementComponent implements OnInit {
       fecha_inicio: null,
       fecha_fin: null,
       limite_usos: null,
+      producto_id: null,
       activo: true,
     });
     this.modalOpen.set(true);
@@ -147,7 +175,11 @@ export class PromotionsManagementComponent implements OnInit {
 
   openEditModal(promo: Promotion): void {
     this.editingPromotion.set(promo);
-    this.promoScope.set(this.isDirectPromo(promo) ? 'PRENDA' : 'CUPON');
+    const linkedProd = promo.producto_id
+      ? (this.availableProducts().find((p) => p.id === promo.producto_id) || null)
+      : null;
+    this.selectedGarment.set(linkedProd);
+    this.promoScope.set(this.isDirectPromo(promo) || !!promo.producto_id ? 'PRENDA' : 'CUPON');
     this.promoForm.patchValue({
       codigo: promo.codigo,
       descripcion: promo.descripcion || '',
@@ -157,6 +189,7 @@ export class PromotionsManagementComponent implements OnInit {
       fecha_inicio: promo.fecha_inicio ? promo.fecha_inicio.substring(0, 10) : null,
       fecha_fin: promo.fecha_fin ? promo.fecha_fin.substring(0, 10) : null,
       limite_usos: promo.limite_usos,
+      producto_id: promo.producto_id || null,
       activo: promo.activo,
     });
     this.modalOpen.set(true);
@@ -165,6 +198,7 @@ export class PromotionsManagementComponent implements OnInit {
   closeModal(): void {
     this.modalOpen.set(false);
     this.editingPromotion.set(null);
+    this.selectedGarment.set(null);
   }
 
   savePromotion(): void {
@@ -184,7 +218,8 @@ export class PromotionsManagementComponent implements OnInit {
       fecha_inicio: formVal.fecha_inicio ? new Date(formVal.fecha_inicio).toISOString() : null,
       fecha_fin: formVal.fecha_fin ? new Date(formVal.fecha_fin).toISOString() : null,
       limite_usos: formVal.limite_usos ? Number(formVal.limite_usos) : null,
-      activo: formVal.activo,
+      producto_id: formVal.producto_id ? Number(formVal.producto_id) : null,
+      activo: !!formVal.activo,
     };
 
     const current = this.editingPromotion();

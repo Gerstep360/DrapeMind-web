@@ -1,0 +1,113 @@
+.altair-model-selector-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &.compact {
+    gap: 0.2rem;
+  }
+}
+
+.selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selector-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #556056;
+}
+
+.model-segmented-pills {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dde3db;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
+  box-shadow: 0 2px 6px rgba(18, 23, 20, 0.04);
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.model-segment-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #636e65;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 160ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  .model-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #a4b0a4;
+    transition: all 160ms ease;
+  }
+
+  .model-name {
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .model-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    background: #eef2ec;
+    color: #4a544c;
+    transition: all 160ms ease;
+
+    &.badge-mini {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+  }
+
+  &:hover {
+    color: #121714;
+    background: rgba(18, 23, 20, 0.04);
+
+    .model-indicator {
+      background: #121714;
+    }
+  }
+
+  &.active {
+    background: #121714;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(18, 23, 20, 0.18);
+
+    .model-indicator {
+      background: #dfff3f;
+      box-shadow: 0 0 6px rgba(223, 255, 63, 0.6);
+    }
+
+    .model-badge {
+      background: rgba(255, 255, 255, 0.15);
+      color: #e4eee5;
+
+      &.badge-mini {
+        background: #dfff3f;
+        color: #121714;
+      }
+    }
+  }
+}

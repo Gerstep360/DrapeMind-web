@@ -1,0 +1,27 @@
+<div class="altair-model-selector-wrap" [class.compact]="compact()">
+  @if (showLabel()) {
+    <div class="selector-header">
+      <span class="selector-label">{{ label() }}</span>
+    </div>
+  }
+
+  <div class="model-segmented-pills" role="radiogroup" [attr.aria-label]="label()">
+    @for (m of models; track m.id) {
+      <button
+        type="button"
+        class="model-segment-btn"
+        [class.active]="isActive(m)"
+        (click)="select(m)"
+        [title]="m.desc"
+        role="radio"
+        [attr.aria-checked]="isActive(m)"
+      >
+        <span class="model-indicator" aria-hidden="true"></span>
+        <span class="model-name">{{ m.name }}</span>
+        @if (m.badge) {
+          <span class="model-badge" [class.badge-mini]="m.id === 'ALTAIR_MINI'">{{ m.badge }}</span>
+        }
+      </button>
+    }
+  </div>
+</div>

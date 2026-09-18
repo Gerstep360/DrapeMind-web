@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { Category, ProductAiAssistStudioRequest, ProductAiAssistStudioResponse } from '@core/models';
 import { ToastService } from '@core/toast.service';
+import { AltairModelSelectorComponent } from '@shared/components/altair/altair-model-selector/altair-model-selector.component';
 
 @Component({
   selector: 'app-ai-product-assist',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AltairModelSelectorComponent],
   templateUrl: './ai-product-assist.component.html',
   styleUrl: './ai-product-assist.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

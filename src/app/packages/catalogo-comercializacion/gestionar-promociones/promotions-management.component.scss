@@ -926,3 +926,72 @@
     color: #121714;
   }
 }
+
+.linked-garment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f0f4ee;
+  border: 1px solid #d4dfd2;
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+
+  .garment-lbl {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    color: #4a574b;
+  }
+
+  .garment-title {
+    font-weight: 600;
+    color: #121714;
+  }
+}
+
+.garment-picker-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: #f7f9f6;
+  border: 1px solid #dde3db;
+
+  .preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    strong {
+      font-size: 0.825rem;
+      color: #121714;
+    }
+
+    span {
+      font-size: 0.72rem;
+      color: #616c62;
+    }
+  }
+
+  .btn-clear-garment {
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid #d1d9d0;
+    background: #ffffff;
+    color: #a32222;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #fef2f2;
+      border-color: #f87171;
+    }
+  }
+}

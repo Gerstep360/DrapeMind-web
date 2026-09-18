@@ -146,13 +146,16 @@ export interface Promotion {
   id: number;
   codigo: string;
   descripcion: string | null;
-  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO';
+  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA' | string;
   valor_descuento: number;
   monto_minimo_compra: number;
   fecha_inicio: string | null;
   fecha_fin: string | null;
   limite_usos: number | null;
   usos_actuales: number;
+  producto_id?: number | null;
+  producto_nombre?: string | null;
+  producto_imagen?: string | null;
   activo: boolean;
   created_at: string;
   updated_at: string;
@@ -161,12 +164,13 @@ export interface Promotion {
 export interface PromotionInput {
   codigo: string;
   descripcion?: string | null;
-  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO';
+  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA' | string;
   valor_descuento: number;
   monto_minimo_compra?: number;
   fecha_inicio?: string | null;
   fecha_fin?: string | null;
   limite_usos?: number | null;
+  producto_id?: number | null;
   activo?: boolean;
 }
 

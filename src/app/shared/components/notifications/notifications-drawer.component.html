@@ -1,0 +1,196 @@
+@if (notifService.isPanelOpen()) {
+  <div class="notifications-backdrop" (click)="notifService.closePanel()" aria-hidden="true"></div>
+
+  <aside class="notifications-drawer" role="dialog" aria-label="Centro de Notificaciones" aria-modal="true">
+    <!-- CABECERA -->
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <div class="header-top-row">
+          <h2>Notificaciones</h2>
+          <span class="live-pill" [class.connected]="notifService.isConnected()">
+            <span class="live-dot"></span>
+            {{ notifService.isConnected() ? 'Sockets En Vivo' : 'Conectando...' }}
+          </span>
+        </div>
+        <p class="drawer-sub">
+          Eventos en tiempo real de tus pedidos, reservas y novedades del atelier.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="drawer-close-btn"
+        (click)="notifService.closePanel()"
+        aria-label="Cerrar panel de notificaciones"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ACCIONES RÁPIDAS Y FILTROS -->
+    <div class="filter-bar">
+      <div class="filter-pills" role="tablist">
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="currentFilter() === 'TODAS'"
+          (click)="setFilter('TODAS')">
+          Todas
+          @if (notifService.unreadCount() > 0) {
+            <span class="pill-count">{{ notifService.unreadCount() }}</span>
+          }
+        </button>
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="currentFilter() === 'PEDIDO'"
+          (click)="setFilter('PEDIDO')">
+          Pedidos
+        </button>
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="currentFilter() === 'RESERVA'"
+          (click)="setFilter('RESERVA')">
+          Reservas
+        </button>
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="currentFilter() === 'PROMOCION'"
+          (click)="setFilter('PROMOCION')">
+          Ofertas
+        </button>
+      </div>
+
+      @if (notifService.notifications().length > 0) {
+        <div class="actions-line">
+          <button
+            type="button"
+            class="action-text-btn"
+            (click)="notifService.markAllAsRead()"
+            [disabled]="notifService.unreadCount() === 0">
+            Marcar leídas
+          </button>
+          <span class="sep-dot">•</span>
+          <button
+            type="button"
+            class="action-text-btn danger"
+            (click)="notifService.clearAll()">
+            Limpiar todo
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- LISTADO DE NOTIFICACIONES -->
+    <div class="drawer-body">
+      @if (filteredList().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+          </div>
+          <h3>Bandeja al día</h3>
+          <p>No tienes notificaciones pendientes en esta categoría.</p>
+        </div>
+      } @else {
+        <div class="notifications-stack">
+          @for (item of filteredList(); track item.id) {
+            <article class="notif-card" [class.unread]="!item.leido">
+              <div class="card-left">
+                <span class="category-icon" [class]="item.tipo.toLowerCase()">
+                  @if (item.tipo === 'PEDIDO') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                  } @else if (item.tipo === 'RESERVA') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  } @else if (item.tipo === 'PAGO') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="1" x2="12" y2="23"/>
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                  } @else if (item.tipo === 'PROMOCION') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="16" x2="12" y2="12"/>
+                      <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                  }
+                </span>
+              </div>
+
+              <div class="card-content">
+                <div class="card-header-row">
+                  <div class="title-wrap">
+                    @if (!item.leido) {
+                      <span class="unread-dot" aria-label="No leída"></span>
+                    }
+                    <h4>{{ item.titulo }}</h4>
+                  </div>
+                  <time class="notif-time">{{ formatTime(item.fecha) }}</time>
+                </div>
+
+                <p class="notif-text">{{ item.mensaje }}</p>
+
+                <div class="card-footer-row">
+                  @if (item.enlace) {
+                    <button
+                      type="button"
+                      class="btn-link"
+                      (click)="handleNavigate(item)">
+                      <span>Ver detalles</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </button>
+                  }
+
+                  <div class="item-actions">
+                    @if (!item.leido) {
+                      <button
+                        type="button"
+                        class="btn-icon-subtle"
+                        (click)="notifService.markAsRead(item.id)"
+                        title="Marcar como leída">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="btn-icon-subtle danger"
+                      (click)="notifService.deleteNotification(item.id)"
+                      title="Eliminar notificación">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </aside>
+}
