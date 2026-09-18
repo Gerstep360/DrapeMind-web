@@ -245,12 +245,21 @@ export interface ExecutiveReportRequest {
   enfoque_especifico?: string | null;
 }
 
+export interface ReportTable {
+  titulo: string;
+  columnas: string[];
+  filas: any[][];
+  resumen?: string | null;
+}
+
 export interface ExecutiveReportResponse {
   tipo_reporte: string;
   periodo: string;
   indicadores_clave: Record<string, any>;
   resumen_ejecutivo: string;
   diagnostico_rendimiento: string;
+  enfoque_personalizado?: string | null;
+  tablas_analiticas?: ReportTable[];
   cuellos_de_botella: string[];
   recomendaciones_estrategicas: string[];
   fecha_generacion: string;

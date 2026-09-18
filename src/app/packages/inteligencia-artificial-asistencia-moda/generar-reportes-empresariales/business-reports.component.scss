@@ -460,3 +460,143 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Enfoque Directivo Personalizado */
+.custom-focus-banner {
+  background: #121714;
+  color: #fbfcf8;
+  border-radius: 20px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  border-left: 5px solid #dfff3f;
+  box-shadow: 0 8px 24px rgba(18, 23, 20, 0.08);
+
+  .focus-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(223, 255, 63, 0.15);
+    color: #dfff3f;
+    border: 1px solid rgba(223, 255, 63, 0.3);
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+
+    .focus-icon {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      fill: none;
+    }
+  }
+
+  .focus-text {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #f0f2eb;
+
+    strong {
+      color: #dfff3f;
+      font-weight: 700;
+    }
+  }
+}
+
+/* Tablas Analíticas de Auditoría */
+.tables-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.report-table-card {
+  background: #fbfcf8;
+  border: 1px solid rgba(18, 23, 20, 0.08);
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
+
+  .table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+
+    .table-title-group {
+      .table-eyebrow {
+        display: block;
+        font-size: 0.625rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #7b857c;
+        margin-bottom: 0.2rem;
+      }
+
+      .table-title {
+        font-family: var(--dm-font-serif, 'Playfair Display', Georgia, serif);
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #121714;
+        margin: 0;
+      }
+    }
+
+    .table-summary-pill {
+      background: #eef1e6;
+      color: #2e3831;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .luxury-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    th {
+      text-align: left;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6d756e;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(18, 23, 20, 0.12);
+      background: rgba(18, 23, 20, 0.02);
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(18, 23, 20, 0.06);
+      color: #252e28;
+
+      &.primary-cell {
+        font-weight: 600;
+        color: #121714;
+      }
+
+      &.highlight-tag {
+        font-weight: 700;
+        color: #121714;
+      }
+    }
+
+    tbody tr:hover {
+      background: rgba(223, 255, 63, 0.08);
+    }
+  }
+}

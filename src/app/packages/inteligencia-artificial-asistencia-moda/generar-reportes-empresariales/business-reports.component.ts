@@ -99,6 +99,17 @@ ${rep.recomendaciones_estrategicas.map((r, i) => `${i + 1}. ${r}`).join('\n')}
     });
   }
 
+  formatMarkdown(text: string | null | undefined): string {
+    if (!text) return '';
+    // Reemplazar negritas dobles **texto** por <strong>texto</strong>
+    let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Reemplazar cursivas simples *texto* por <em>texto</em>
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Reemplazar saltos de línea por <br/>
+    html = html.replace(/\n/g, '<br/>');
+    return html;
+  }
+
   printReport(): void {
     window.print();
   }

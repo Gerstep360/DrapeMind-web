@@ -67,7 +67,8 @@
         <input
           type="text"
           [(ngModel)]="customFocus"
-          placeholder="Ej. Priorizar rotación de vestidos de gala y fidelización de clientes VIP..."
+          (keyup.enter)="generateReport()"
+          placeholder="Ej. fijate quien es el cliente que más compra, prendas de mayor demanda..."
           class="input-control"
         />
       </div>
@@ -93,15 +94,15 @@
   @if (generating()) {
     <div class="loading-state">
       <div class="spinner"></div>
-      <p>Altair AI está analizando órdenes, stock, latencia y métricas comerciales...</p>
+      <p>Altair AI está auditando transacciones, stock, fidelización y métricas comerciales...</p>
     </div>
   } @else if (report()) {
     <!-- Tira de Indicadores Clave del Reporte -->
     <div class="kpi-strip">
       <div class="kpi-card">
-        <span class="kpi-lbl">Facturación Confirmada</span>
+        <span class="kpi-lbl">Facturación del Periodo</span>
         <strong class="kpi-val">Bs {{ report()!.indicadores_clave['ventas_totales_bob'] | number:'1.2-2' }}</strong>
-        <span class="kpi-sub">Cobros con estado aprobado</span>
+        <span class="kpi-sub">{{ report()!.indicadores_clave['periodo_auditado'] || 'Auditoría aprobada' }}</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-lbl">Volumen de Pedidos</span>
@@ -116,7 +117,7 @@
       <div class="kpi-card">
         <span class="kpi-lbl">Stock en Almacenes</span>
         <strong class="kpi-val">{{ report()!.indicadores_clave['unidades_stock_disponible'] }} uds</strong>
-        <span class="kpi-sub">{{ report()!.indicadores_clave['variantes_stock_critico'] }} variantes bajo umbral</span>
+        <span class="kpi-sub">{{ report()!.indicadores_clave['variantes_stock_critico'] }} variantes bajo umbral crítico</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-lbl">Asistente IA Altair</span>
@@ -135,39 +136,102 @@
         <span class="dossier-date">Emitido: {{ report()!.fecha_generacion }}</span>
       </div>
 
+      <!-- Enfoque Específico del Usuario (Respuesta directa a la consulta personalizada) -->
+      @if (report()!.enfoque_personalizado) {
+        <div class="custom-focus-banner">
+          <div class="focus-badge">
+            <svg class="focus-icon" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span>DIAGNÓSTICO SOBRE ENFOQUE DIRECTIVO SOLICITADO</span>
+          </div>
+          <div class="focus-text" [innerHTML]="formatMarkdown(report()!.enfoque_personalizado)"></div>
+        </div>
+      }
+
       <!-- Sección 1: Resumen Ejecutivo -->
       <section class="dossier-section">
         <h3 class="section-heading">1. Resumen Ejecutivo y Diagnóstico Clave</h3>
-        <p class="lead-text">{{ report()!.resumen_ejecutivo }}</p>
+        <p class="lead-text" [innerHTML]="formatMarkdown(report()!.resumen_ejecutivo)"></p>
       </section>
 
       <!-- Sección 2: Diagnóstico de Rendimiento Comercial -->
       <section class="dossier-section">
         <h3 class="section-heading">2. Análisis de Rendimiento y Operación</h3>
-        <p class="body-text">{{ report()!.diagnostico_rendimiento }}</p>
+        <p class="body-text" [innerHTML]="formatMarkdown(report()!.diagnostico_rendimiento)"></p>
       </section>
 
-      <!-- Sección 3: Cuellos de Botella y Riesgos -->
+      <!-- Sección 3: Tablas Analíticas de Datos Reales -->
+      @if (report()!.tablas_analiticas && report()!.tablas_analiticas!.length > 0) {
+        <section class="dossier-section">
+          <h3 class="section-heading">3. Desglose y Tablas Analíticas de Auditoría</h3>
+          <div class="tables-stack">
+            @for (tbl of report()!.tablas_analiticas; track tbl.titulo) {
+              <div class="report-table-card">
+                <div class="table-card-header">
+                  <div class="table-title-group">
+                    <span class="table-eyebrow">REGISTRO CUANTITATIVO</span>
+                    <h4 class="table-title">{{ tbl.titulo }}</h4>
+                  </div>
+                  @if (tbl.resumen) {
+                    <div class="table-summary-pill">
+                      <span>{{ tbl.resumen }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="table-responsive">
+                  <table class="luxury-table">
+                    <thead>
+                      <tr>
+                        @for (col of tbl.columnas; track col) {
+                          <th>{{ col }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (fila of tbl.filas; track $index) {
+                        <tr>
+                          @for (celda of fila; track $index; let cIdx = $index) {
+                            <td
+                              [class.primary-cell]="cIdx === 0"
+                              [class.highlight-tag]="celda.toString().includes('VIP') || celda.toString().includes('CRÍTICA') || celda.toString().includes('Alta Rotación')"
+                            >
+                              {{ celda }}
+                            </td>
+                          }
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Sección 4: Cuellos de Botella y Riesgos -->
       <section class="dossier-section">
-        <h3 class="section-heading">3. Alertas de Cuellos de Botella y Puntos Críticos</h3>
+        <h3 class="section-heading">4. Alertas de Cuellos de Botella y Puntos Críticos</h3>
         <div class="alert-list">
           @for (item of report()!.cuellos_de_botella; track item; let idx = $index) {
             <div class="alert-item">
               <div class="alert-dot"></div>
-              <p class="alert-text">{{ item }}</p>
+              <p class="alert-text" [innerHTML]="formatMarkdown(item)"></p>
             </div>
           }
         </div>
       </section>
 
-      <!-- Sección 4: Plan de Acción Estratégico -->
+      <!-- Sección 5: Plan de Acción Estratégico -->
       <section class="dossier-section last">
-        <h3 class="section-heading">4. Plan de Acción Recomendado (Siguientes Pasos)</h3>
+        <h3 class="section-heading">5. Plan de Acción Recomendado (Siguientes Pasos)</h3>
         <div class="action-plan-grid">
           @for (act of report()!.recomendaciones_estrategicas; track act; let idx = $index) {
             <div class="action-card">
               <span class="step-num">0{{ idx + 1 }}</span>
-              <p class="action-desc">{{ act }}</p>
+              <p class="action-desc" [innerHTML]="formatMarkdown(act)"></p>
             </div>
           }
         </div>
