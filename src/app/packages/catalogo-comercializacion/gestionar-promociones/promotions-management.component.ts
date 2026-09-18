@@ -27,6 +27,25 @@ export class PromotionsManagementComponent implements OnInit {
 
   readonly modalOpen = signal(false);
   readonly editingPromotion = signal<Promotion | null>(null);
+  readonly promoScope = signal<'CUPON' | 'PRENDA'>('CUPON');
+
+  setPromoScope(scope: 'CUPON' | 'PRENDA'): void {
+    this.promoScope.set(scope);
+    if (scope === 'PRENDA' && !this.editingPromotion()) {
+      const autoCode = `DIRECTA-${Math.floor(1000 + Math.random() * 9000)}`;
+      this.promoForm.patchValue({ codigo: autoCode });
+    }
+  }
+
+  isDirectPromo(promo: Promotion): boolean {
+    const c = (promo.codigo || '').toUpperCase();
+    return (
+      c.startsWith('DIRECTA-') ||
+      c.startsWith('OFERTA-') ||
+      c.startsWith('PRENDA-') ||
+      (promo.descripcion || '').toLowerCase().includes('prenda')
+    );
+  }
 
   // Simulador de cupones
   readonly testCode = signal('');
@@ -111,6 +130,7 @@ export class PromotionsManagementComponent implements OnInit {
 
   openCreateModal(): void {
     this.editingPromotion.set(null);
+    this.promoScope.set('CUPON');
     this.promoForm.reset({
       codigo: '',
       descripcion: '',
@@ -127,6 +147,7 @@ export class PromotionsManagementComponent implements OnInit {
 
   openEditModal(promo: Promotion): void {
     this.editingPromotion.set(promo);
+    this.promoScope.set(this.isDirectPromo(promo) ? 'PRENDA' : 'CUPON');
     this.promoForm.patchValue({
       codigo: promo.codigo,
       descripcion: promo.descripcion || '',

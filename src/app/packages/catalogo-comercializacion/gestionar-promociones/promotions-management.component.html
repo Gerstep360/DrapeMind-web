@@ -201,6 +201,9 @@
         <article class="promo-card" [class.inactive]="!promo.activo">
           <div class="card-header">
             <div class="promo-badge-group">
+              <span class="scope-pill" [class.direct]="isDirectPromo(promo)">
+                {{ isDirectPromo(promo) ? 'OFERTA DIRECTA' : 'CUPÓN' }}
+              </span>
               <span class="code-badge">{{ promo.codigo }}</span>
               <span class="discount-pill" [class.fixed]="promo.tipo_descuento === 'MONTO_FIJO'">
                 @if (promo.tipo_descuento === 'PORCENTAJE') {
@@ -313,11 +316,41 @@
         <form [formGroup]="promoForm" (ngSubmit)="savePromotion()" class="modal-form">
           <div class="form-grid">
             <div class="form-field full-width">
-              <label>Código Promocional (Mayúsculas, ej. MODA2026) *</label>
+              <label class="scope-selection-label">Modalidad de la Promoción</label>
+              <div class="scope-pill-selector">
+                <button
+                  type="button"
+                  class="scope-choice-btn"
+                  [class.active]="promoScope() === 'CUPON'"
+                  (click)="setPromoScope('CUPON')">
+                  <span class="choice-title">Cupón por Código</span>
+                  <span class="choice-sub">El cliente introduce un código de canje en el checkout/carrito</span>
+                </button>
+                <button
+                  type="button"
+                  class="scope-choice-btn"
+                  [class.active]="promoScope() === 'PRENDA'"
+                  (click)="setPromoScope('PRENDA')">
+                  <span class="choice-title">Descuento Directo por Prenda</span>
+                  <span class="choice-sub">Rebaja aplicada en catálogo sin exigir código al cliente</span>
+                </button>
+              </div>
+            </div>
+
+            @if (promoScope() === 'PRENDA') {
+              <div class="promo-mode-alert full-width">
+                <strong>Promoción Directa:</strong> Esta regla aplica automáticamente sobre la prenda o colección sin requerir que el cliente introduzca un código en caja. El identificador interno se asigna para trazabilidad en auditorías y reportes.
+              </div>
+            }
+
+            <div class="form-field full-width">
+              <label>
+                {{ promoScope() === 'PRENDA' ? 'Identificador de la Promoción (Autogenerado o Personalizado) *' : 'Código Promocional (Mayúsculas, ej. MODA2026) *' }}
+              </label>
               <input
                 type="text"
                 formControlName="codigo"
-                placeholder="Ej. ATELIER2026"
+                [placeholder]="promoScope() === 'PRENDA' ? 'Ej. DIRECTA-OFERTA' : 'Ej. ATELIER2026'"
                 class="input-control uppercase font-mono"
               />
               @if (promoForm.get('codigo')?.touched && promoForm.get('codigo')?.invalid) {

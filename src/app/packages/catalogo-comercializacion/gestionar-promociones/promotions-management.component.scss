@@ -406,6 +406,22 @@
         align-items: flex-start;
         gap: 0.4rem;
 
+        .scope-pill {
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          background: #eef2ec;
+          color: #4a544c;
+
+          &.direct {
+            background: #dfff3f;
+            color: #121714;
+          }
+        }
+
         .code-badge {
           font-family: monospace;
           font-size: 1.1rem;
@@ -829,4 +845,84 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Modality Selector Styles */
+.scope-selection-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #556056;
+  margin-bottom: 0.5rem;
+}
+
+.scope-pill-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scope-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #dde3db;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .choice-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #121714;
+  }
+
+  .choice-sub {
+    font-size: 0.75rem;
+    color: #636e65;
+    line-height: 1.3;
+  }
+
+  &:hover {
+    border-color: #121714;
+    background: #fafbfa;
+  }
+
+  &.active {
+    border-color: #121714;
+    background: #121714;
+    box-shadow: 0 4px 14px rgba(18, 23, 20, 0.15);
+
+    .choice-title {
+      color: #ffffff;
+    }
+
+    .choice-sub {
+      color: #c5d4c6;
+    }
+  }
+}
+
+.promo-mode-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #f4f5ea;
+  border-left: 3px solid #121714;
+  font-size: 0.8125rem;
+  color: #3b453d;
+  line-height: 1.4;
+
+  strong {
+    color: #121714;
+  }
 }

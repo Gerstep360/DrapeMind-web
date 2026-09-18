@@ -51,22 +51,24 @@ export class CommerceApiService {
   }
 
   // CU-22: Analizar estilo del carrito
-  analyzeCartStyle(payload: { objetivo?: string; sesion_id?: number } = {}): Observable<{
+  analyzeCartStyle(payload: { objetivo?: string; sesion_id?: number; modelo_ia?: string } = {}): Observable<{
     respuesta: string;
     productos: any[];
     sesion_id?: number;
     skills_ejecutadas?: string[];
   }> {
-    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/style-check`, payload);
+    const body = { modelo_ia: 'ALTAIR_MINI', ...payload };
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/style-check`, body);
   }
 
   // CU-23: Optimizar outfit por calidad, precio y ahorro
-  optimizeCartValue(payload: { objetivo?: string; sesion_id?: number } = {}): Observable<{
+  optimizeCartValue(payload: { objetivo?: string; sesion_id?: number; modelo_ia?: string } = {}): Observable<{
     respuesta: string;
     productos: any[];
     sesion_id?: number;
     skills_ejecutadas?: string[];
   }> {
-    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/value-check`, payload);
+    const body = { modelo_ia: 'ALTAIR_MINI', ...payload };
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/value-check`, body);
   }
 }
