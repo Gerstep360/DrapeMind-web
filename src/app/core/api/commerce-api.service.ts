@@ -49,4 +49,24 @@ export class CommerceApiService {
   completeOutfit(payload: { producto_base_id?: number; ocasion?: string; presupuesto_max?: number; sesion_id?: string }): Observable<any> {
     return this.http.post<any>(`${this.runtime.apiUrl}/ai/outfits/complete`, payload);
   }
+
+  // CU-22: Analizar estilo del carrito
+  analyzeCartStyle(payload: { objetivo?: string; sesion_id?: number } = {}): Observable<{
+    respuesta: string;
+    productos: any[];
+    sesion_id?: number;
+    skills_ejecutadas?: string[];
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/style-check`, payload);
+  }
+
+  // CU-23: Optimizar outfit por calidad, precio y ahorro
+  optimizeCartValue(payload: { objetivo?: string; sesion_id?: number } = {}): Observable<{
+    respuesta: string;
+    productos: any[];
+    sesion_id?: number;
+    skills_ejecutadas?: string[];
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/value-check`, payload);
+  }
 }

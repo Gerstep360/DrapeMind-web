@@ -1,0 +1,434 @@
+<section class="promotions-page">
+  <!-- Header editorial -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PK-02 &middot; CATÁLOGO Y COMERCIALIZACIÓN</span>
+      <h1 class="page-title">Gestión de Promociones y Descuentos</h1>
+      <p class="page-subtitle">
+        Configuración de cupones, porcentajes dinámicos, reglas de compra mínima y vigencias comerciales (CU-36).
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <svg class="btn-icon" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>Nueva Promoción</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Métricas de Campaña -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Promociones</div>
+      <div class="stat-value">{{ stats().total }}</div>
+      <div class="stat-desc">Reglas de descuento creadas</div>
+    </div>
+    <div class="stat-card stat-highlight">
+      <div class="stat-label">Campañas Activas</div>
+      <div class="stat-value">{{ stats().activas }}</div>
+      <div class="stat-desc">Vigentes para aplicar en compras</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Canjes y Usos Totales</div>
+      <div class="stat-value">{{ stats().totalUsos }}</div>
+      <div class="stat-desc">Cupones utilizados en checkout</div>
+    </div>
+  </div>
+
+  <!-- Simulador de Cupones / Validador en vivo -->
+  <div class="simulator-card">
+    <div class="simulator-header">
+      <div class="sim-badge">SIMULADOR EN VIVO</div>
+      <h3>Verificador de Reglas de Descuento</h3>
+      <p>Prueba en tiempo real cómo responderá el motor de precios antes de activar un cupón.</p>
+    </div>
+    <div class="simulator-body">
+      <div class="sim-inputs">
+        <div class="sim-field">
+          <label>Código del cupón</label>
+          <input
+            type="text"
+            placeholder="Ej. ATELIER2026"
+            [value]="testCode()"
+            (input)="testCode.set($any($event.target).value)"
+            class="sim-input uppercase"
+          />
+        </div>
+        <div class="sim-field">
+          <label>Subtotal de prueba (Bs)</label>
+          <input
+            type="number"
+            min="0"
+            [value]="testSubtotal()"
+            (input)="testSubtotal.set($any($event.target).value)"
+            class="sim-input"
+          />
+        </div>
+        <button class="btn btn-secondary sim-btn" (click)="testPromotion()" [disabled]="testTesting()">
+          @if (testTesting()) {
+            <span>Calculando...</span>
+          } @else {
+            <span>Simular Regla</span>
+          }
+        </button>
+      </div>
+
+      @if (testResult()) {
+        <div class="sim-result" [class.valid]="testResult()!.valido" [class.invalid]="!testResult()!.valido">
+          <div class="result-status">
+            <span class="result-pill">{{ testResult()!.valido ? 'CUPÓN VÁLIDO' : 'REGLA NO APLICABLE' }}</span>
+            <span class="result-msg">{{ testResult()!.mensaje }}</span>
+          </div>
+          @if (testResult()!.valido) {
+            <div class="result-figures">
+              <div class="fig-item">
+                <span class="fig-lbl">Descuento aplicado:</span>
+                <span class="fig-val discount">- Bs {{ testResult()!.descuento_calculado | number:'1.2-2' }}</span>
+              </div>
+              <div class="fig-item">
+                <span class="fig-lbl">Total ajustado:</span>
+                <span class="fig-val total">Bs {{ testResult()!.finalTotal | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="filters-card">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar por código de descuento o descripción..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        class="search-input"
+      />
+      @if (searchQuery()) {
+        <button class="clear-btn" (click)="searchQuery.set('')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        </button>
+      }
+    </div>
+
+    <div class="filters-group">
+      <div class="filter-item">
+        <label>Tipo</label>
+        <div class="filter-pills">
+          <button
+            class="pill-tab"
+            [class.active]="filterType() === 'ALL'"
+            (click)="filterType.set('ALL')"
+          >
+            Todos
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterType() === 'PORCENTAJE'"
+            (click)="filterType.set('PORCENTAJE')"
+          >
+            Porcentaje %
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterType() === 'MONTO_FIJO'"
+            (click)="filterType.set('MONTO_FIJO')"
+          >
+            Monto Fijo Bs
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-item">
+        <label>Estado</label>
+        <div class="filter-pills">
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'ALL'"
+            (click)="filterActive.set('ALL')"
+          >
+            Todos
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'ACTIVE'"
+            (click)="filterActive.set('ACTIVE')"
+          >
+            Activos
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'INACTIVE'"
+            (click)="filterActive.set('INACTIVE')"
+          >
+            Pausados
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listado de Promociones -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando promociones vigentes...</p>
+    </div>
+  } @else if (filteredPromotions().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <svg viewBox="0 0 24 24">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+          <line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+      </div>
+      <h3>No se encontraron promociones</h3>
+      <p>Define reglas de descuento para incentivar compras de temporada y fidelizar clientes.</p>
+      <button class="btn btn-primary" (click)="openCreateModal()">Crear Primera Promoción</button>
+    </div>
+  } @else {
+    <div class="promotions-grid">
+      @for (promo of filteredPromotions(); track promo.id) {
+        <article class="promo-card" [class.inactive]="!promo.activo">
+          <div class="card-header">
+            <div class="promo-badge-group">
+              <span class="code-badge">{{ promo.codigo }}</span>
+              <span class="discount-pill" [class.fixed]="promo.tipo_descuento === 'MONTO_FIJO'">
+                @if (promo.tipo_descuento === 'PORCENTAJE') {
+                  {{ promo.valor_descuento }}% OFF
+                } @else {
+                  - Bs {{ promo.valor_descuento | number:'1.2-2' }}
+                }
+              </span>
+            </div>
+            <span class="status-badge" [class.active]="promo.activo">
+              <span class="status-dot"></span>
+              {{ promo.activo ? 'Activa' : 'Pausada' }}
+            </span>
+          </div>
+
+          @if (promo.descripcion) {
+            <p class="promo-desc">{{ promo.descripcion }}</p>
+          }
+
+          <div class="card-specs">
+            <div class="spec-row">
+              <span class="spec-label">Compra mínima:</span>
+              <span class="spec-val">
+                {{ promo.monto_minimo_compra > 0 ? ('Bs ' + (promo.monto_minimo_compra | number:'1.2-2')) : 'Sin mínimo' }}
+              </span>
+            </div>
+
+            <div class="spec-row">
+              <span class="spec-label">Periodo de vigencia:</span>
+              <span class="spec-val">
+                @if (promo.fecha_inicio || promo.fecha_fin) {
+                  {{ promo.fecha_inicio ? (promo.fecha_inicio | date:'dd/MM/yyyy') : 'Siempre' }}
+                  &rarr;
+                  {{ promo.fecha_fin ? (promo.fecha_fin | date:'dd/MM/yyyy') : 'Indefinido' }}
+                } @else {
+                  Vigencia permanente
+                }
+              </span>
+            </div>
+
+            <div class="spec-row">
+              <span class="spec-label">Límite de usos:</span>
+              <span class="spec-val">
+                {{ promo.usos_actuales }} / {{ promo.limite_usos !== null ? promo.limite_usos : 'Ilimitado' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button
+              class="btn-action edit"
+              (click)="openEditModal(promo)"
+              title="Modificar regla"
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              <span>Editar</span>
+            </button>
+
+            <button
+              class="btn-action toggle"
+              (click)="togglePromotionStatus(promo)"
+              [title]="promo.activo ? 'Pausar promoción' : 'Activar promoción'"
+            >
+              <svg viewBox="0 0 24 24">
+                @if (promo.activo) {
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                } @else {
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                }
+              </svg>
+              <span>{{ promo.activo ? 'Pausar' : 'Activar' }}</span>
+            </button>
+
+            <button
+              class="btn-action delete"
+              (click)="deletePromotion(promo)"
+              title="Eliminar regla"
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- Modal de Alta y Edición -->
+  @if (modalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-eyebrow">{{ editingPromotion() ? 'MODIFICACIÓN' : 'NUEVA CAMPAÑA' }}</span>
+            <h2>{{ editingPromotion() ? 'Editar Promoción' : 'Crear Regla de Descuento' }}</h2>
+          </div>
+          <button class="modal-close" (click)="closeModal()" aria-label="Cerrar ventana">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        <form [formGroup]="promoForm" (ngSubmit)="savePromotion()" class="modal-form">
+          <div class="form-grid">
+            <div class="form-field full-width">
+              <label>Código Promocional (Mayúsculas, ej. MODA2026) *</label>
+              <input
+                type="text"
+                formControlName="codigo"
+                placeholder="Ej. ATELIER2026"
+                class="input-control uppercase font-mono"
+              />
+              @if (promoForm.get('codigo')?.touched && promoForm.get('codigo')?.invalid) {
+                <span class="field-error">El código es obligatorio (3 a 50 letras/números sin espacios).</span>
+              }
+            </div>
+
+            <div class="form-field full-width">
+              <label>Descripción Comercial de la Oferta</label>
+              <input
+                type="text"
+                formControlName="descripcion"
+                placeholder="Ej. 15% de descuento por apertura de colección de otoño"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Tipo de Descuento *</label>
+              <select formControlName="tipo_descuento" class="input-control">
+                <option value="PORCENTAJE">Porcentaje (%)</option>
+                <option value="MONTO_FIJO">Monto Fijo (Bs)</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>
+                Valor del Descuento
+                {{ promoForm.get('tipo_descuento')?.value === 'PORCENTAJE' ? '(%)' : '(Bs)' }} *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                formControlName="valor_descuento"
+                class="input-control"
+              />
+              @if (promoForm.get('valor_descuento')?.touched && promoForm.get('valor_descuento')?.invalid) {
+                <span class="field-error">Introduce un valor mayor a 0.</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label>Monto Mínimo de Compra (Bs)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="monto_minimo_compra"
+                placeholder="0 = Sin mínimo"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Límite Máximo de Usos</label>
+              <input
+                type="number"
+                min="1"
+                formControlName="limite_usos"
+                placeholder="Vacío = Ilimitado"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Fecha de Inicio</label>
+              <input
+                type="date"
+                formControlName="fecha_inicio"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Fecha de Expiración</label>
+              <input
+                type="date"
+                formControlName="fecha_fin"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field full-width checkbox-field">
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="activo" />
+                <span class="switch-slider"></span>
+                <span class="switch-label">Promoción activa y aplicable en pedidos</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="submitting() || promoForm.invalid"
+            >
+              @if (submitting()) {
+                <div class="spinner-sm"></div>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ editingPromotion() ? 'Guardar Cambios' : 'Crear Promoción' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</section>

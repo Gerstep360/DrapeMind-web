@@ -84,6 +84,57 @@ export class CartDrawerComponent {
     });
   }
 
+  // CU-22 y CU-23: Analitica de estilo y valor
+  readonly analyzingStyle = signal<boolean>(false);
+  readonly optimizingValue = signal<boolean>(false);
+  readonly activeAiTab = signal<'NONE' | 'STYLE' | 'VALUE'>('NONE');
+  readonly styleResult = signal<{ respuesta: string; productos: any[] } | null>(null);
+  readonly valueResult = signal<{ respuesta: string; productos: any[] } | null>(null);
+
+  runStyleAnalysis(): void {
+    if (this.cart.totalItems() === 0 || this.analyzingStyle()) return;
+    this.analyzingStyle.set(true);
+    this.activeAiTab.set('STYLE');
+    this.commerceApi.analyzeCartStyle({ objetivo: 'Evaluar coherencia cromatica y estilo del perchero' }).subscribe({
+      next: (res) => {
+        this.styleResult.set(res);
+        this.analyzingStyle.set(false);
+      },
+      error: (err) => {
+        this.toast.show(err.error?.detail || 'Error al analizar el estilo del perchero', 'error');
+        this.analyzingStyle.set(false);
+      },
+    });
+  }
+
+  runValueOptimization(): void {
+    if (this.cart.totalItems() === 0 || this.optimizingValue()) return;
+    this.optimizingValue.set(true);
+    this.activeAiTab.set('VALUE');
+    this.commerceApi.optimizeCartValue({ objetivo: 'Optimizar calidad, precio y balance de ahorro del perchero' }).subscribe({
+      next: (res) => {
+        this.valueResult.set(res);
+        this.optimizingValue.set(false);
+      },
+      error: (err) => {
+        this.toast.show(err.error?.detail || 'Error al calcular la optimizacion de valor', 'error');
+        this.optimizingValue.set(false);
+      },
+    });
+  }
+
+  closeAiAnalysis(): void {
+    this.activeAiTab.set('NONE');
+  }
+
+  addSuggestedToCart(item: any): void {
+    const variantId = item.variantes?.[0]?.id || item.variante_id || item.id;
+    if (variantId) {
+      this.cart.addItem(variantId, 1);
+      this.toast.show('Prenda sugerida añadida al perchero', 'success');
+    }
+  }
+
   analyzeWithAi(): void {
     this.cart.close();
     this.router.navigate(['/ai-studio'], {

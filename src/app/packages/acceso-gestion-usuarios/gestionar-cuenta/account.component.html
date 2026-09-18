@@ -58,7 +58,7 @@
         <h2>Perfil de estilo y Onboarding</h2>
       </div>
       <button class="button button--secondary" type="button" (click)="openOnboarding()">
-        {{ styleProfile() ? 'Modificar en Onboarding ✎' : 'Iniciar Onboarding →' }}
+        {{ styleProfile() ? 'Modificar en Onboarding' : 'Iniciar Onboarding' }}
       </button>
     </header>
     @if (styleProfile(); as profile) {
@@ -116,7 +116,10 @@
   <section class="collection-section">
     <header>
       <div><p class="eyebrow">CU-08 · Selección personal</p><h2>Favoritos</h2></div>
-      <span>{{ favorites().length }} prendas</span>
+      <div class="fav-header-actions">
+        <a class="text-link" routerLink="/favorites">Ver galería dedicada -&gt;</a>
+        <span>{{ favorites().length }} prendas</span>
+      </div>
     </header>
     <div class="favorite-grid">
       @for (product of favorites(); track product.id) {

@@ -1,0 +1,92 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">CU-08 / Curaduria Personal</p>
+    <h1>Mis Piezas Favoritas</h1>
+    <p class="page-lead">
+      Tu seleccion personal guardada en el atelier. Prendas seleccionadas para tus proximas compras o visitas a showroom.
+    </p>
+  </div>
+  <div class="heading-badge">
+    <span class="badge-count">{{ favorites().length }}</span>
+    <small>Prendas guardadas</small>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading-state">
+    <span class="spinner"></span>
+    <p>Consultando tu perchero de favoritos...</p>
+  </div>
+} @else if (favorites().length === 0) {
+  <div class="empty-favorites-card">
+    <div class="empty-icon-box">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </div>
+    <h2>Tu perchero de favoritos esta vacio</h2>
+    <p>Guarda tus prendas predilectas mientras exploras nuestro catalogo sastrero para tenerlas siempre a mano.</p>
+    <a class="button button--primary" routerLink="/catalog">Explorar Coleccion</a>
+  </div>
+} @else {
+  <div class="favorites-grid">
+    @for (product of favorites(); track product.id) {
+      <article class="favorite-card">
+        <div class="favorite-card__media">
+          @if (imageUrl(product); as img) {
+            <img [src]="img" [alt]="product.nombre" loading="lazy" />
+          } @else {
+            <div class="favorite-card__placeholder">
+              <span>{{ product.nombre.charAt(0) }}</span>
+            </div>
+          }
+          <button
+            type="button"
+            class="btn-favorite-heart"
+            (click)="removeFavorite(product, $event)"
+            title="Quitar de favoritos"
+            [disabled]="processingId() === product.id"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#E11D48" stroke="#E11D48" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="favorite-card__body">
+          <div class="favorite-card__meta">
+            <span class="gender-tag">{{ product.genero_objetivo ?? 'UNISEX' }}</span>
+            <span class="category-tag">{{ product.marca || 'DrapeMind Atelier' }}</span>
+          </div>
+
+          <h3 class="product-title">{{ product.nombre }}</h3>
+
+          @if (product.material) {
+            <span class="material-note">{{ product.material }}</span>
+          }
+
+          <div class="favorite-card__footer">
+            <div class="price-box">
+              <small>Precio Atelier</small>
+              <strong>Bs {{ product.precio | number:'1.2-2' }}</strong>
+            </div>
+
+            <button
+              type="button"
+              class="button button--primary button--sm"
+              (click)="addDirectToCart(product, $event)"
+              title="Anadir al perchero activo"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+              <span>Al Perchero</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+}

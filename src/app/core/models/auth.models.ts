@@ -1,4 +1,5 @@
 export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO';
+export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO' | 'SUSPENDIDO';
 
 export interface User {
   id: number;
@@ -7,10 +8,28 @@ export interface User {
   telefono: string | null;
   nit_ci?: string | null;
   rol: UserRole;
-  estado: 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO';
+  estado: UserStatus;
   created_at: string;
   has_style_profile?: boolean;
 }
+
+export interface AdminUserCreatePayload {
+  nombre: string;
+  email: string;
+  password: string;
+  telefono?: string | null;
+  rol: UserRole;
+  estado: UserStatus;
+}
+
+export interface AdminUserUpdatePayload {
+  nombre?: string | null;
+  telefono?: string | null;
+  rol?: UserRole | null;
+  estado?: UserStatus | null;
+  password?: string | null;
+}
+
 
 export interface UserStyleProfile {
   id?: number;

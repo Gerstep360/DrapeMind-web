@@ -1,0 +1,177 @@
+<section class="reports-page">
+  <!-- Header editorial -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PK-05 &middot; INTELIGENCIA ARTIFICIAL Y ASISTENCIA DE MODA</span>
+      <h1 class="page-title">Informes Empresariales con Altair AI</h1>
+      <p class="page-subtitle">
+        Diagnósticos gerenciales cuantitativos, detección de cuellos de botella y recomendaciones estratégicas de crecimiento (CU-26).
+      </p>
+    </div>
+    @if (report()) {
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="copySummary()">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span>Copiar Síntesis</span>
+        </button>
+        <button class="btn btn-secondary" (click)="printReport()">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          <span>Imprimir / PDF</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Panel de Configuración de Consulta -->
+  <div class="query-card">
+    <div class="query-header">
+      <span class="query-eyebrow">PARÁMETROS DE AUDITORÍA GERENCIAL</span>
+      <h2>Seleccionar Enfoque del Informe</h2>
+    </div>
+
+    <div class="type-selector-grid">
+      @for (item of reportTypes; track item.id) {
+        <div
+          class="type-option"
+          [class.active]="selectedType === item.id"
+          (click)="selectedType = $any(item.id)"
+        >
+          <div class="option-header">
+            <span class="option-title">{{ item.title }}</span>
+            <span class="radio-indicator"></span>
+          </div>
+          <p class="option-desc">{{ item.desc }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="query-controls">
+      <div class="control-item">
+        <label>Periodo Temporal</label>
+        <select [(ngModel)]="selectedPeriod" class="select-control">
+          <option value="MES_ACTUAL">Mes Actual en Curso</option>
+          <option value="TRIMESTRE">Último Trimestre Operativo</option>
+          <option value="HISTORICO">Consolidado Histórico Completo</option>
+        </select>
+      </div>
+
+      <div class="control-item flex-grow">
+        <label>Enfoque Específico para el Análisis (Opcional)</label>
+        <input
+          type="text"
+          [(ngModel)]="customFocus"
+          placeholder="Ej. Priorizar rotación de vestidos de gala y fidelización de clientes VIP..."
+          class="input-control"
+        />
+      </div>
+
+      <button
+        class="btn btn-primary generate-btn"
+        (click)="generateReport()"
+        [disabled]="generating()"
+      >
+        @if (generating()) {
+          <div class="spinner-sm"></div>
+          <span>Sintetizando con Altair...</span>
+        } @else {
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <path d="M12 3l1.912 5.885a2 2 0 001.272 1.272L21 12l-5.816 1.843a2 2 0 00-1.272 1.272L12 21l-1.912-5.885a2 2 0 00-1.272-1.272L3 12l5.816-1.843a2 2 0 001.272-1.272L12 3z" />
+          </svg>
+          <span>Elaborar Informe Ejecutivo</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (generating()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Altair AI está analizando órdenes, stock, latencia y métricas comerciales...</p>
+    </div>
+  } @else if (report()) {
+    <!-- Tira de Indicadores Clave del Reporte -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <span class="kpi-lbl">Facturación Confirmada</span>
+        <strong class="kpi-val">Bs {{ report()!.indicadores_clave['ventas_totales_bob'] | number:'1.2-2' }}</strong>
+        <span class="kpi-sub">Cobros con estado aprobado</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-lbl">Volumen de Pedidos</span>
+        <strong class="kpi-val">{{ report()!.indicadores_clave['pedidos_totales'] }}</strong>
+        <span class="kpi-sub">{{ report()!.indicadores_clave['pedidos_entregados'] }} completados / {{ report()!.indicadores_clave['pedidos_en_curso'] }} en curso</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-lbl">Ticket Promedio</span>
+        <strong class="kpi-val">Bs {{ report()!.indicadores_clave['ticket_promedio_bob'] | number:'1.2-2' }}</strong>
+        <span class="kpi-sub">Gasto promedio por transacción</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-lbl">Stock en Almacenes</span>
+        <strong class="kpi-val">{{ report()!.indicadores_clave['unidades_stock_disponible'] }} uds</strong>
+        <span class="kpi-sub">{{ report()!.indicadores_clave['variantes_stock_critico'] }} variantes bajo umbral</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-lbl">Asistente IA Altair</span>
+        <strong class="kpi-val">{{ report()!.indicadores_clave['interacciones_ia'] }}</strong>
+        <span class="kpi-sub">{{ report()!.indicadores_clave['latencia_promedio_ia_ms'] }} ms latencia media</span>
+      </div>
+    </div>
+
+    <!-- Dossier Ejecutivo -->
+    <article class="dossier-card">
+      <div class="dossier-header">
+        <div class="dossier-meta">
+          <span class="meta-badge">{{ report()!.tipo_reporte.replace('_', ' ') }}</span>
+          <span class="meta-period">Periodo: {{ report()!.periodo.replace('_', ' ') }}</span>
+        </div>
+        <span class="dossier-date">Emitido: {{ report()!.fecha_generacion }}</span>
+      </div>
+
+      <!-- Sección 1: Resumen Ejecutivo -->
+      <section class="dossier-section">
+        <h3 class="section-heading">1. Resumen Ejecutivo y Diagnóstico Clave</h3>
+        <p class="lead-text">{{ report()!.resumen_ejecutivo }}</p>
+      </section>
+
+      <!-- Sección 2: Diagnóstico de Rendimiento Comercial -->
+      <section class="dossier-section">
+        <h3 class="section-heading">2. Análisis de Rendimiento y Operación</h3>
+        <p class="body-text">{{ report()!.diagnostico_rendimiento }}</p>
+      </section>
+
+      <!-- Sección 3: Cuellos de Botella y Riesgos -->
+      <section class="dossier-section">
+        <h3 class="section-heading">3. Alertas de Cuellos de Botella y Puntos Críticos</h3>
+        <div class="alert-list">
+          @for (item of report()!.cuellos_de_botella; track item; let idx = $index) {
+            <div class="alert-item">
+              <div class="alert-dot"></div>
+              <p class="alert-text">{{ item }}</p>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Sección 4: Plan de Acción Estratégico -->
+      <section class="dossier-section last">
+        <h3 class="section-heading">4. Plan de Acción Recomendado (Siguientes Pasos)</h3>
+        <div class="action-plan-grid">
+          @for (act of report()!.recomendaciones_estrategicas; track act; let idx = $index) {
+            <div class="action-card">
+              <span class="step-num">0{{ idx + 1 }}</span>
+              <p class="action-desc">{{ act }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    </article>
+  }
+</section>

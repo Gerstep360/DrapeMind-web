@@ -10,6 +10,7 @@ export interface Category {
 export interface ProductVariant {
   id: number;
   producto_id: number;
+  producto?: string;
   sku: string;
   color: string;
   codigo_color: string | null;
@@ -17,6 +18,7 @@ export interface ProductVariant {
   stock_total: number;
   stock_reservado: number;
   stock_disponible: number;
+  codigo_barras?: string | null;
   imagen: string | null;
   activo: boolean;
 }
@@ -80,3 +82,205 @@ export interface ProductVariantPayload {
   imagen?: string;
   activo: boolean;
 }
+
+export interface City {
+  id: number;
+  nombre: string;
+  departamento: string;
+  activo: boolean;
+}
+
+export interface CityInput {
+  nombre: string;
+  departamento: string;
+  activo?: boolean;
+}
+
+export interface BranchInput {
+  ciudad_id: number;
+  codigo: string;
+  nombre: string;
+  direccion: string;
+  telefono?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  activo?: boolean;
+}
+
+export interface CategoryInput {
+  nombre: string;
+  slug: string;
+  descripcion?: string | null;
+  parent_id?: number | null;
+  activo?: boolean;
+}
+
+export interface Supplier {
+  id: number;
+  nombre_empresa: string;
+  nit: string | null;
+  contacto_nombre: string | null;
+  telefono: string | null;
+  email: string | null;
+  ciudad: string;
+  direccion: string | null;
+  categoria_suministro: string;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierInput {
+  nombre_empresa: string;
+  nit?: string | null;
+  contacto_nombre?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  ciudad: string;
+  direccion?: string | null;
+  categoria_suministro: string;
+  activo?: boolean;
+}
+
+export interface Promotion {
+  id: number;
+  codigo: string;
+  descripcion: string | null;
+  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO';
+  valor_descuento: number;
+  monto_minimo_compra: number;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  limite_usos: number | null;
+  usos_actuales: number;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromotionInput {
+  codigo: string;
+  descripcion?: string | null;
+  tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO';
+  valor_descuento: number;
+  monto_minimo_compra?: number;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  limite_usos?: number | null;
+  activo?: boolean;
+}
+
+export interface Season {
+  id: number;
+  nombre: string;
+  codigo: string;
+  descripcion: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SeasonInput {
+  nombre: string;
+  codigo: string;
+  descripcion?: string | null;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  activo?: boolean;
+}
+
+export interface SupplierProduct {
+  id: number;
+  proveedor_id: number;
+  nombre_suministro: string;
+  sku_proveedor: string | null;
+  categoria: string;
+  unidad_medida: string;
+  costo_unitario: number;
+  cantidad_disponible: number;
+  tiempo_entrega_dias: number;
+  estado: 'DISPONIBLE' | 'BAJO_PEDIDO' | 'AGOTADO';
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierProductInput {
+  nombre_suministro: string;
+  sku_proveedor?: string | null;
+  categoria: string;
+  unidad_medida: string;
+  costo_unitario: number;
+  cantidad_disponible?: number;
+  tiempo_entrega_dias?: number;
+  estado?: 'DISPONIBLE' | 'BAJO_PEDIDO' | 'AGOTADO';
+  activo?: boolean;
+}
+
+export interface ProductAiAssistStudioRequest {
+  nombre_borrador: string;
+  material?: string | null;
+  estilo_objetivo?: string | null;
+  categoria_sugerida?: string | null;
+  genero_objetivo?: string;
+  detalles_confeccion?: string | null;
+  descripcion_imagen?: string | null;
+}
+
+export interface ProductAiAssistStudioResponse {
+  titulo_comercial: string;
+  descripcion_editorial: string;
+  guia_cuidado: string;
+  tags_estilo: string[];
+  silueta_corte: string;
+  precio_sugerido_estimado: number;
+  categoria_recomendada: string;
+}
+
+export interface ExecutiveReportRequest {
+  tipo_reporte: 'VENTAS_Y_TENDENCIAS' | 'INVENTARIO_Y_STOCK' | 'ASISTENCIA_IA_Y_CLIENTES' | 'ESTRATEGICO_GLOBAL';
+  periodo: 'MES_ACTUAL' | 'TRIMESTRE' | 'HISTORICO';
+  enfoque_especifico?: string | null;
+}
+
+export interface ExecutiveReportResponse {
+  tipo_reporte: string;
+  periodo: string;
+  indicadores_clave: Record<string, any>;
+  resumen_ejecutivo: string;
+  diagnostico_rendimiento: string;
+  cuellos_de_botella: string[];
+  recomendaciones_estrategicas: string[];
+  fecha_generacion: string;
+}
+
+export interface AiAnalyticsOverview {
+  total_sesiones_ia: number;
+  total_interacciones: number;
+  latencia_promedio_ms: number;
+  interacciones_recientes: Array<{
+    id: number;
+    sesion_id: number;
+    tipo: string;
+    tool: string | null;
+    duracion_ms: number | null;
+    estado: string;
+    timestamp: string | null;
+  }>;
+}
+
+export interface SalesHistoryItem {
+  pedido_id: number;
+  usuario_id: number;
+  canal: string;
+  tipo_entrega: string;
+  estado_pedido: string;
+  total: number;
+  created_at: string | null;
+  completed_at: string | null;
+}
+
+
+

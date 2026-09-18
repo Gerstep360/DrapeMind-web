@@ -1,0 +1,359 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Gestión Comercial de Moda</p>
+    <h1>Prendas y Catálogo</h1>
+    <p class="page-lead">
+      Alta, edición y curaduría editorial de piezas de vestuario, fijación de precios, costos de referencia y fotografías de atelier.
+    </p>
+  </div>
+  <div class="actions">
+    <a class="button button--secondary" routerLink="/ai-product-assist">
+      Estudio con Altair AI (CU-25)
+    </a>
+    <button class="button button--primary" type="button" (click)="openNewProductModal()">
+      + Nueva Prenda
+    </button>
+  </div>
+</section>
+
+<!-- Resumen de Métricas -->
+<section class="metrics-grid">
+  <div class="metric-card">
+    <span class="metric-card__label">Total Prendas</span>
+    <strong class="metric-card__value">{{ products().length }}</strong>
+    <span class="metric-card__sub">Modelos en base de datos</span>
+  </div>
+  <div class="metric-card metric-card--highlight">
+    <span class="metric-card__label">Prendas Activas</span>
+    <strong class="metric-card__value">{{ activeProductsCount() }}</strong>
+    <span class="metric-card__sub">Visibles para el cliente</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-card__label">Stock Crítico</span>
+    <strong class="metric-card__value">{{ lowStockProductsCount() }}</strong>
+    <span class="metric-card__sub">≤ 2 unidades disponibles</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-card__label">Calidad Media</span>
+    <strong class="metric-card__value">{{ averageQuality() }} / 5</strong>
+    <span class="metric-card__sub">Estándar de confección</span>
+  </div>
+</section>
+
+<!-- Filtros de Género -->
+<div class="filter-pill-bar">
+  <span class="filter-label">Línea de estilo:</span>
+  <div class="pills-scroll">
+    <button
+      type="button"
+      class="gender-pill"
+      [class.active]="selectedGender() === 'TODOS'"
+      (click)="selectedGender.set('TODOS'); loadProducts()"
+    >
+      Todas las líneas
+    </button>
+    @for (g of genders; track g) {
+      <button
+        type="button"
+        class="gender-pill"
+        [class.active]="selectedGender() === g"
+        (click)="selectedGender.set(g); loadProducts()"
+      >
+        {{ g }}
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Filtros y Búsqueda -->
+<div class="filter-toolbar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" class="search-icon">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Buscar por nombre, material o marca..."
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)"
+    />
+  </div>
+
+  <div class="select-wrap">
+    <select [value]="selectedCategoryId() || ''" (change)="selectedCategoryId.set($any($event.target).value ? +$any($event.target).value : null); loadProducts()">
+      <option value="">Todas las categorías</option>
+      @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.nombre }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+<!-- Tabla de Prendas -->
+<div class="table-card">
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Cargando catálogo editorial...</p>
+    </div>
+  } @else {
+    <table class="dm-table">
+      <thead>
+        <tr>
+          <th>Prenda</th>
+          <th>Familia / Categoría</th>
+          <th>Género</th>
+          <th>Precio Venta</th>
+          <th>Costo Ref.</th>
+          <th>Calidad</th>
+          <th>Stock Físico</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (prod of filteredProducts(); track prod.id) {
+          <tr>
+            <td>
+              <div class="product-info-cell">
+                <div class="thumb-box">
+                  @if (extractFirstImage(prod.imagenes)) {
+                    <img [src]="extractFirstImage(prod.imagenes)!" [alt]="prod.nombre" class="thumb-img" />
+                  } @else {
+                    <div class="thumb-placeholder">
+                      <span>{{ prod.nombre.slice(0, 2).toUpperCase() }}</span>
+                    </div>
+                  }
+                </div>
+                <div>
+                  <strong class="product-name">{{ prod.nombre }}</strong>
+                  <span class="product-material">{{ prod.material || 'Material sastrero' }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="cat-pill">{{ getCategoryName(prod.categoria_id) }}</span>
+            </td>
+            <td>
+              <span class="gender-tag gender-tag--{{ prod.genero_objetivo.toLowerCase() }}">
+                {{ prod.genero_objetivo }}
+              </span>
+            </td>
+            <td>
+              <strong class="price-val">Bs {{ prod.precio | number:'1.2-2' }}</strong>
+            </td>
+            <td>
+              <span class="cost-val">{{ prod.costo_referencia ? ('Bs ' + (prod.costo_referencia | number:'1.2-2')) : '—' }}</span>
+            </td>
+            <td>
+              <div class="quality-dots" [title]="'Nivel ' + prod.calidad_nivel + ' de 5'">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <span class="dot" [class.dot--filled]="star <= (prod.calidad_nivel || 3)"></span>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="stock-badge" [class.stock-badge--zero]="(prod.stock_disponible || 0) === 0">
+                {{ prod.stock_disponible || 0 }} uds.
+              </span>
+            </td>
+            <td>
+              <span class="status-pill" [class.status-pill--active]="prod.activo">
+                {{ prod.activo ? 'Activa' : 'Pausada' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <button class="button-pill button-pill--ghost" type="button" (click)="openEditProductModal(prod)">
+                Editar
+              </button>
+              <button
+                class="button-pill"
+                [class.button-pill--danger]="prod.activo"
+                [class.button-pill--success]="!prod.activo"
+                type="button"
+                (click)="toggleProductStatus(prod)"
+              >
+                {{ prod.activo ? 'Pausar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" class="empty-cell">Sin prendas que coincidan con la búsqueda.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- MODAL: Crear/Editar Prenda -->
+@if (productModalOpen()) {
+  <div class="modal-backdrop" (click)="closeProductModal()">
+    <div class="modal-card modal-card--lg" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Ficha de producto</span>
+          <h2>{{ editingProduct() ? 'Editar Prenda' : 'Registrar Nueva Prenda' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeProductModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="productForm" (ngSubmit)="saveProduct()">
+        <!-- Sección de Fotografía & Dropzone -->
+        <div class="image-uploader-section">
+          <div class="uploader-preview">
+            @if (previewImageUrl()) {
+              <img [src]="previewImageUrl()!" alt="Vista previa" class="preview-img" />
+            } @else {
+              <div class="preview-empty">
+                <svg viewBox="0 0 24 24" class="upload-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Sin fotografía</span>
+              </div>
+            }
+          </div>
+
+          <div class="uploader-controls">
+            <span class="uploader-title">Fotografía de Catálogo</span>
+            <p class="uploader-hint">Sube una imagen de alta resolución (.jpg, .png, .webp) o introduce una URL directa.</p>
+            
+            <div class="upload-actions">
+              <label class="file-input-btn">
+                <span>{{ imageUploading() ? 'Subiendo imagen...' : 'Seleccionar archivo' }}</span>
+                <input type="file" accept="image/*" (change)="onFileSelected($event)" [disabled]="imageUploading()" />
+              </label>
+
+              <input
+                type="text"
+                placeholder="O pega una URL: https://..."
+                [value]="previewImageUrl() || ''"
+                (change)="setManualImageUrl($any($event.target).value)"
+                class="url-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Nombre Comercial
+            <input formControlName="nombre" placeholder="Ej.: Blazer Cruzado de Lino Crudo" />
+            @if (productForm.get('nombre')?.invalid && productForm.get('nombre')?.touched) {
+              <span class="error-msg">Nombre obligatorio (mínimo 3 caracteres)</span>
+            }
+          </label>
+
+          <label>
+            Familia / Categoría
+            <select formControlName="categoria_id">
+              <option [ngValue]="null">Seleccionar categoría...</option>
+              @for (cat of categories(); track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+              }
+            </select>
+            @if (productForm.get('categoria_id')?.invalid && productForm.get('categoria_id')?.touched) {
+              <span class="error-msg">Debes asignar una categoría</span>
+            }
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Composición / Material
+            <input formControlName="material" placeholder="Ej.: 100% Lino Italiano y Forro de Seda" />
+            @if (productForm.get('material')?.invalid && productForm.get('material')?.touched) {
+              <span class="error-msg">Especifica el material</span>
+            }
+          </label>
+
+          <label>
+            Género Objetivo
+            <select formControlName="genero_objetivo">
+              @for (g of genders; track g) {
+                <option [value]="g">{{ g }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid-3">
+          <label>
+            Precio de Venta (Bs)
+            <input type="number" formControlName="precio" min="1" step="0.5" />
+            @if (productForm.get('precio')?.invalid && productForm.get('precio')?.touched) {
+              <span class="error-msg">Precio válido requerido</span>
+            }
+          </label>
+
+          <label>
+            Costo Referencia (Bs)
+            <input type="number" formControlName="costo_referencia" min="0" step="0.5" />
+          </label>
+
+          <label>
+            Calidad Sastrera (1-5)
+            <select formControlName="calidad_nivel">
+              <option [ngValue]="1">1 - Estándar</option>
+              <option [ngValue]="2">2 - Selecta</option>
+              <option [ngValue]="3">3 - Premium</option>
+              <option [ngValue]="4">4 - Alta Costura</option>
+              <option [ngValue]="5">5 - Obra Maestra Atelier</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Descripción Asistida por IA (CU-25) -->
+        <div class="ai-editor-box">
+          <div class="ai-editor-header">
+            <div>
+              <span class="ai-badge">Asistente Editorial</span>
+              <span class="ai-title">Descripción sastrera de lujo</span>
+            </div>
+            <button
+              type="button"
+              class="ai-draft-btn"
+              (click)="generateAiDescription()"
+              [disabled]="aiDrafting()"
+            >
+              {{ aiDrafting() ? 'Consultando a Altair...' : 'Redactar con IA' }}
+            </button>
+          </div>
+
+          <label>
+            Descripción Editorial
+            <textarea
+              formControlName="descripcion"
+              rows="3"
+              placeholder="Descripción elegante y corte de la prenda para el catálogo..."
+            ></textarea>
+          </label>
+
+          <label>
+            Guía de Cuidado / Notas de Mantenimiento
+            <input
+              formControlName="descripcion_ai"
+              placeholder="Ej.: Lavar en seco. Planchar a baja temperatura con paño protector."
+            />
+          </label>
+        </div>
+
+        <div class="toggle-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Prenda visible y activa en el catálogo público</span>
+          </label>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeProductModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingProduct() ? 'Guardar Cambios' : 'Publicar Prenda' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

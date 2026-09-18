@@ -1,0 +1,381 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Arquitectura de Catálogo</p>
+    <h1>Categorías y Variantes</h1>
+    <p class="page-lead">
+      Estructura familias de prendas, define atributos base y gestiona la matriz de tallas, colores y SKUs del atelier.
+    </p>
+  </div>
+  <div class="actions">
+    @if (activeTab() === 'categories') {
+      <button class="button button--primary" type="button" (click)="openNewCategoryModal()">
+        + Nueva Categoría
+      </button>
+    } @else {
+      <button class="button button--primary" type="button" (click)="openNewVariantModal()">
+        + Nueva Variante
+      </button>
+    }
+  </div>
+</section>
+
+<!-- Tabs Selector -->
+<div class="tab-pill-group">
+  <button
+    type="button"
+    class="tab-pill"
+    [class.active]="activeTab() === 'categories'"
+    (click)="activeTab.set('categories')"
+  >
+    <svg viewBox="0 0 24 24" class="tab-icon">
+      <path d="M4 6h16M4 12h16M4 18h7" />
+    </svg>
+    Categorías de Moda ({{ categories().length }})
+  </button>
+  <button
+    type="button"
+    class="tab-pill"
+    [class.active]="activeTab() === 'variants'"
+    (click)="activeTab.set('variants')"
+  >
+    <svg viewBox="0 0 24 24" class="tab-icon">
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      <polyline points="2 17 12 22 22 17" />
+      <polyline points="2 12 12 17 22 12" />
+    </svg>
+    Variantes y SKUs ({{ variants().length }})
+  </button>
+</div>
+
+<!-- Filtros -->
+<div class="filter-toolbar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" class="search-icon">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Buscar por nombre, slug, SKU o color..."
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)"
+    />
+  </div>
+
+  @if (activeTab() === 'variants') {
+    <div class="select-wrap">
+      <select [value]="selectedProductId() || ''" (change)="selectedProductId.set($any($event.target).value ? +$any($event.target).value : null)">
+        <option value="">Todos los productos</option>
+        @for (prod of products(); track prod.id) {
+          <option [value]="prod.id">{{ prod.nombre }}</option>
+        }
+      </select>
+    </div>
+  }
+</div>
+
+<!-- TAB 1: Categorías -->
+@if (activeTab() === 'categories') {
+  <div class="table-card">
+    <table class="dm-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre de Categoría</th>
+          <th>Slug URL</th>
+          <th>Categoría Padre</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (cat of filteredCategories(); track cat.id) {
+          <tr>
+            <td><strong>#{{ cat.id }}</strong></td>
+            <td>
+              <div class="category-title-wrap">
+                <span class="category-name">{{ cat.nombre }}</span>
+                @if (cat.parent_id) {
+                  <span class="sub-indicator">Subcategoría</span>
+                }
+              </div>
+            </td>
+            <td>
+              <code class="slug-code">/{{ cat.slug }}</code>
+            </td>
+            <td>
+              <span class="parent-badge">{{ getCategoryName(cat.parent_id) }}</span>
+            </td>
+            <td>
+              <span class="desc-text">{{ cat.descripcion || 'Sin descripción editorial' }}</span>
+            </td>
+            <td>
+              <span class="status-pill" [class.status-pill--active]="cat.activo">
+                {{ cat.activo ? 'Activa' : 'Oculta' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <button class="button-pill button-pill--ghost" type="button" (click)="openEditCategoryModal(cat)">
+                Editar
+              </button>
+              <button
+                class="button-pill"
+                [class.button-pill--danger]="cat.activo"
+                [class.button-pill--success]="!cat.activo"
+                type="button"
+                (click)="toggleCategoryStatus(cat)"
+              >
+                {{ cat.activo ? 'Ocultar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-cell">Sin categorías encontradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- TAB 2: Variantes -->
+@if (activeTab() === 'variants') {
+  <div class="table-card">
+    <table class="dm-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Prenda / Producto</th>
+          <th>Color y Muestra</th>
+          <th>Talla</th>
+          <th>Stock Total</th>
+          <th>Disponible</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of filteredVariants(); track v.id) {
+          <tr>
+            <td>
+              <strong class="sku-text">{{ v.sku }}</strong>
+            </td>
+            <td>
+              <span class="product-rel">{{ v.producto || getProductName(v.producto_id) }}</span>
+            </td>
+            <td>
+              <div class="color-cell">
+                <span
+                  class="color-swatch"
+                  [style.background-color]="v.codigo_color || '#10110F'"
+                ></span>
+                <span>{{ v.color }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="size-pill">{{ v.talla }}</span>
+            </td>
+            <td>
+              <span class="stock-num">{{ v.stock_total }}</span>
+            </td>
+            <td>
+              <span class="avail-num" [class.avail-num--low]="v.stock_disponible <= 2">
+                {{ v.stock_disponible }}
+              </span>
+            </td>
+            <td>
+              <span class="status-pill" [class.status-pill--active]="v.activo">
+                {{ v.activo ? 'Activo' : 'Pausado' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <button class="button-pill button-pill--ghost" type="button" (click)="openEditVariantModal(v)">
+                Editar
+              </button>
+              <button
+                class="button-pill"
+                [class.button-pill--danger]="v.activo"
+                [class.button-pill--success]="!v.activo"
+                type="button"
+                (click)="toggleVariantStatus(v)"
+              >
+                {{ v.activo ? 'Pausar' : 'Reactivar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty-cell">Sin variantes que coincidan con la búsqueda.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- MODAL: Crear/Editar Categoría -->
+@if (categoryModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCategoryModal()">
+    <div class="modal-card modal-card--sm" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Catálogo</span>
+          <h2>{{ editingCategory() ? 'Editar Categoría' : 'Nueva Categoría' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeCategoryModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <label>
+          Nombre
+          <input formControlName="nombre" placeholder="Ej.: Sastrería Contemporánea" (input)="generateSlugFromName()" />
+          @if (categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched) {
+            <span class="error-msg">Nombre requerido</span>
+          }
+        </label>
+
+        <label>
+          Slug URL
+          <input formControlName="slug" placeholder="sastreria-contemporanea" />
+          @if (categoryForm.get('slug')?.invalid && categoryForm.get('slug')?.touched) {
+            <span class="error-msg">Slug en minúsculas con guiones</span>
+          }
+        </label>
+
+        <label>
+          Categoría Padre (Jerarquía)
+          <select formControlName="parent_id">
+            <option [ngValue]="null">Ninguna (Categoría raíz principal)</option>
+            @for (cat of categories(); track cat.id) {
+              @if (!editingCategory() || editingCategory()?.id !== cat.id) {
+                <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+              }
+            }
+          </select>
+        </label>
+
+        <label>
+          Descripción
+          <textarea formControlName="descripcion" rows="3" placeholder="Breve concepto editorial de la línea de prendas..."></textarea>
+        </label>
+
+        <div class="toggle-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Categoría visible en la tienda</span>
+          </label>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeCategoryModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingCategory() ? 'Guardar Cambios' : 'Crear Categoría' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Crear/Editar Variante -->
+@if (variantModalOpen()) {
+  <div class="modal-backdrop" (click)="closeVariantModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Atributos físicos</span>
+          <h2>{{ editingVariant() ? 'Editar Variante' : 'Registrar Variante' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeVariantModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="variantForm" (ngSubmit)="saveVariant()">
+        <label>
+          Producto Base
+          <select formControlName="producto_id">
+            <option [ngValue]="null">Selecciona el producto...</option>
+            @for (prod of products(); track prod.id) {
+              <option [ngValue]="prod.id">{{ prod.nombre }} (Bs {{ prod.precio }})</option>
+            }
+          </select>
+          @if (variantForm.get('producto_id')?.invalid && variantForm.get('producto_id')?.touched) {
+            <span class="error-msg">Producto obligatorio</span>
+          }
+        </label>
+
+        <div class="form-grid">
+          <label>
+            SKU Único
+            <input formControlName="sku" placeholder="Ej.: DRP-BLZ-CR-M" />
+            @if (variantForm.get('sku')?.invalid && variantForm.get('sku')?.touched) {
+              <span class="error-msg">SKU obligatorio (mínimo 3 caracteres)</span>
+            }
+          </label>
+
+          <label>
+            Talla
+            <select formControlName="talla">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="UNICA">Talla Única</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Nombre del Color
+            <input formControlName="color" placeholder="Ej.: Crudo Atelier" />
+            @if (variantForm.get('color')?.invalid && variantForm.get('color')?.touched) {
+              <span class="error-msg">Color requerido</span>
+            }
+          </label>
+
+          <label>
+            Muestra Cromática (Color HEX)
+            <div class="color-picker-row">
+              <input type="color" formControlName="codigo_color" class="color-input-picker" />
+              <input formControlName="codigo_color" placeholder="#10110F" class="color-input-text" />
+            </div>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Stock Total
+            <input type="number" formControlName="stock_total" min="0" />
+          </label>
+
+          <label>
+            Código de Barras (Opcional)
+            <input formControlName="codigo_barras" placeholder="7771234567890" />
+          </label>
+        </div>
+
+        <div class="toggle-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Variante habilitada para compras y reservas</span>
+          </label>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeVariantModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingVariant() ? 'Guardar Cambios' : 'Registrar Variante' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,258 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Control de Acceso y Personal</p>
+    <h1>Usuarios, Roles y Empleados</h1>
+    <p class="page-lead">
+      Administración central de cuentas, asignación de privilegios de personal y credenciales del personal del atelier.
+    </p>
+  </div>
+  <div class="actions">
+    <button class="button button--primary" type="button" (click)="openNewUserModal()">
+      + Nuevo Usuario
+    </button>
+  </div>
+</section>
+
+<!-- Resumen de Métricas -->
+<section class="metrics-grid">
+  <div class="metric-card">
+    <span class="metric-card__label">Total Usuarios</span>
+    <strong class="metric-card__value">{{ users().length }}</strong>
+    <span class="metric-card__sub">Cuentas registradas</span>
+  </div>
+  <div class="metric-card metric-card--highlight">
+    <span class="metric-card__label">Equipo Staff</span>
+    <strong class="metric-card__value">{{ staffCount() }}</strong>
+    <span class="metric-card__sub">Admins, encargados y cajeros</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-card__label">Clientes</span>
+    <strong class="metric-card__value">{{ clientsCount() }}</strong>
+    <span class="metric-card__sub">Clientes autenticados</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-card__label">Cuentas Activas</span>
+    <strong class="metric-card__value">{{ activeCount() }}</strong>
+    <span class="metric-card__sub">Con acceso habilitado</span>
+  </div>
+</section>
+
+<!-- Barra de Filtros por Rol -->
+<div class="filter-pill-bar">
+  <span class="filter-label">Filtrar por rol:</span>
+  <div class="pills-scroll">
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'TODOS'"
+      (click)="onRoleFilterChange('TODOS')"
+    >
+      Todos
+    </button>
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'ADMIN'"
+      (click)="onRoleFilterChange('ADMIN')"
+    >
+      Administradores
+    </button>
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'ENCARGADO'"
+      (click)="onRoleFilterChange('ENCARGADO')"
+    >
+      Encargados
+    </button>
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'VENDEDOR'"
+      (click)="onRoleFilterChange('VENDEDOR')"
+    >
+      Vendedores
+    </button>
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'CAJERO'"
+      (click)="onRoleFilterChange('CAJERO')"
+    >
+      Cajeros
+    </button>
+    <button
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole() === 'CLIENTE'"
+      (click)="onRoleFilterChange('CLIENTE')"
+    >
+      Clientes
+    </button>
+  </div>
+</div>
+
+<!-- Barra de Búsqueda -->
+<div class="filter-toolbar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" class="search-icon">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Buscar por nombre, correo electrónico o teléfono..."
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)"
+    />
+  </div>
+</div>
+
+<!-- Tabla de Usuarios -->
+<div class="table-card">
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Cargando directorio de usuarios...</p>
+    </div>
+  } @else {
+    <table class="dm-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Contacto</th>
+          <th>Rol Asignado</th>
+          <th>Estado</th>
+          <th>Fecha Registro</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of filteredUsers(); track user.id) {
+          <tr>
+            <td>
+              <div class="user-profile-cell">
+                <div class="avatar" [class.avatar--admin]="user.rol === 'ADMIN'" [class.avatar--staff]="user.rol !== 'CLIENTE' && user.rol !== 'ADMIN'">
+                  {{ getInitials(user.nombre) }}
+                </div>
+                <div>
+                  <strong class="user-name">{{ user.nombre }}</strong>
+                  <span class="user-email">{{ user.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="contact-text">{{ user.telefono || 'Sin teléfono' }}</span>
+            </td>
+            <td>
+              <span class="role-badge role-badge--{{ user.rol.toLowerCase() }}">
+                {{ user.rol }}
+              </span>
+            </td>
+            <td>
+              <span class="status-pill" [class.status-pill--active]="user.estado === 'ACTIVO'">
+                {{ user.estado }}
+              </span>
+            </td>
+            <td>
+              <span class="date-text">{{ user.created_at | date:'mediumDate' }}</span>
+            </td>
+            <td class="text-right">
+              <button class="button-pill button-pill--ghost" type="button" (click)="openEditUserModal(user)">
+                Editar / Clave
+              </button>
+              <button
+                class="button-pill"
+                [class.button-pill--danger]="user.estado === 'ACTIVO'"
+                [class.button-pill--success]="user.estado !== 'ACTIVO'"
+                type="button"
+                (click)="toggleUserStatus(user)"
+              >
+                {{ user.estado === 'ACTIVO' ? 'Suspender' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-cell">No se encontraron usuarios registrados.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- MODAL: Crear/Editar Usuario -->
+@if (userModalOpen()) {
+  <div class="modal-backdrop" (click)="closeUserModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Directorio de cuentas</span>
+          <h2>{{ editingUser() ? 'Editar Usuario / Clave' : 'Crear Usuario o Empleado' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeUserModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <label>
+          Nombre Completo
+          <input formControlName="nombre" placeholder="Ej.: Claudia Mendoza" />
+          @if (userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched) {
+            <span class="error-msg">Nombre obligatorio (mínimo 2 letras)</span>
+          }
+        </label>
+
+        <label>
+          Correo Electrónico
+          <input type="email" formControlName="email" placeholder="claudia@drapemind.com" [readonly]="editingUser() !== null" />
+          @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+            <span class="error-msg">Correo electrónico válido requerido</span>
+          }
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Rol en el Sistema
+            <select formControlName="rol">
+              @for (r of rolesList; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Estado de Cuenta
+            <select formControlName="estado">
+              @for (st of statusList; track st) {
+                <option [value]="st">{{ st }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Teléfono / Celular
+          <input formControlName="telefono" placeholder="+591 71234567" />
+        </label>
+
+        <label>
+          {{ editingUser() ? 'Nueva Contraseña (Opcional)' : 'Contraseña de Acceso' }}
+          <input type="password" formControlName="password" placeholder="{{ editingUser() ? 'Dejar en blanco para no cambiarla' : 'Mínimo 8 caracteres' }}" />
+          @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+            <span class="error-msg">La contraseña debe tener al menos 8 caracteres</span>
+          }
+        </label>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeUserModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingUser() ? 'Guardar Cambios' : 'Registrar Cuenta' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

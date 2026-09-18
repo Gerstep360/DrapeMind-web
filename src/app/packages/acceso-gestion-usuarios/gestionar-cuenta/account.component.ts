@@ -1,7 +1,7 @@
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { Address, AddressInput, Branch, Product, UserStyleProfile } from '@core/models';
@@ -13,7 +13,7 @@ import { ToastService } from '@core/toast.service';
 
 @Component({
   selector: 'app-account',
-  imports: [ReactiveFormsModule, DecimalPipe, UpperCasePipe],
+  imports: [ReactiveFormsModule, DecimalPipe, UpperCasePipe, RouterLink],
   templateUrl: './account.component.html',
   styleUrl: './account.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

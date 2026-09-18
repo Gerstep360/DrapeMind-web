@@ -1,0 +1,360 @@
+<section class="page-heading page-heading--split">
+  <div>
+    <p class="eyebrow">Control físico y sedes</p>
+    <h1>Ciudades y Sucursales</h1>
+    <p class="page-lead">
+      Administra la presencia física del atelier, gestiona locales comerciales y coordina la red de ciudades habilitadas.
+    </p>
+  </div>
+  <div class="actions">
+    @if (activeTab() === 'branches') {
+      <button class="button button--primary" type="button" (click)="openNewBranchModal()">
+        + Nueva Sede
+      </button>
+    } @else {
+      <button class="button button--primary" type="button" (click)="openNewCityModal()">
+        + Nueva Ciudad
+      </button>
+    }
+  </div>
+</section>
+
+<!-- Resumen de Métricas de Cobertura -->
+<section class="metrics-grid">
+  <div class="metric-card">
+    <span class="metric-card__label">Total Sedes</span>
+    <strong class="metric-card__value">{{ branches().length }}</strong>
+    <span class="metric-card__sub">Puntos de venta registrados</span>
+  </div>
+  <div class="metric-card metric-card--highlight">
+    <span class="metric-card__label">Sedes Activas</span>
+    <strong class="metric-card__value">{{ activeBranchesCount() }}</strong>
+    <span class="metric-card__sub">Operativas en catálogo y QR</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-card__label">Ciudades</span>
+    <strong class="metric-card__value">{{ cities().length }}</strong>
+    <span class="metric-card__sub">{{ activeCitiesCount() }} activas con despacho</span>
+  </div>
+</section>
+
+<!-- Selector de Pestañas Tipo Pill -->
+<div class="tab-pill-group">
+  <button
+    type="button"
+    class="tab-pill"
+    [class.active]="activeTab() === 'branches'"
+    (click)="activeTab.set('branches')"
+  >
+    <svg viewBox="0 0 24 24" class="tab-icon">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+    Sedes Físicas ({{ branches().length }})
+  </button>
+  <button
+    type="button"
+    class="tab-pill"
+    [class.active]="activeTab() === 'cities'"
+    (click)="activeTab.set('cities')"
+  >
+    <svg viewBox="0 0 24 24" class="tab-icon">
+      <circle cx="12" cy="10" r="3" />
+      <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z" />
+    </svg>
+    Ciudades Habilitadas ({{ cities().length }})
+  </button>
+</div>
+
+<!-- Filtros y Búsqueda -->
+<div class="filter-toolbar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" class="search-icon">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Buscar por nombre, código o dirección..."
+      [value]="searchQuery()"
+      (input)="searchQuery.set($any($event.target).value)"
+    />
+  </div>
+
+  @if (activeTab() === 'branches') {
+    <div class="select-wrap">
+      <select [value]="filterCityId() || ''" (change)="filterCityId.set($any($event.target).value ? +$any($event.target).value : null)">
+        <option value="">Todas las ciudades</option>
+        @for (city of cities(); track city.id) {
+          <option [value]="city.id">{{ city.nombre }} ({{ city.departamento }})</option>
+        }
+      </select>
+    </div>
+  }
+</div>
+
+<!-- Vista 1: Sedes Físicas -->
+@if (activeTab() === 'branches') {
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Sincronizando red de sucursales...</p>
+    </div>
+  } @else {
+    <div class="branches-grid">
+      @for (branch of filteredBranches(); track branch.id) {
+        <article class="branch-card" [class.branch-card--inactive]="!branch.activo">
+          <header class="branch-card__header">
+            <div class="branch-card__code">{{ branch.codigo }}</div>
+            <span class="status-pill" [class.status-pill--active]="branch.activo">
+              {{ branch.activo ? 'Operativa' : 'Inactiva' }}
+            </span>
+          </header>
+
+          <h2 class="branch-card__title">{{ branch.nombre }}</h2>
+          <div class="branch-card__city-badge">
+            <svg viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+            {{ branch.ciudad }} · {{ branch.departamento }}
+          </div>
+
+          <p class="branch-card__address">
+            {{ branch.direccion }}
+          </p>
+
+          <div class="branch-card__details">
+            @if (branch.telefono) {
+              <span class="detail-item">
+                <svg viewBox="0 0 24 24" class="mini-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                {{ branch.telefono }}
+              </span>
+            }
+            @if (branch.latitud && branch.longitud) {
+              <span class="detail-item">
+                <svg viewBox="0 0 24 24" class="mini-icon"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                GPS: {{ branch.latitud | number:'1.4-4' }}, {{ branch.longitud | number:'1.4-4' }}
+              </span>
+            }
+          </div>
+
+          <footer class="branch-card__actions">
+            <button class="button-pill button-pill--ghost" type="button" (click)="openEditBranchModal(branch)">
+              Editar
+            </button>
+            <button
+              class="button-pill"
+              [class.button-pill--danger]="branch.activo"
+              [class.button-pill--success]="!branch.activo"
+              type="button"
+              (click)="toggleBranchStatus(branch)"
+            >
+              {{ branch.activo ? 'Desactivar' : 'Activar' }}
+            </button>
+          </footer>
+        </article>
+      } @empty {
+        <div class="empty-box">
+          <p>No se encontraron sucursales con los filtros aplicados.</p>
+          <button class="button button--primary" type="button" (click)="openNewBranchModal()">
+            Crear primera sede
+          </button>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- Vista 2: Ciudades -->
+@if (activeTab() === 'cities') {
+  <div class="table-card">
+    <table class="dm-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Ciudad</th>
+          <th>Departamento</th>
+          <th>Estado</th>
+          <th>Sedes asociadas</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (city of filteredCities(); track city.id) {
+          <tr>
+            <td><strong>#{{ city.id }}</strong></td>
+            <td>
+              <span class="city-name">{{ city.nombre }}</span>
+            </td>
+            <td>
+              <span class="tag-pill">{{ city.departamento }}</span>
+            </td>
+            <td>
+              <span class="status-pill" [class.status-pill--active]="city.activo">
+                {{ city.activo ? 'Habilitada' : 'Inactiva' }}
+              </span>
+            </td>
+            <td>
+              <span class="badge-count">
+                {{ getBranchCountByCity(city.id) }} sedes
+              </span>
+            </td>
+            <td class="text-right">
+              <button class="button-pill button-pill--ghost" type="button" (click)="openEditCityModal(city)">
+                Editar
+              </button>
+              <button
+                class="button-pill"
+                [class.button-pill--danger]="city.activo"
+                [class.button-pill--success]="!city.activo"
+                type="button"
+                (click)="toggleCityStatus(city)"
+              >
+                {{ city.activo ? 'Desactivar' : 'Habilitar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-cell">Sin ciudades registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- MODAL: Crear/Editar Sucursal -->
+@if (branchModalOpen()) {
+  <div class="modal-backdrop" (click)="closeBranchModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Sede física</span>
+          <h2>{{ editingBranch() ? 'Editar Sucursal' : 'Registrar Nueva Sede' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeBranchModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="branchForm" (ngSubmit)="saveBranch()">
+        <div class="form-grid">
+          <label>
+            Código de Sede
+            <input formControlName="codigo" placeholder="Ej.: ATELIER-LPZ-01" />
+            @if (branchForm.get('codigo')?.invalid && branchForm.get('codigo')?.touched) {
+              <span class="error-msg">Código obligatorio en mayúsculas sin espacios</span>
+            }
+          </label>
+
+          <label>
+            Nombre Comercial
+            <input formControlName="nombre" placeholder="Ej.: Atelier San Miguel" />
+            @if (branchForm.get('nombre')?.invalid && branchForm.get('nombre')?.touched) {
+              <span class="error-msg">Nombre obligatorio</span>
+            }
+          </label>
+
+          <label>
+            Ciudad
+            <select formControlName="ciudad_id">
+              <option [ngValue]="null">Selecciona una ciudad...</option>
+              @for (city of cities(); track city.id) {
+                <option [ngValue]="city.id">{{ city.nombre }} ({{ city.departamento }})</option>
+              }
+            </select>
+            @if (branchForm.get('ciudad_id')?.invalid && branchForm.get('ciudad_id')?.touched) {
+              <span class="error-msg">Debes asignar una ciudad</span>
+            }
+          </label>
+
+          <label>
+            Teléfono de Contacto
+            <input formControlName="telefono" placeholder="+591 2 2790000" />
+          </label>
+        </div>
+
+        <label>
+          Dirección Completa
+          <input formControlName="direccion" placeholder="Calle, número, zona o referencia..." />
+          @if (branchForm.get('direccion')?.invalid && branchForm.get('direccion')?.touched) {
+            <span class="error-msg">Dirección requerida (mínimo 5 caracteres)</span>
+          }
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Latitud GPS
+            <input type="number" step="0.000001" formControlName="latitud" placeholder="-16.5367" />
+          </label>
+          <label>
+            Longitud GPS
+            <input type="number" step="0.000001" formControlName="longitud" placeholder="-68.0841" />
+          </label>
+        </div>
+
+        <div class="toggle-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Sucursal activa (disponible para retiro y reservas QR)</span>
+          </label>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeBranchModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingBranch() ? 'Guardar Cambios' : 'Registrar Sede' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Crear/Editar Ciudad -->
+@if (cityModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCityModal()">
+    <div class="modal-card modal-card--sm" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Ubicación territorial</span>
+          <h2>{{ editingCity() ? 'Editar Ciudad' : 'Registrar Ciudad' }}</h2>
+        </div>
+        <button class="close-btn" type="button" (click)="closeCityModal()">&times;</button>
+      </header>
+
+      <form [formGroup]="cityForm" (ngSubmit)="saveCity()">
+        <label>
+          Nombre de Ciudad
+          <input formControlName="nombre" placeholder="Ej.: Santa Cruz de la Sierra" />
+          @if (cityForm.get('nombre')?.invalid && cityForm.get('nombre')?.touched) {
+            <span class="error-msg">Nombre requerido</span>
+          }
+        </label>
+
+        <label>
+          Departamento
+          <input formControlName="departamento" placeholder="Ej.: Santa Cruz" />
+          @if (cityForm.get('departamento')?.invalid && cityForm.get('departamento')?.touched) {
+            <span class="error-msg">Departamento requerido</span>
+          }
+        </label>
+
+        <div class="toggle-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            <span>Ciudad habilitada</span>
+          </label>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="button button--ghost" type="button" (click)="closeCityModal()">
+            Cancelar
+          </button>
+          <button class="button button--primary" type="submit">
+            {{ editingCity() ? 'Guardar Cambios' : 'Crear Ciudad' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

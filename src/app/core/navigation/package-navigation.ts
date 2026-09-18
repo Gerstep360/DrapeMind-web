@@ -1,7 +1,24 @@
 import { UserRole } from '../models';
 
 export type NavIcon =
-  'dashboard' | 'catalog' | 'inventory' | 'reservations' | 'orders' | 'pos' | 'stylist' | 'account';
+  | 'dashboard'
+  | 'catalog'
+  | 'inventory'
+  | 'reservations'
+  | 'orders'
+  | 'pos'
+  | 'stylist'
+  | 'account'
+  | 'users'
+  | 'branches'
+  | 'products'
+  | 'categories'
+  | 'suppliers'
+  | 'promotions'
+  | 'seasons'
+  | 'ai-assist'
+  | 'reports'
+  | 'favorites';
 
 export interface PackageNavItem {
   label: string;
@@ -32,6 +49,13 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         route: '/account',
         roles: everyone,
       },
+      {
+        label: 'Usuarios y roles',
+        description: 'Gestión de personal y cuentas (CU-27)',
+        icon: 'users',
+        route: '/users-admin',
+        roles: ['ADMIN'],
+      },
     ],
   },
   {
@@ -44,6 +68,41 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         icon: 'catalog',
         route: '/catalog',
         roles: everyone,
+      },
+      {
+        label: 'Mis Favoritos',
+        description: 'Prendas guardadas para compra (CU-08)',
+        icon: 'favorites',
+        route: '/favorites',
+        roles: everyone,
+      },
+      {
+        label: 'Gestión de prendas',
+        description: 'CRUD catálogo, precios y fotos (CU-29)',
+        icon: 'products',
+        route: '/products-admin',
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Categorías y variantes',
+        description: 'Familias, tallas y SKUs (CU-30)',
+        icon: 'categories',
+        route: '/categories-admin',
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Temporadas y colecciones',
+        description: 'Campañas, lanzamientos y vigencia (CU-31)',
+        icon: 'seasons',
+        route: '/seasons-admin',
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Promociones y descuentos',
+        description: 'Reglas de descuento y cupones (CU-36)',
+        icon: 'promotions',
+        route: '/promotions-admin',
+        roles: ['ADMIN'],
       },
     ],
   },
@@ -91,6 +150,20 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         route: '/ai-studio',
         roles: everyone,
       },
+      {
+        label: 'Estudio de prendas IA',
+        description: 'Redacción y categorización asistida (CU-25)',
+        icon: 'ai-assist',
+        route: '/ai-product-assist',
+        roles: ['ADMIN', 'VENDEDOR'],
+      },
+      {
+        label: 'Informes ejecutivos IA',
+        description: 'Diagnóstico gerencial y tendencias (CU-26)',
+        icon: 'reports',
+        route: '/ai-reports',
+        roles: ['ADMIN'],
+      },
     ],
   },
   {
@@ -111,9 +184,24 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         route: '/inventory',
         roles: ['ADMIN', 'ENCARGADO'],
       },
+      {
+        label: 'Sedes y ciudades',
+        description: 'Locales físicos y cobertura (CU-28)',
+        icon: 'branches',
+        route: '/branches-admin',
+        roles: ['ADMIN'],
+      },
+      {
+        label: 'Proveedores textiles',
+        description: 'Agenda de fabricantes e insumos (CU-32)',
+        icon: 'suppliers',
+        route: '/suppliers-admin',
+        roles: ['ADMIN'],
+      },
     ],
   },
 ];
+
 
 export function navigationForRole(role: UserRole | undefined): PackageNavigation[] {
   if (!role) return [];

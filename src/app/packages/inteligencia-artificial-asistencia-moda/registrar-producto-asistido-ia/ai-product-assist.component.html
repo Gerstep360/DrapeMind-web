@@ -1,0 +1,238 @@
+<section class="ai-studio-page">
+  <!-- Header editorial -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PK-05 &middot; INTELIGENCIA ARTIFICIAL Y ASISTENCIA DE MODA</span>
+      <h1 class="page-title">Estudio Autónomo de Prendas con Altair AI</h1>
+      <p class="page-subtitle">
+        Redacción sastrera de lujo, estructuración técnica de materiales, guía de mantenimiento y categorización asistida (CU-25).
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="resetStudio()">
+        <svg class="btn-icon" viewBox="0 0 24 24">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        <span>Nuevo Concepto</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="studio-layout">
+    <!-- Columna Izquierda: Entradas Creativas -->
+    <div class="panel-card input-panel">
+      <div class="panel-heading">
+        <div class="step-badge">Paso 1</div>
+        <h2>Insumos Creativos y Confección</h2>
+        <p>Proporciona el borrador de la prenda o notas de taller para que Altair estructure la ficha de alta costura.</p>
+      </div>
+
+      <form [formGroup]="inputForm" (ngSubmit)="generateDraft()" class="studio-form">
+        <div class="form-group">
+          <label>Nombre Borrador de la Prenda *</label>
+          <input
+            type="text"
+            formControlName="nombre_borrador"
+            placeholder="Ej. Abrigo Solapa Imperial en Alpaca Huacaya"
+            class="input-control"
+          />
+          @if (inputForm.get('nombre_borrador')?.touched && inputForm.get('nombre_borrador')?.invalid) {
+            <span class="field-error">Introduce un nombre base para la prenda.</span>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Material Predominante *</label>
+            <select formControlName="material" class="input-control">
+              @for (mat of materialPresets; track mat) {
+                <option [value]="mat">{{ mat }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Estilo Objetivo *</label>
+            <select formControlName="estilo_objetivo" class="input-control">
+              @for (est of stylePresets; track est) {
+                <option [value]="est">{{ est }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Género Comercial *</label>
+            <select formControlName="genero_objetivo" class="input-control">
+              <option value="UNISEX">Unisex</option>
+              <option value="MUJER">Mujer</option>
+              <option value="HOMBRE">Hombre</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Sugerencia de Categoría (Opcional)</label>
+            <select formControlName="categoria_sugerida" class="input-control">
+              <option value="">Dejar que Altair elija</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.nombre">{{ cat.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Detalles de Taller / Boceto / Confección</label>
+          <textarea
+            formControlName="detalles_confeccion"
+            rows="3"
+            placeholder="Ej. Bolsillos de ojal, caída estructurada, forro interior satinado, botones de asta..."
+            class="textarea-control"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción Visual / Fotografía (Opcional)</label>
+          <input
+            type="text"
+            formControlName="descripcion_imagen"
+            placeholder="Ej. Tono arena tostado con matices ocres, botones oscuros contrastados."
+            class="input-control"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary full-width action-generate"
+          [disabled]="drafting()"
+        >
+          @if (drafting()) {
+            <div class="spinner-sm"></div>
+            <span>Redactando con Altair AI...</span>
+          } @else {
+            <svg class="btn-icon" viewBox="0 0 24 24">
+              <path d="M12 3l1.912 5.885a2 2 0 001.272 1.272L21 12l-5.816 1.843a2 2 0 00-1.272 1.272L12 21l-1.912-5.885a2 2 0 00-1.272-1.272L3 12l5.816-1.843a2 2 0 001.272-1.272L12 3z" />
+            </svg>
+            <span>Generar Ficha con Altair AI</span>
+          }
+        </button>
+      </form>
+    </div>
+
+    <!-- Columna Derecha: Ficha Técnica Editorial Generada -->
+    <div class="panel-card output-panel">
+      <div class="panel-heading">
+        <div class="step-badge step-accent">Paso 2</div>
+        <h2>Ficha Editorial Generada</h2>
+        <p>Revisa, ajusta detalles y confirma para registrar la prenda directamente en el catálogo de producción.</p>
+      </div>
+
+      @if (!generatedDraft()) {
+        <div class="empty-studio-state">
+          <div class="empty-icon-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3l1.912 5.885a2 2 0 001.272 1.272L21 12l-5.816 1.843a2 2 0 00-1.272 1.272L12 21l-1.912-5.885a2 2 0 00-1.272-1.272L3 12l5.816-1.843a2 2 0 001.272-1.272L12 3z" />
+              <path d="M5 3v4M3 5h4" />
+            </svg>
+          </div>
+          <h3>Esperando Insumos Creativos</h3>
+          <p>
+            Rellena el formulario de la izquierda con la idea de diseño y pulsa <strong>"Generar Ficha con Altair AI"</strong>.
+            La IA redactará la descripción editorial sastrera, la guía de cuidados y estimará el precio.
+          </p>
+        </div>
+      } @else {
+        <form [formGroup]="resultForm" (ngSubmit)="publishToCatalog()" class="studio-form result-form">
+          <div class="form-group">
+            <label>Título Comercial de Lujo *</label>
+            <input
+              type="text"
+              formControlName="titulo_comercial"
+              class="input-control font-editorial"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Descripción Editorial de Alta Costura *</label>
+            <textarea
+              formControlName="descripcion_editorial"
+              rows="4"
+              class="textarea-control"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Guía de Mantenimiento y Cuidados Textiles *</label>
+            <textarea
+              formControlName="guia_cuidado"
+              rows="2"
+              class="textarea-control"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Categoría en Catálogo *</label>
+              <select formControlName="categoria_id" class="input-control">
+                @for (cat of categories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Precio Sugerido de Venta (Bs) *</label>
+              <input
+                type="number"
+                step="1"
+                min="10"
+                formControlName="precio"
+                class="input-control font-bold"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Silueta y Caída Sastrera</label>
+              <input
+                type="text"
+                formControlName="silueta_corte"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Etiquetas de Estilo (Separadas por comas)</label>
+              <input
+                type="text"
+                formControlName="tags_estilo"
+                class="input-control"
+              />
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button
+              type="submit"
+              class="btn btn-primary full-width action-publish"
+              [disabled]="publishing() || resultForm.invalid"
+            >
+              @if (publishing()) {
+                <div class="spinner-sm"></div>
+                <span>Registrando en Producción...</span>
+              } @else {
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                <span>Crear y Publicar Prenda en Catálogo</span>
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>

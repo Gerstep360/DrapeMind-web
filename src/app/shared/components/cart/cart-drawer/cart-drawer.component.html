@@ -165,17 +165,96 @@
             </div>
           </div>
 
+        @if (activeAiTab() !== 'NONE') {
+          <div class="ai-cart-panel" [class.ai-cart-panel--value]="activeAiTab() === 'VALUE'">
+            <div class="ai-cart-panel__head">
+              <div class="ai-cart-panel__title-wrap">
+                <span class="ai-badge">{{ activeAiTab() === 'STYLE' ? 'CU-22: Estilo y Armonia' : 'CU-23: Valor y Ahorro' }}</span>
+                <h4>{{ activeAiTab() === 'STYLE' ? 'Critica Estilistica de Altair' : 'Optimizacion de Outfit' }}</h4>
+              </div>
+              <button type="button" class="ai-cart-panel__close" (click)="closeAiAnalysis()" aria-label="Cerrar analisis">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            @if (analyzingStyle() || optimizingValue()) {
+              <div class="ai-cart-panel__loading">
+                <span class="spinner"></span>
+                <p>{{ analyzingStyle() ? 'Evaluando coherencia cromatica y balance...' : 'Calculando relacion costo/beneficio...' }}</p>
+              </div>
+            } @else {
+              @if (activeAiTab() === 'STYLE' && styleResult()) {
+                <div class="ai-cart-panel__body">
+                  <p class="ai-response-text">{{ styleResult()?.respuesta }}</p>
+                  @if (styleResult()?.productos && styleResult()!.productos.length > 0) {
+                    <div class="ai-suggestions-box">
+                      <span class="suggestions-label">Prendas recomendadas para complementar:</span>
+                      <div class="suggestions-list">
+                        @for (prod of styleResult()!.productos; track prod.id) {
+                          <div class="suggestion-chip">
+                            <span>{{ prod.nombre }}</span>
+                            <button type="button" class="btn-add-chip" (click)="addSuggestedToCart(prod)">+ Anadir</button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (activeAiTab() === 'VALUE' && valueResult()) {
+                <div class="ai-cart-panel__body">
+                  <p class="ai-response-text">{{ valueResult()?.respuesta }}</p>
+                  @if (valueResult()?.productos && valueResult()!.productos.length > 0) {
+                    <div class="ai-suggestions-box">
+                      <span class="suggestions-label">Alternativas con mayor relacion valor/ahorro:</span>
+                      <div class="suggestions-list">
+                        @for (prod of valueResult()!.productos; track prod.id) {
+                          <div class="suggestion-chip">
+                            <span>{{ prod.nombre }}</span>
+                            <button type="button" class="btn-add-chip" (click)="addSuggestedToCart(prod)">+ Anadir</button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <div class="ai-buttons-group">
           <button
-            class="button button--accent button--wide ai-cart-analysis-btn"
+            class="button button--secondary button--ai-action"
             type="button"
-            (click)="analyzeWithAi()"
-            title="Consultar al Personal Stylist AI sobre qué quitar o cómo combinar tu bolsa"
+            (click)="runStyleAnalysis()"
+            [disabled]="analyzingStyle()"
+            title="Evaluar coherencia de estilo y cromatica con IA (CU-22)"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            <span>Analizar mi Selección con AI</span>
+            <span>Analizar Estilo (CU-22)</span>
           </button>
+          <button
+            class="button button--secondary button--ai-action"
+            type="button"
+            (click)="runValueOptimization()"
+            [disabled]="optimizingValue()"
+            title="Optimizar balance de calidad, costo y ahorro (CU-23)"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+              <path d="M12 18V6"/>
+            </svg>
+            <span>Optimizar Ahorro (CU-23)</span>
+          </button>
+        </div>
 
           <button
             class="button button--primary button--wide checkout-btn"

@@ -1,0 +1,579 @@
+<section class="suppliers-page">
+  <!-- Header editorial -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PK-07 &middot; SUCURSALES, INVENTARIO Y PROVEEDORES</span>
+      <h1 class="page-title">Directorio de Proveedores Textiles</h1>
+      <p class="page-subtitle">
+        Agenda centralizada de fabricantes, hilanderias y distribuidores de telas artesanales para el atelier (CU-32 y CU-33).
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <svg class="btn-icon" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>Nuevo Proveedor</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Metricas rapidas -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Proveedores</div>
+      <div class="stat-value">{{ stats().total }}</div>
+      <div class="stat-desc">Directorio historico registrado</div>
+    </div>
+    <div class="stat-card stat-highlight">
+      <div class="stat-label">Alianzas Activas</div>
+      <div class="stat-value">{{ stats().activos }}</div>
+      <div class="stat-desc">Habilitados para ordenes de compra</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ciudades de Abastecimiento</div>
+      <div class="stat-value">{{ stats().ciudades }}</div>
+      <div class="stat-desc">Cobertura nacional de suministros</div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Busqueda -->
+  <div class="filters-card">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar por empresa, NIT, contacto o insumo..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        class="search-input"
+      />
+      @if (searchQuery()) {
+        <button class="clear-btn" (click)="searchQuery.set('')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        </button>
+      }
+    </div>
+
+    <div class="filters-group">
+      <div class="filter-item">
+        <label>Ciudad</label>
+        <select
+          [value]="filterCity()"
+          (change)="filterCity.set($any($event.target).value)"
+          class="select-input"
+        >
+          <option value="TODAS">Todas las ciudades</option>
+          @for (c of availableCities; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label>Estado</label>
+        <div class="filter-pills">
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'ALL'"
+            (click)="filterActive.set('ALL')"
+          >
+            Todos
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'ACTIVE'"
+            (click)="filterActive.set('ACTIVE')"
+          >
+            Activos
+          </button>
+          <button
+            class="pill-tab"
+            [class.active]="filterActive() === 'INACTIVE'"
+            (click)="filterActive.set('INACTIVE')"
+          >
+            Inactivos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listado de Proveedores -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando agenda de proveedores...</p>
+    </div>
+  } @else if (filteredSuppliers().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon-wrap">
+        <svg viewBox="0 0 24 24">
+          <rect x="1" y="3" width="15" height="13" rx="1" />
+          <polygon points="16 8 20 8 23 11 23 16 16 8" />
+          <circle cx="5.5" cy="18.5" r="2.5" />
+          <circle cx="18.5" cy="18.5" r="2.5" />
+        </svg>
+      </div>
+      <h3>No se encontraron proveedores</h3>
+      <p>Intenta ajustar los criterios de busqueda o registra una nueva empresa fabricante.</p>
+      <button class="btn btn-primary" (click)="openCreateModal()">Registrar Primer Proveedor</button>
+    </div>
+  } @else {
+    <div class="suppliers-grid">
+      @for (sup of filteredSuppliers(); track sup.id) {
+        <article class="supplier-card" [class.inactive]="!sup.activo">
+          <div class="card-header">
+            <div class="supplier-info">
+              <span class="category-pill">{{ sup.categoria_suministro }}</span>
+              <h3 class="supplier-name">{{ sup.nombre_empresa }}</h3>
+              @if (sup.nit) {
+                <span class="nit-tag">NIT: {{ sup.nit }}</span>
+              }
+            </div>
+            <span class="status-badge" [class.active]="sup.activo">
+              <span class="status-dot"></span>
+              {{ sup.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <div class="card-details">
+            @if (sup.contacto_nombre) {
+              <div class="detail-row">
+                <svg class="detail-icon" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span class="detail-text">{{ sup.contacto_nombre }}</span>
+              </div>
+            }
+
+            @if (sup.telefono) {
+              <div class="detail-row">
+                <svg class="detail-icon" viewBox="0 0 24 24">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span class="detail-text">{{ sup.telefono }}</span>
+              </div>
+            }
+
+            @if (sup.email) {
+              <div class="detail-row">
+                <svg class="detail-icon" viewBox="0 0 24 24">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                <span class="detail-text truncate">{{ sup.email }}</span>
+              </div>
+            }
+
+            <div class="detail-row">
+              <svg class="detail-icon" viewBox="0 0 24 24">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span class="detail-text">
+                {{ sup.ciudad }}@if (sup.direccion) { &middot; {{ sup.direccion }} }
+              </span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button
+              class="btn-action supplies"
+              (click)="openSuppliesModal(sup)"
+              title="Gestionar catalogo de insumos (CU-33)"
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span>Insumos</span>
+            </button>
+
+            <button
+              class="btn-action edit"
+              (click)="openEditModal(sup)"
+              title="Modificar datos del proveedor"
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              <span>Editar</span>
+            </button>
+
+            <button
+              class="btn-action toggle"
+              (click)="toggleSupplierStatus(sup)"
+              [title]="sup.activo ? 'Desactivar proveedor' : 'Reactivar proveedor'"
+            >
+              <svg viewBox="0 0 24 24">
+                @if (sup.activo) {
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                } @else {
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                }
+              </svg>
+              <span>{{ sup.activo ? 'Pausar' : 'Activar' }}</span>
+            </button>
+
+            <button
+              class="btn-action delete"
+              (click)="deleteSupplier(sup)"
+              title="Eliminar del directorio"
+            >
+              <svg viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- Modal de Creacion / Edicion de Proveedor (CU-32) -->
+  @if (modalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-eyebrow">{{ editingSupplier() ? 'MODIFICACION' : 'NUEVO REGISTRO' }}</span>
+            <h2>{{ editingSupplier() ? 'Editar Proveedor' : 'Registrar Proveedor Textil' }}</h2>
+          </div>
+          <button class="modal-close" (click)="closeModal()" aria-label="Cerrar ventana">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        <form [formGroup]="supplierForm" (ngSubmit)="saveSupplier()" class="modal-form">
+          <div class="form-grid">
+            <div class="form-field full-width">
+              <label>Razon Social / Nombre de Empresa *</label>
+              <input
+                type="text"
+                formControlName="nombre_empresa"
+                placeholder="Ej. Hilanderia Real Andina S.R.L."
+                class="input-control"
+              />
+              @if (supplierForm.get('nombre_empresa')?.touched && supplierForm.get('nombre_empresa')?.invalid) {
+                <span class="field-error">El nombre de la empresa es obligatorio.</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label>NIT / Identificacion Tributaria</label>
+              <input
+                type="text"
+                formControlName="nit"
+                placeholder="Ej. 1029384756"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Categoria de Suministro *</label>
+              <select formControlName="categoria_suministro" class="input-control">
+                @for (cat of supplyCategories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Contacto Principal</label>
+              <input
+                type="text"
+                formControlName="contacto_nombre"
+                placeholder="Ej. Ing. Carlos Mendoza"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Telefono de Pedidos</label>
+              <input
+                type="text"
+                formControlName="telefono"
+                placeholder="Ej. +591 71234567"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field full-width">
+              <label>Correo Electronico Comercial</label>
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="Ej. ventas@hilanderiaandina.bo"
+                class="input-control"
+              />
+              @if (supplierForm.get('email')?.touched && supplierForm.get('email')?.hasError('email')) {
+                <span class="field-error">Introduce un correo electronico valido.</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label>Ciudad Sede *</label>
+              <select formControlName="ciudad" class="input-control">
+                @for (c of availableCities; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field full-width">
+              <label>Direccion Fisica del Almacen</label>
+              <input
+                type="text"
+                formControlName="direccion"
+                placeholder="Ej. Av. Panamericana Km 4, Zona Industrial"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-field full-width checkbox-field">
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="activo" />
+                <span class="switch-slider"></span>
+                <span class="switch-label">Proveedor activo y habilitado para compras</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="submitting() || supplierForm.invalid"
+            >
+              @if (submitting()) {
+                <div class="spinner-sm"></div>
+                <span>Guardando...</span>
+              } @else {
+                <span>{{ editingSupplier() ? 'Guardar Cambios' : 'Registrar Proveedor' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Catalogo de Insumos y Disponibilidad (CU-33) -->
+  @if (suppliesModalOpen()) {
+    <div class="modal-backdrop" (click)="closeSuppliesModal()">
+      <div class="modal-dialog modal-dialog--wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-eyebrow">CU-33 &middot; CATALOGO EXTERNO DE PROVEEDOR</span>
+            <h2>Insumos: {{ selectedSupplier()?.nombre_empresa }}</h2>
+            <p class="modal-lead-note">
+              Registro de telas, insumos, costos por unidad y disponibilidad de entrega para abastecimiento.
+            </p>
+          </div>
+          <button class="modal-close" (click)="closeSuppliesModal()" aria-label="Cerrar catalogo">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        <div class="supplies-toolbar">
+          <div class="supplies-summary">
+            <strong>{{ supplierProducts().length }}</strong> insumos registrados en catalogo
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="showAddSupplyForm() ? cancelSupplyForm() : openCreateSupply()"
+          >
+            <span>{{ showAddSupplyForm() ? 'Ocultar Formulario' : '+ Registrar Suministro' }}</span>
+          </button>
+        </div>
+
+        @if (showAddSupplyForm()) {
+          <div class="supply-form-box">
+            <h4>{{ editingSupply() ? 'Modificar Suministro' : 'Nuevo Suministro Textil' }}</h4>
+            <form [formGroup]="supplyForm" (ngSubmit)="saveSupply()">
+              <div class="form-grid">
+                <div class="form-field full-width">
+                  <label>Nombre del Insumo / Material *</label>
+                  <input
+                    type="text"
+                    formControlName="nombre_suministro"
+                    placeholder="Ej. Algodon Pima Peruano 50/1"
+                    class="input-control"
+                  />
+                  @if (supplyForm.get('nombre_suministro')?.touched && supplyForm.get('nombre_suministro')?.invalid) {
+                    <span class="field-error">El nombre del suministro es requerido.</span>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label>SKU / Codigo Proveedor</label>
+                  <input
+                    type="text"
+                    formControlName="sku_proveedor"
+                    placeholder="Ej. PIMA-501-RAW"
+                    class="input-control"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label>Categoria de Insumo *</label>
+                  <select formControlName="categoria" class="input-control">
+                    @for (cat of supplyCategoriesForProduct; track cat) {
+                      <option [value]="cat">{{ cat }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label>Unidad de Medida *</label>
+                  <select formControlName="unidad_medida" class="input-control">
+                    @for (unit of unitsOfMeasure; track unit) {
+                      <option [value]="unit">{{ unit }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label>Costo Unitario (Bs) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    formControlName="costo_unitario"
+                    class="input-control"
+                  />
+                  @if (supplyForm.get('costo_unitario')?.touched && supplyForm.get('costo_unitario')?.invalid) {
+                    <span class="field-error">El costo debe ser mayor a 0.</span>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label>Cantidad Disponible en Almacen</label>
+                  <input
+                    type="number"
+                    formControlName="cantidad_disponible"
+                    class="input-control"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label>Tiempo de Entrega Estimado (Dias)</label>
+                  <input
+                    type="number"
+                    formControlName="tiempo_entrega_dias"
+                    class="input-control"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label>Estado de Disponibilidad</label>
+                  <select formControlName="estado" class="input-control">
+                    @for (st of supplyStatuses; track st) {
+                      <option [value]="st">{{ st }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions-row">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="cancelSupplyForm()">
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-sm"
+                  [disabled]="submittingSupply() || supplyForm.invalid"
+                >
+                  <span>{{ editingSupply() ? 'Actualizar Insumo' : 'Guardar en Catalogo' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        @if (loadingSupplies()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando disponibilidad de insumos...</p>
+          </div>
+        } @else {
+          <div class="supplies-table-wrapper">
+            <table class="supplies-table">
+              <thead>
+                <tr>
+                  <th>Insumo</th>
+                  <th>Categoria</th>
+                  <th>Unidad</th>
+                  <th>Costo Unit.</th>
+                  <th>Disponible</th>
+                  <th>Lead Time</th>
+                  <th>Disponibilidad</th>
+                  <th class="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (prod of supplierProducts(); track prod.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ prod.nombre_suministro }}</strong>
+                      @if (prod.sku_proveedor) {
+                        <small class="sku-sub">{{ prod.sku_proveedor }}</small>
+                      }
+                    </td>
+                    <td><span class="badge-cat">{{ prod.categoria }}</span></td>
+                    <td>{{ prod.unidad_medida }}</td>
+                    <td><strong>Bs {{ prod.costo_unitario }}</strong></td>
+                    <td>{{ prod.cantidad_disponible }} {{ prod.unidad_medida }}</td>
+                    <td>{{ prod.tiempo_entrega_dias }} dias</td>
+                    <td>
+                      <span class="availability-tag" [attr.data-status]="prod.estado">
+                        {{ prod.estado }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <button
+                        type="button"
+                        class="btn-row-action edit"
+                        (click)="openEditSupply(prod)"
+                        title="Modificar insumo"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-row-action delete"
+                        (click)="deleteSupply(prod)"
+                        title="Eliminar insumo"
+                      >
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8" class="empty-supplies-cell">
+                      No hay insumos registrados para este proveedor. Utiliza el boton "+ Registrar Suministro" para cargar su catalogo.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>
