@@ -260,7 +260,7 @@ verify_frontend() {
 
     echo ""
     echo "======================================================================"
-    echo -e " ${GREEN}${BOLD}✓ FRONTEND DE DRAPEMIND INSTALADO Y EN SERVICIO${NC}"
+    echo -e " ${GREEN}${BOLD}[OK] FRONTEND DE DRAPEMIND INSTALADO Y EN SERVICIO${NC}"
     echo "======================================================================"
     echo -e " • URL Frontend:      ${CYAN}${BOLD}http://${SERVER_IP}/DrapeMind/${NC}"
     echo -e " • Config Runtime:    ${CYAN}${BOLD}http://${SERVER_IP}/DrapeMind/config.json${NC}"
@@ -273,9 +273,12 @@ verify_frontend() {
 }
 
 update_frontend_code() {
-    log_info "Actualizando Frontend con los cambios más recientes de Git..."
+    log_info "Actualizando Frontend con los cambios más recientes de Git (Hard Reset origin/Main)..."
     cd "${WEB_DIR}"
-    git pull || log_warn "Git pull finalizó con observaciones (revisa cambios locales)."
+    git fetch origin Main --quiet 2>&1 || git fetch --all --quiet 2>&1
+    git reset --hard origin/Main >/dev/null 2>&1 || git reset --hard origin/main >/dev/null 2>&1 || git reset --hard HEAD >/dev/null 2>&1
+    git clean -fd >/dev/null 2>&1 || true
+    chmod +x "${WEB_DIR}"/*.sh 2>/dev/null || true
 
     install_dependencies
     build_and_deploy_angular

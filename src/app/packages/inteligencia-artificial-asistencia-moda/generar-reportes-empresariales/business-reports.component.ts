@@ -22,20 +22,14 @@ export class BusinessReportsComponent implements OnInit {
 
   selectedType: ExecutiveReportRequest['tipo_reporte'] = 'VENTAS_Y_TENDENCIAS';
   selectedPeriod: ExecutiveReportRequest['periodo'] = 'MES_ACTUAL';
-  selectedModel: NonNullable<ExecutiveReportRequest['modelo_ia']> = 'ALTAIR';
+  selectedModel: NonNullable<ExecutiveReportRequest['modelo_ia']> = 'ALTAIR_MINI';
   customFocus = '';
 
   readonly aiModels = [
     {
-      id: 'ALTAIR' as const,
-      title: 'Altair Principal (Gemma 4 E2B)',
-      badge: 'Razonamiento Profundo',
-      desc: 'Análisis exhaustivo, redacción ejecutiva de alto impacto y correlaciones sastreras avanzadas.',
-    },
-    {
       id: 'ALTAIR_MINI' as const,
       title: 'Altair Mini (Scout 0.6B)',
-      badge: 'Inferencia Ágil',
+      badge: 'Predeterminado / Rápido',
       desc: 'Generación directa y sintética de KPIs con latencia mínima para respuestas ultra-rápidas.',
     },
     {
@@ -43,6 +37,12 @@ export class BusinessReportsComponent implements OnInit {
       title: 'Altair Variable (Híbrido)',
       badge: 'Adaptativo',
       desc: 'Orquestación dinámica según la complejidad del periodo y el enfoque analítico elegido.',
+    },
+    {
+      id: 'ALTAIR' as const,
+      title: 'Altair Principal (Gemma 4 E2B)',
+      badge: 'Razonamiento Profundo',
+      desc: 'Análisis exhaustivo, redacción ejecutiva de alto impacto y correlaciones sastreras avanzadas.',
     },
   ];
 
@@ -70,8 +70,7 @@ export class BusinessReportsComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Generar automáticamente el primer reporte ejecutivo al ingresar
-    this.generateReport();
+    // Esperar a que el usuario configure las opciones y pulse Generar Informe Estratégico
   }
 
   generateReport(): void {

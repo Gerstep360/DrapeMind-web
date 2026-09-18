@@ -60,6 +60,11 @@ export class AiStudioComponent implements OnInit {
 
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
+  readonly availableModels = [
+    { id: 'mini' as const, name: 'Altair Mini', desc: 'Respuesta ultrarrápida y concisa (predeterminado)' },
+    { id: 'dynamic' as const, name: 'Altair Variable', desc: 'Ajuste dinámico según la complejidad de la consulta' },
+    { id: 'gemma' as const, name: 'Altair Principal', desc: 'Análisis minucioso con contexto estilístico extendido' },
+  ];
   readonly activeModel = signal<'mini' | 'dynamic' | 'gemma'>(this.readStoredModel());
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
@@ -94,7 +99,7 @@ export class AiStudioComponent implements OnInit {
     } catch {
       // ignore storage error
     }
-    return 'dynamic';
+    return 'mini';
   }
 
   selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {

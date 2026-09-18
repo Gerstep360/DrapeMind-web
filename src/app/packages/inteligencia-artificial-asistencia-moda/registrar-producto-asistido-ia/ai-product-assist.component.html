@@ -103,6 +103,24 @@
           />
         </div>
 
+        <div class="form-group model-selection-group">
+          <label>Motor de IA para Asistencia</label>
+          <div class="model-pills-row" role="radiogroup" aria-label="Seleccionar modelo">
+            @for (m of aiModels; track m.id) {
+              <button
+                type="button"
+                class="model-pill-btn"
+                [class.model-pill-btn--active]="selectedModel() === m.id"
+                (click)="selectedModel.set(m.id)"
+              >
+                <span class="pill-dot"></span>
+                <span class="pill-name">{{ m.label }}</span>
+                <span class="pill-tag">{{ m.badge }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
         <button
           type="submit"
           class="btn btn-primary full-width action-generate"

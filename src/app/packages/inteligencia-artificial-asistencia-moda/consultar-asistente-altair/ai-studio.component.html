@@ -1,6 +1,26 @@
 <section class="ai-page" [class.ai-page--empty]="ai.messages().length === 0">
-  <!-- FLOATING DISCRETE CORNER ACTIONS (NUEVO CHAT & HISTORIAL) -->
-  <div class="chat-corner-actions" role="toolbar" aria-label="Acciones de sesión">
+  <!-- FLOATING DISCRETE CORNER ACTIONS (MODELO IA, NUEVO CHAT & HISTORIAL) -->
+  <div class="chat-corner-actions" role="toolbar" aria-label="Acciones de sesión y motor IA">
+    <!-- SELECTOR DE MODELO ALTAIR -->
+    <div class="model-segmented-pills" role="radiogroup" aria-label="Motor de IA">
+      @for (m of availableModels; track m.id) {
+        <button
+          type="button"
+          class="model-segment-btn"
+          [class.active]="activeModel() === m.id"
+          (click)="selectModel(m.id)"
+          [title]="m.desc"
+          role="radio"
+          [attr.aria-checked]="activeModel() === m.id"
+        >
+          <span class="model-name">{{ m.name }}</span>
+          @if (m.id === 'mini') {
+            <span class="model-mini-tag">Rápido</span>
+          }
+        </button>
+      }
+    </div>
+
     <button
       type="button"
       class="corner-action-btn"

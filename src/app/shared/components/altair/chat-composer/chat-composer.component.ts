@@ -26,7 +26,7 @@ export class ChatComposerComponent {
 
   @Input() disabled = false;
   @Input() isBusy = false;
-  @Input() activeModel: 'mini' | 'dynamic' | 'gemma' = 'dynamic';
+  @Input() activeModel: 'mini' | 'dynamic' | 'gemma' = 'mini';
 
   @Output() sendMessage = new EventEmitter<ComposerSubmitEvent>();
   @Output() cancelGeneration = new EventEmitter<void>();

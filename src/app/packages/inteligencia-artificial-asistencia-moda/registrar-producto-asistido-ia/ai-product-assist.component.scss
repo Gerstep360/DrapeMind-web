@@ -300,3 +300,86 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Model Selector Pills */
+.model-selection-group {
+  margin-top: 0.25rem;
+
+  .model-pills-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .model-pill-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1.5px solid #dde3db;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s ease;
+
+    &:hover {
+      border-color: #121714;
+      background: #fafbf9;
+    }
+
+    &.active {
+      border-color: #121714;
+      background: #121714;
+      box-shadow: 0 4px 12px rgba(18, 23, 20, 0.15);
+
+      .model-pill-name {
+        color: #ffffff;
+      }
+
+      .model-pill-tag {
+        background: #dfff3f;
+        color: #121714;
+      }
+
+      .model-pill-desc {
+        color: #a4b3a4;
+      }
+    }
+  }
+
+  .model-pill-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .model-pill-name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #121714;
+    line-height: 1.2;
+  }
+
+  .model-pill-tag {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: #f0f3ee;
+    color: #526053;
+  }
+
+  .model-pill-desc {
+    font-size: 0.6875rem;
+    color: #6b786c;
+    line-height: 1.3;
+  }
+}
+

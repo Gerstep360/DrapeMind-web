@@ -24,6 +24,13 @@ export class AiProductAssistComponent implements OnInit {
   readonly publishing = signal(false);
   readonly categories = signal<Category[]>([]);
   readonly generatedDraft = signal<ProductAiAssistStudioResponse | null>(null);
+  readonly selectedModel = signal<'ALTAIR_MINI' | 'ALTAIR_VARIABLE' | 'ALTAIR'>('ALTAIR_MINI');
+
+  readonly aiModels = [
+    { id: 'ALTAIR_MINI' as const, label: 'Altair Mini (0.6B)', badge: 'Predeterminado / Rápido' },
+    { id: 'ALTAIR_VARIABLE' as const, label: 'Altair Variable', badge: 'Híbrido' },
+    { id: 'ALTAIR' as const, label: 'Altair Principal (Gemma 4)', badge: 'Profundo' },
+  ];
 
   inputForm!: FormGroup;
   resultForm!: FormGroup;
@@ -97,6 +104,7 @@ export class AiProductAssistComponent implements OnInit {
       genero_objetivo: val.genero_objetivo,
       detalles_confeccion: val.detalles_confeccion ? val.detalles_confeccion.trim() : null,
       descripcion_imagen: val.descripcion_imagen ? val.descripcion_imagen.trim() : null,
+      modelo_ia: this.selectedModel(),
     };
 
     this.adminApi.assistProductStudio(req).subscribe({

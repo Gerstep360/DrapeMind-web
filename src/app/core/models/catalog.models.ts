@@ -227,6 +227,7 @@ export interface ProductAiAssistStudioRequest {
   genero_objetivo?: string;
   detalles_confeccion?: string | null;
   descripcion_imagen?: string | null;
+  modelo_ia?: 'ALTAIR' | 'ALTAIR_MINI' | 'ALTAIR_VARIABLE';
 }
 
 export interface ProductAiAssistStudioResponse {
@@ -237,6 +238,7 @@ export interface ProductAiAssistStudioResponse {
   silueta_corte: string;
   precio_sugerido_estimado: number;
   categoria_recomendada: string;
+  modelo_utilizado?: string;
 }
 
 export interface ExecutiveReportRequest {
