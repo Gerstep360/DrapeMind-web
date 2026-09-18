@@ -277,7 +277,6 @@ update_frontend_code() {
     cd "${WEB_DIR}"
     git fetch origin Main --quiet 2>&1 || git fetch --all --quiet 2>&1
     git reset --hard origin/Main >/dev/null 2>&1 || git reset --hard origin/main >/dev/null 2>&1 || git reset --hard HEAD >/dev/null 2>&1
-    git clean -fd >/dev/null 2>&1 || true
     chmod +x "${WEB_DIR}"/*.sh 2>/dev/null || true
 
     install_dependencies
