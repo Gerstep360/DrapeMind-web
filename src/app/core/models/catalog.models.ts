@@ -250,7 +250,9 @@ export interface ExecutiveReportRequest {
   periodo: 'MES_ACTUAL' | 'TRIMESTRE' | 'HISTORICO';
   modelo_ia?: 'ALTAIR' | 'ALTAIR_MINI' | 'ALTAIR_VARIABLE';
   enfoque_especifico?: string | null;
+  seed?: number;
 }
+
 
 export interface ReportTable {
   titulo: string;

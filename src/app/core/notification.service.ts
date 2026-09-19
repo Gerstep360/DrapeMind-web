@@ -213,6 +213,43 @@ export class NotificationService {
         };
         break;
 
+      case 'notification': {
+        const payloadData = data.data || data.payload || {};
+        const screen = String(payloadData.screen || '');
+        let enlace = '/pedidos';
+        if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio')) {
+          enlace = '/asistente-ia';
+        } else if (screen.includes('catalog') || screen.includes('ropa')) {
+          enlace = '/catalogo';
+        } else if (screen.includes('report')) {
+          enlace = '/reportes-empresariales';
+        } else if (screen.includes('order') || screen.includes('pedido')) {
+          enlace = '/pedidos';
+        }
+        notif = {
+          id: data.id ? `notif_${data.id}` : id,
+          tipo: data.notification_type === 'AI_RESPUESTA' ? 'IA' : (data.notification_type === 'PROMOCION' ? 'PROMOCION' : 'PEDIDO'),
+          titulo: data.title || data.titulo || 'Notificación Atelier',
+          mensaje: data.body || data.mensaje || '',
+          leido: false,
+          fecha: data.created_at || nowIso,
+          enlace,
+          metadata: payloadData,
+        };
+        break;
+      }
+
+      case 'notification_dismissed': {
+        const dismissedId = data.notification_id;
+        if (dismissedId) {
+          this.notifications.update((list) =>
+            list.map((n) => (n.id === `notif_${dismissedId}` || n.id === String(dismissedId) ? { ...n, leido: true } : n))
+          );
+          this.saveToStorage();
+        }
+        return;
+      }
+
       default:
         if (data.mensaje || data.message || data.titulo || data.title) {
           notif = {
@@ -227,6 +264,7 @@ export class NotificationService {
         }
         break;
     }
+
 
     if (notif) {
       this.addNotification(notif);

@@ -82,7 +82,9 @@ export class BusinessReportsComponent implements OnInit {
       periodo: this.selectedPeriod,
       modelo_ia: this.selectedModel,
       enfoque_especifico: this.customFocus.trim() || null,
+      seed: Math.floor(Math.random() * 900000) + 100000,
     };
+
 
     this.adminApi.generateExecutiveReport(req).subscribe({
       next: (data) => {
