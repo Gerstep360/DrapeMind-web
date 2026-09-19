@@ -374,6 +374,58 @@
     }
   }
 
+  .dossier-title-banner {
+    margin-bottom: 1.5rem;
+
+    .report-main-title {
+      font-family: var(--dm-font-serif, 'Playfair Display', Georgia, serif);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #121714;
+      line-height: 1.25;
+      margin: 0;
+    }
+  }
+
+  .thesis-card {
+    background: linear-gradient(135deg, #121714 0%, #1d2520 100%);
+    color: #fbfcf8;
+    border-radius: 22px;
+    padding: 1.6rem 2rem;
+    margin-bottom: 2.25rem;
+    border-left: 6px solid #dfff3f;
+    box-shadow: 0 10px 28px rgba(18, 23, 20, 0.08);
+
+    .thesis-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(223, 255, 63, 0.15);
+      color: #dfff3f;
+      border: 1px solid rgba(223, 255, 63, 0.3);
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+
+      .thesis-icon {
+        width: 15px;
+        height: 15px;
+      }
+    }
+
+    .thesis-text {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #f0f4ee;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
   .dossier-section {
     padding-bottom: 2rem;
     border-bottom: 1px solid rgba(18, 23, 20, 0.06);
@@ -383,6 +435,57 @@
       border-bottom: none;
       padding-bottom: 0;
       margin-bottom: 0;
+    }
+
+    &.dynamic-section {
+      .section-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+
+        .section-pill {
+          font-size: 0.6875rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          background: #eef1e6;
+          color: #121714;
+          padding: 0.25rem 0.65rem;
+          border-radius: 999px;
+          border: 1px solid rgba(18, 23, 20, 0.08);
+          flex-shrink: 0;
+        }
+
+        .section-heading {
+          margin: 0;
+        }
+      }
+
+      .nested-tables {
+        margin-top: 1.5rem;
+      }
+
+      .table-footer-note {
+        margin-top: 0.85rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed rgba(18, 23, 20, 0.12);
+        font-size: 0.8125rem;
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        .note-label {
+          font-weight: 700;
+          color: #121714;
+        }
+
+        .note-text {
+          color: #556057;
+          font-style: italic;
+        }
+      }
     }
 
     .section-heading {

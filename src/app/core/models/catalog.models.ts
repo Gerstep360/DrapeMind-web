@@ -254,6 +254,19 @@ export interface ExecutiveReportRequest {
 }
 
 
+export interface TablaDinamica {
+  titulo: string;
+  columnas: string[];
+  filas: any[][];
+  nota_al_pie?: string | null;
+}
+
+export interface SeccionDinamica {
+  titulo: string;
+  contenido: string;
+  tablas?: TablaDinamica[];
+}
+
 export interface ReportTable {
   titulo: string;
   columnas: string[];
@@ -262,18 +275,23 @@ export interface ReportTable {
 }
 
 export interface ExecutiveReportResponse {
-  tipo_reporte: string;
-  periodo: string;
+  tipo_reporte?: string;
+  periodo?: string;
   modelo_utilizado?: string;
-  indicadores_clave: Record<string, any>;
-  resumen_ejecutivo: string;
-  diagnostico_rendimiento: string;
+  indicadores_clave?: Record<string, any>;
+  titulo_reporte?: string;
+  tesis_central?: string;
+  secciones?: SeccionDinamica[];
+  resumen_ejecutivo?: string;
+  diagnostico_rendimiento?: string;
   enfoque_personalizado?: string | null;
   tablas_analiticas?: ReportTable[];
-  cuellos_de_botella: string[];
-  recomendaciones_estrategicas: string[];
-  fecha_generacion: string;
+  cuellos_de_botella?: string[];
+  recomendaciones_estrategicas?: string[];
+  fecha_generacion?: string;
 }
+
+export type ReporteDinamicoIA = ExecutiveReportResponse;
 
 export interface AiAnalyticsOverview {
   total_sesiones_ia: number;

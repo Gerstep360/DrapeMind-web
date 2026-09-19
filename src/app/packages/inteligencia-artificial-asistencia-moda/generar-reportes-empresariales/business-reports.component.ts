@@ -103,21 +103,37 @@ export class BusinessReportsComponent implements OnInit {
     const rep = this.report();
     if (!rep) return;
 
-    const summaryText = `INFORME EJECUTIVO DRAPEMIND - ${rep.tipo_reporte} (${rep.fecha_generacion})
+    let summaryText = `INFORME ESTRATÉGICO DRAPEMIND - ${rep.titulo_reporte || rep.tipo_reporte} (${rep.fecha_generacion})
 Periodo: ${rep.periodo}
+${rep.tesis_central ? `\nTESIS CENTRAL:\n${rep.tesis_central}\n` : ''}`;
 
-RESUMEN EJECUTIVO:
-${rep.resumen_ejecutivo}
-
-DIAGNÓSTICO DE RENDIMIENTO:
-${rep.diagnostico_rendimiento}
-
-CUELLOS DE BOTELLA:
-${rep.cuellos_de_botella.map((b, i) => `${i + 1}. ${b}`).join('\n')}
-
-PLAN DE ACCIÓN ESTRATÉGICO:
-${rep.recomendaciones_estrategicas.map((r, i) => `${i + 1}. ${r}`).join('\n')}
-`;
+    if (rep.secciones && rep.secciones.length > 0) {
+      for (const sec of rep.secciones) {
+        summaryText += `\n■ ${sec.titulo}\n${sec.contenido}\n`;
+        if (sec.tablas && sec.tablas.length > 0) {
+          for (const tbl of sec.tablas) {
+            summaryText += `\n[TABLA: ${tbl.titulo}]\n${tbl.columnas.join(' | ')}\n`;
+            for (const f of tbl.filas) {
+              summaryText += `${f.join(' | ')}\n`;
+            }
+            if (tbl.nota_al_pie) summaryText += `Nota: ${tbl.nota_al_pie}\n`;
+          }
+        }
+      }
+    } else {
+      if (rep.resumen_ejecutivo) {
+        summaryText += `\nRESUMEN EJECUTIVO:\n${rep.resumen_ejecutivo}\n`;
+      }
+      if (rep.diagnostico_rendimiento) {
+        summaryText += `\nDIAGNÓSTICO:\n${rep.diagnostico_rendimiento}\n`;
+      }
+      if (rep.cuellos_de_botella?.length) {
+        summaryText += `\nCUELLOS DE BOTELLA:\n${rep.cuellos_de_botella.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n`;
+      }
+      if (rep.recomendaciones_estrategicas?.length) {
+        summaryText += `\nPLAN DE ACCIÓN:\n${rep.recomendaciones_estrategicas.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`;
+      }
+    }
 
     navigator.clipboard.writeText(summaryText).then(() => {
       this.toasts.show('Síntesis del informe copiada al portapapeles.', 'success');
