@@ -278,7 +278,7 @@ export interface ExecutiveReportResponse {
   tipo_reporte?: string;
   periodo?: string;
   modelo_utilizado?: string;
-  indicadores_clave?: Record<string, any>;
+  indicadores_clave: Record<string, any>;
   titulo_reporte?: string;
   tesis_central?: string;
   secciones?: SeccionDinamica[];

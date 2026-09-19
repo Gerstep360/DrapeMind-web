@@ -106,33 +106,35 @@
     </div>
   } @else if (report()) {
     <!-- Tira de Indicadores Clave del Reporte -->
-    <div class="kpi-strip">
-      <div class="kpi-card">
-        <span class="kpi-lbl">Facturación del Periodo</span>
-        <strong class="kpi-val">Bs {{ report()!.indicadores_clave['ventas_totales_bob'] | number:'1.2-2' }}</strong>
-        <span class="kpi-sub">{{ report()!.indicadores_clave['periodo_auditado'] || 'Auditoría aprobada' }}</span>
+    @if (report()!.indicadores_clave) {
+      <div class="kpi-strip">
+        <div class="kpi-card">
+          <span class="kpi-lbl">Facturación del Periodo</span>
+          <strong class="kpi-val">Bs {{ report()!.indicadores_clave!['ventas_totales_bob'] | number:'1.2-2' }}</strong>
+          <span class="kpi-sub">{{ report()!.indicadores_clave!['periodo_auditado'] || 'Auditoría aprobada' }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-lbl">Volumen de Pedidos</span>
+          <strong class="kpi-val">{{ report()!.indicadores_clave!['pedidos_totales'] }}</strong>
+          <span class="kpi-sub">{{ report()!.indicadores_clave!['pedidos_entregados'] }} completados / {{ report()!.indicadores_clave!['pedidos_en_curso'] }} en curso</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-lbl">Ticket Promedio</span>
+          <strong class="kpi-val">Bs {{ report()!.indicadores_clave!['ticket_promedio_bob'] | number:'1.2-2' }}</strong>
+          <span class="kpi-sub">Gasto promedio por transacción</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-lbl">Stock en Almacenes</span>
+          <strong class="kpi-val">{{ report()!.indicadores_clave!['unidades_stock_disponible'] }} uds</strong>
+          <span class="kpi-sub">{{ report()!.indicadores_clave!['variantes_stock_critico'] }} variantes bajo umbral crítico</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-lbl">Asistente IA Altair</span>
+          <strong class="kpi-val">{{ report()!.indicadores_clave!['interacciones_ia'] }}</strong>
+          <span class="kpi-sub">{{ report()!.indicadores_clave!['latencia_promedio_ia_ms'] }} ms latencia media</span>
+        </div>
       </div>
-      <div class="kpi-card">
-        <span class="kpi-lbl">Volumen de Pedidos</span>
-        <strong class="kpi-val">{{ report()!.indicadores_clave['pedidos_totales'] }}</strong>
-        <span class="kpi-sub">{{ report()!.indicadores_clave['pedidos_entregados'] }} completados / {{ report()!.indicadores_clave['pedidos_en_curso'] }} en curso</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-lbl">Ticket Promedio</span>
-        <strong class="kpi-val">Bs {{ report()!.indicadores_clave['ticket_promedio_bob'] | number:'1.2-2' }}</strong>
-        <span class="kpi-sub">Gasto promedio por transacción</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-lbl">Stock en Almacenes</span>
-        <strong class="kpi-val">{{ report()!.indicadores_clave['unidades_stock_disponible'] }} uds</strong>
-        <span class="kpi-sub">{{ report()!.indicadores_clave['variantes_stock_critico'] }} variantes bajo umbral crítico</span>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-lbl">Asistente IA Altair</span>
-        <strong class="kpi-val">{{ report()!.indicadores_clave['interacciones_ia'] }}</strong>
-        <span class="kpi-sub">{{ report()!.indicadores_clave['latencia_promedio_ia_ms'] }} ms latencia media</span>
-      </div>
-    </div>
+    }
 
     <!-- Dossier Ejecutivo -->
     <article class="dossier-card">
