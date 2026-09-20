@@ -102,7 +102,13 @@
       } @else {
         <div class="notifications-stack">
           @for (item of filteredList(); track item.id) {
-            <article class="notif-card" [class.unread]="!item.leido">
+            <article
+              class="notif-card"
+              [class.unread]="!item.leido"
+              (click)="handleNavigate(item)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="handleNavigate(item)">
               <div class="card-left">
                 <span class="category-icon" [class]="item.tipo.toLowerCase()">
                   @if (item.tipo === 'PEDIDO') {
@@ -154,7 +160,7 @@
                     <button
                       type="button"
                       class="btn-link"
-                      (click)="handleNavigate(item)">
+                      (click)="$event.stopPropagation(); handleNavigate(item)">
                       <span>Ver detalles</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="9 18 15 12 9 6"/>
@@ -167,7 +173,7 @@
                       <button
                         type="button"
                         class="btn-icon-subtle"
-                        (click)="notifService.markAsRead(item.id)"
+                        (click)="$event.stopPropagation(); notifService.markAsRead(item.id)"
                         title="Marcar como leída">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="20 6 9 17 4 12"/>
@@ -177,7 +183,7 @@
                     <button
                       type="button"
                       class="btn-icon-subtle danger"
-                      (click)="notifService.deleteNotification(item.id)"
+                      (click)="$event.stopPropagation(); notifService.deleteNotification(item.id)"
                       title="Eliminar notificación">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>

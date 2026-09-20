@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { RuntimeConfigService } from './runtime-config.service';
 import { ToastService } from './toast.service';
@@ -19,6 +20,7 @@ export class NotificationService {
   private readonly auth = inject(AuthService);
   private readonly runtime = inject(RuntimeConfigService);
   private readonly toasts = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly notifications = signal<AppNotification[]>([]);
   readonly isPanelOpen = signal<boolean>(false);
@@ -143,7 +145,7 @@ export class NotificationService {
           mensaje: `Se ha generado la orden #${data.order_id || data.id || ''}. Estado: PENDIENTE DE PAGO.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/pedidos',
+          enlace: '/orders',
           metadata: data,
         };
         break;
@@ -156,7 +158,7 @@ export class NotificationService {
           mensaje: `El pedido #${data.order_id || data.id || ''} avanzó al estado: ${data.estado || 'ACTUALIZADO'}.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/pedidos',
+          enlace: '/orders',
           metadata: data,
         };
         break;
@@ -169,7 +171,7 @@ export class NotificationService {
           mensaje: `El pago registrado para el pedido #${data.order_id || data.payment_id || ''} fue validado exitosamente.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/pedidos',
+          enlace: '/orders',
           metadata: data,
         };
         break;
@@ -182,7 +184,7 @@ export class NotificationService {
           mensaje: `Tu reserva de prendas #${data.reservation_id || data.id || ''} fue recibida para preparación en sucursal.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/reservas',
+          enlace: '/reservations',
           metadata: data,
         };
         break;
@@ -195,7 +197,7 @@ export class NotificationService {
           mensaje: `La reserva #${data.reservation_id || data.id || ''} cambió a: ${data.estado || 'ACTUALIZADA'}.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/reservas',
+          enlace: '/reservations',
           metadata: data,
         };
         break;
@@ -208,23 +210,27 @@ export class NotificationService {
           mensaje: `Se ha publicado la oferta "${data.codigo}"${data.producto_nombre ? ' para ' + data.producto_nombre : ''}.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/promociones',
+          enlace: '/promotions-admin',
           metadata: data,
         };
         break;
 
       case 'notification': {
         const payloadData = data.data || data.payload || {};
-        const screen = String(payloadData.screen || '');
-        let enlace = '/pedidos';
+        const screen = String(payloadData.screen || '').toLowerCase();
+        let enlace = '/orders';
         if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio')) {
-          enlace = '/asistente-ia';
-        } else if (screen.includes('catalog') || screen.includes('ropa')) {
-          enlace = '/catalogo';
+          enlace = '/ai-studio';
+        } else if (screen.includes('catalog') || screen.includes('ropa') || screen.includes('prenda')) {
+          enlace = '/catalog';
         } else if (screen.includes('report')) {
-          enlace = '/reportes-empresariales';
-        } else if (screen.includes('order') || screen.includes('pedido')) {
-          enlace = '/pedidos';
+          enlace = '/ai-reports';
+        } else if (screen.includes('reservation') || screen.includes('reserva')) {
+          enlace = '/reservations';
+        } else if (screen.includes('promo')) {
+          enlace = '/promotions-admin';
+        } else if (screen.includes('order') || screen.includes('pedido') || screen.includes('pago')) {
+          enlace = '/orders';
         }
         notif = {
           id: data.id ? `notif_${data.id}` : id,
@@ -265,7 +271,6 @@ export class NotificationService {
         break;
     }
 
-
     if (notif) {
       this.addNotification(notif);
       this.toasts.show(notif.mensaje, 'info');
@@ -275,6 +280,34 @@ export class NotificationService {
   addNotification(item: AppNotification): void {
     this.notifications.update((prev) => [item, ...prev].slice(0, 50));
     this.saveToStorage();
+    this.showBrowserNotification(item);
+  }
+
+  private showBrowserNotification(item: AppNotification): void {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+    if (Notification.permission === 'granted') {
+      try {
+        const browserNotif = new Notification(item.titulo, {
+          body: item.mensaje,
+          icon: '/favicon.ico',
+          tag: item.id,
+        });
+        browserNotif.onclick = () => {
+          window.focus();
+          browserNotif.close();
+          if (item.enlace) {
+            this.router.navigateByUrl(item.enlace);
+          }
+        };
+      } catch {}
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((perm) => {
+        if (perm === 'granted') {
+          this.showBrowserNotification(item);
+        }
+      });
+    }
   }
 
   markAsRead(id: string): void {
