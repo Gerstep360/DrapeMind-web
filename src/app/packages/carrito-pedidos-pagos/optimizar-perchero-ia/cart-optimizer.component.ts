@@ -100,7 +100,7 @@ export class CartOptimizerComponent implements OnInit {
     if (!rec.id || this.applyingReplacement()) return;
     this.applyingReplacement.set(rec.id);
     this.commerceApi.applyRecommendation(rec.id).subscribe({
-      next: (updatedCart) => {
+      next: (updatedCart: any) => {
         this.cart.setCart(updatedCart);
         this.applyingReplacement.set(null);
         this.toast.show(
@@ -116,7 +116,7 @@ export class CartOptimizerComponent implements OnInit {
           this.valueResult.set({ ...current, recomendaciones: updatedRecs });
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.applyingReplacement.set(null);
         this.toast.show(
           err.error?.detail || 'No se pudo aplicar el reemplazo al carrito',
