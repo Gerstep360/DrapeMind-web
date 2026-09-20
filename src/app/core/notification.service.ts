@@ -137,70 +137,80 @@ export class NotificationService {
     const id = `notif_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
     switch (data.type) {
-      case 'order_created':
+      case 'order_created': {
+        const orderId = data.order_id || data.id;
         notif = {
           id,
           tipo: 'PEDIDO',
           titulo: 'Nuevo Pedido Creado',
-          mensaje: `Se ha generado la orden #${data.order_id || data.id || ''}. Estado: PENDIENTE DE PAGO.`,
+          mensaje: `Se ha generado la orden #${orderId || ''}. Estado: PENDIENTE DE PAGO.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/orders',
+          enlace: orderId ? `/orders?id=${orderId}` : '/orders',
           metadata: data,
         };
         break;
+      }
 
-      case 'order_status_updated':
+      case 'order_status_updated': {
+        const orderId = data.order_id || data.id;
         notif = {
           id,
           tipo: 'PEDIDO',
           titulo: 'Actualización de Pedido',
-          mensaje: `El pedido #${data.order_id || data.id || ''} avanzó al estado: ${data.estado || 'ACTUALIZADO'}.`,
+          mensaje: `El pedido #${orderId || ''} avanzó al estado: ${data.estado || 'ACTUALIZADO'}.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/orders',
+          enlace: orderId ? `/orders?id=${orderId}` : '/orders',
           metadata: data,
         };
         break;
+      }
 
-      case 'payment_updated':
+      case 'payment_updated': {
+        const orderId = data.order_id || data.payment_id || data.id;
         notif = {
           id,
           tipo: 'PAGO',
           titulo: 'Comprobante de Pago Confirmado',
-          mensaje: `El pago registrado para el pedido #${data.order_id || data.payment_id || ''} fue validado exitosamente.`,
+          mensaje: `El pago registrado para el pedido #${orderId || ''} fue validado exitosamente.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/orders',
+          enlace: data.order_id ? `/orders?id=${data.order_id}` : '/orders',
           metadata: data,
         };
         break;
+      }
 
-      case 'reservation_created':
+      case 'reservation_created': {
+        const resId = data.reservation_id || data.id;
         notif = {
           id,
           tipo: 'RESERVA',
           titulo: 'Reserva Registrada en Tienda',
-          mensaje: `Tu reserva de prendas #${data.reservation_id || data.id || ''} fue recibida para preparación en sucursal.`,
+          mensaje: `Tu reserva de prendas #${resId || ''} fue recibida para preparación en sucursal.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/reservations',
+          enlace: resId ? `/reservations?id=${resId}` : '/reservations',
           metadata: data,
         };
         break;
+      }
 
-      case 'reservation_status_updated':
+      case 'reservation_status_updated': {
+        const resId = data.reservation_id || data.id;
         notif = {
           id,
           tipo: 'RESERVA',
           titulo: 'Reserva Lista en Tienda',
-          mensaje: `La reserva #${data.reservation_id || data.id || ''} cambió a: ${data.estado || 'ACTUALIZADA'}.`,
+          mensaje: `La reserva #${resId || ''} cambió a: ${data.estado || 'ACTUALIZADA'}.`,
           leido: false,
           fecha: nowIso,
-          enlace: '/reservations',
+          enlace: resId ? `/reservations?id=${resId}` : '/reservations',
           metadata: data,
         };
         break;
+      }
 
       case 'promotion_created':
         notif = {
@@ -215,26 +225,54 @@ export class NotificationService {
         };
         break;
 
+      case 'ai_response':
+      case 'ai_completed':
+      case 'ai_chat_done':
+        notif = {
+          id,
+          tipo: 'IA',
+          titulo: 'Altair AI: Respuesta Lista',
+          mensaje: data.mensaje || data.respuesta || 'Altair completó tu diseño y asesoría en el chat.',
+          leido: false,
+          fecha: nowIso,
+          enlace: data.sesion_id ? `/ai-studio?session=${data.sesion_id}` : '/ai-studio',
+          metadata: data,
+        };
+        break;
+
       case 'notification': {
         const payloadData = data.data || data.payload || {};
         const screen = String(payloadData.screen || '').toLowerCase();
+        const nType = String(data.notification_type || '').toUpperCase();
         let enlace = '/orders';
-        if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio')) {
-          enlace = '/ai-studio';
+        let tipoNotif: 'PEDIDO' | 'RESERVA' | 'PAGO' | 'PROMOCION' | 'IA' | 'SISTEMA' = 'PEDIDO';
+
+        if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio') || nType.includes('AI')) {
+          enlace = payloadData.sesion_id ? `/ai-studio?session=${payloadData.sesion_id}` : '/ai-studio';
+          tipoNotif = 'IA';
+        } else if (screen.includes('reservation') || screen.includes('reserva') || nType.includes('RESERVA')) {
+          const rId = payloadData.reservation_id || payloadData.id || data.reservation_id;
+          enlace = rId ? `/reservations?id=${rId}` : '/reservations';
+          tipoNotif = 'RESERVA';
         } else if (screen.includes('catalog') || screen.includes('ropa') || screen.includes('prenda')) {
           enlace = '/catalog';
+          tipoNotif = 'SISTEMA';
         } else if (screen.includes('report')) {
           enlace = '/ai-reports';
-        } else if (screen.includes('reservation') || screen.includes('reserva')) {
-          enlace = '/reservations';
-        } else if (screen.includes('promo')) {
+          tipoNotif = 'IA';
+        } else if (screen.includes('promo') || nType.includes('PROMO')) {
           enlace = '/promotions-admin';
-        } else if (screen.includes('order') || screen.includes('pedido') || screen.includes('pago')) {
-          enlace = '/orders';
+          tipoNotif = 'PROMOCION';
+        } else {
+          // Default to orders with ID if available
+          const oId = payloadData.order_id || payloadData.id || data.order_id;
+          enlace = oId ? `/orders?id=${oId}` : '/orders';
+          tipoNotif = nType.includes('PAGO') ? 'PAGO' : 'PEDIDO';
         }
+
         notif = {
           id: data.id ? `notif_${data.id}` : id,
-          tipo: data.notification_type === 'AI_RESPUESTA' ? 'IA' : (data.notification_type === 'PROMOCION' ? 'PROMOCION' : 'PEDIDO'),
+          tipo: tipoNotif,
           titulo: data.title || data.titulo || 'Notificación Atelier',
           mensaje: data.body || data.mensaje || '',
           leido: false,
@@ -256,19 +294,40 @@ export class NotificationService {
         return;
       }
 
-      default:
+      default: {
+        const text = `${data.titulo || data.title || ''} ${data.mensaje || data.message || ''}`.toLowerCase();
+        let fallbackEnlace = '/orders';
+        let inferredType: 'PEDIDO' | 'RESERVA' | 'PAGO' | 'PROMOCION' | 'IA' | 'SISTEMA' = 'SISTEMA';
+        if (text.includes('chat') || text.includes('altair') || text.includes('diseño') || text.includes('inteligencia')) {
+          fallbackEnlace = '/ai-studio';
+          inferredType = 'IA';
+        } else if (text.includes('reserva') || text.includes('sucursal') || text.includes('tienda')) {
+          const rId = data.reservation_id || data.id;
+          fallbackEnlace = rId ? `/reservations?id=${rId}` : '/reservations';
+          inferredType = 'RESERVA';
+        } else if (text.includes('pedido') || text.includes('compra') || text.includes('pago') || text.includes('orden')) {
+          const oId = data.order_id || data.id;
+          fallbackEnlace = oId ? `/orders?id=${oId}` : '/orders';
+          inferredType = text.includes('pago') ? 'PAGO' : 'PEDIDO';
+        } else if (text.includes('promoción') || text.includes('promocion') || text.includes('descuento')) {
+          fallbackEnlace = '/promotions-admin';
+          inferredType = 'PROMOCION';
+        }
+
         if (data.mensaje || data.message || data.titulo || data.title) {
           notif = {
             id,
-            tipo: 'SISTEMA',
+            tipo: inferredType,
             titulo: data.titulo || data.title || 'Aviso del Atelier',
             mensaje: data.mensaje || data.message || 'Nueva notificación del sistema.',
             leido: false,
             fecha: nowIso,
+            enlace: fallbackEnlace,
             metadata: data,
           };
         }
         break;
+      }
     }
 
     if (notif) {

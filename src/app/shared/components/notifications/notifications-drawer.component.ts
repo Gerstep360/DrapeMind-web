@@ -29,10 +29,26 @@ export class NotificationsDrawerComponent {
 
   handleNavigate(item: AppNotification): void {
     this.notifService.markAsRead(item.id);
-    if (item.enlace) {
-      this.notifService.closePanel();
-      this.router.navigateByUrl(item.enlace);
+    this.notifService.closePanel();
+
+    let target = item.enlace;
+    if (!target) {
+      if (item.tipo === 'IA') {
+        target = '/ai-studio';
+      } else if (item.tipo === 'PEDIDO' || item.tipo === 'PAGO') {
+        const id = item.metadata?.order_id || item.metadata?.id;
+        target = id ? `/orders?id=${id}` : '/orders';
+      } else if (item.tipo === 'RESERVA') {
+        const id = item.metadata?.reservation_id || item.metadata?.id;
+        target = id ? `/reservations?id=${id}` : '/reservations';
+      } else if (item.tipo === 'PROMOCION') {
+        target = '/promotions-admin';
+      } else {
+        target = '/catalog';
+      }
     }
+
+    this.router.navigateByUrl(target);
   }
 
   formatTime(isoDate: string): string {

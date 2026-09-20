@@ -164,12 +164,12 @@
               <p class="eyebrow">Cola operativa</p>
               <h2>Pedidos recientes</h2>
             </div>
-            <a class="text-link" href="/orders">Ver todos -&gt;</a>
+            <a class="text-link" routerLink="/orders">Ver todos -&gt;</a>
           </div>
 
           <div class="operation-list">
             @for (order of orders().slice(0, 6); track order.id) {
-              <a class="operation-row" href="/orders">
+              <a class="operation-row" [routerLink]="['/orders']" [queryParams]="{ id: order.id }">
                 <span class="operation-row__id">#{{ order.id }}</span>
                 <div>
                   <strong>{{ order.tipo_entrega }}</strong>
@@ -191,15 +191,15 @@
             <p class="eyebrow">Acciones inteligentes</p>
             <h3>Altair &amp; Automatizacion</h3>
             <div class="quick-links">
-              <a class="quick-btn" href="/ai-reports">
+              <a class="quick-btn" routerLink="/ai-reports">
                 <span>Generar reporte ejecutivo</span>
                 <small>Analisis con IA</small>
               </a>
-              <a class="quick-btn" href="/ai-product-assist">
+              <a class="quick-btn" routerLink="/ai-product-assist">
                 <span>Estudio asistido de producto</span>
                 <small>Redaccion editorial</small>
               </a>
-              <a class="quick-btn" href="/suppliers-admin">
+              <a class="quick-btn" routerLink="/suppliers-admin">
                 <span>Gestion de suministros</span>
                 <small>Catalogo de proveedores</small>
               </a>

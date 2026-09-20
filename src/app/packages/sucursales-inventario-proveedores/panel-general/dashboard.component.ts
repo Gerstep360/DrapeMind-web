@@ -25,9 +25,11 @@ interface CommercialSummary {
   pedidos_por_estado: Record<string, number>;
 }
 
+import { RouterLink } from '@angular/router';
+
 @Component({
   selector: 'app-dashboard',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

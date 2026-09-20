@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '@core/auth.service';
 import { EventsSocketService } from '@core/events-socket.service';
 import { Branch, Reservation, Order } from '@core/models';
@@ -29,6 +30,7 @@ import { QrScannerComponent } from '@packages/reservas-atencion-tienda/atender-l
 })
 export class ReservationsComponent {
   readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
   private readonly reservationsApi = inject(ReservationsApiService);
   private readonly branchApi = inject(BranchInventoryApiService);
   private readonly commerceApi = inject(CommerceApiService);
@@ -138,6 +140,14 @@ export class ReservationsComponent {
         untracked(() => this.load());
       }
     });
+
+    this.route.queryParamMap.subscribe((params) => {
+      const resId = params.get('id');
+      if (resId) {
+        this.query.set(resId);
+      }
+    });
+
     this.load();
   }
 

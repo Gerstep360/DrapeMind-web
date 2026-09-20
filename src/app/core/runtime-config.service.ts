@@ -66,14 +66,29 @@ export class RuntimeConfigService {
     const str = typeof url === 'string' ? url : (url?.url || url?.src || '');
     if (!str || typeof str !== 'string') return null;
     if (/^(https?:|data:|blob:)/i.test(str)) return str;
-    const clean = str.replace(/^\/+/, '');
+
+    let clean = str.replace(/^\/+/, '');
+
+    // Si es solo un nombre de archivo de imagen subido (ej. 'f53227296d92475084c3c0b4cbcf51c4.png')
+    if (!clean.includes('/') && /\.(png|jpe?g|webp|svg|gif)$/i.test(clean)) {
+      clean = `static/products/${clean}`;
+    }
+
     if (this.backendUrl) {
       return `${this.backendUrl}/${clean}`;
     }
+
     const base = typeof document !== 'undefined'
       ? (document.querySelector('base')?.getAttribute('href') || '/DrapeMind/')
       : '/DrapeMind/';
     const cleanBase = base.endsWith('/') ? base : `${base}/`;
+
+    // Evitar duplicación de prefijo si clean ya contiene drapemind/
+    const baseSegment = cleanBase.replace(/^\/+|\/+$/g, '').toLowerCase();
+    if (baseSegment && clean.toLowerCase().startsWith(`${baseSegment}/`)) {
+      return `/${clean}`;
+    }
+
     return `${cleanBase}${clean}`;
   }
 }

@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth.service';
 import { BranchService } from '@core/branch.service';
 import { CartService } from '@core/cart.service';
@@ -20,7 +20,7 @@ import { OnboardingStage } from './onboarding.models';
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

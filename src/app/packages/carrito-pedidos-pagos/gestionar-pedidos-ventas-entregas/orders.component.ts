@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { EventsSocketService } from '@core/events-socket.service';
@@ -32,6 +33,7 @@ export class OrdersComponent {
   private readonly branchApi = inject(BranchInventoryApiService);
   private readonly events = inject(EventsSocketService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly orders = signal<Order[]>([]);
   readonly loading = signal(true);
@@ -84,6 +86,19 @@ export class OrdersComponent {
       const event = this.events.events().at(0);
       if (event?.type.startsWith('order_') || event?.type.startsWith('payment_')) this.load();
     });
+
+    this.route.queryParamMap.subscribe((params) => {
+      const orderIdStr = params.get('id');
+      if (orderIdStr) {
+        const orderId = Number(orderIdStr);
+        if (!isNaN(orderId) && orderId > 0) {
+          this.filter.set('TODOS');
+          this.selectedReceiptOrderId.set(orderId);
+          this.receiptModalOpen.set(true);
+        }
+      }
+    });
+
     this.load();
   }
 

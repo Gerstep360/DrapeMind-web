@@ -120,15 +120,28 @@ EOF
 }
 
 configure_nginx() {
-    log_info "Configurando Nginx con proxy /DrapeMind..."
+    log_info "Configurando Nginx para el subpath /DrapeMind y WebSockets..."
+    mkdir -p /etc/nginx/snippets /etc/nginx/conf.d
 
-    mkdir -p /etc/nginx/snippets
+    # 1. Configurar mapeo de WebSockets a nivel HTTP y tamaño de subida
+    cat <<'EOF_WS' > /etc/nginx/conf.d/websocket_upgrade.conf
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+EOF_WS
 
-    # Crear snippet modular para /DrapeMind
+    cat <<'EOF_SIZE' > /etc/nginx/conf.d/drapemind_upload.conf
+client_max_body_size 64M;
+EOF_SIZE
+
+    # 2. Crear snippet modular para /DrapeMind
     cat <<EOF > /etc/nginx/snippets/drapemind-subpath.conf
 # =====================================================================
 # DRAPEMIND - SNIPPET NGINX MODULAR (SUBPATH: /DrapeMind)
 # =====================================================================
+
+client_max_body_size 64M;
 
 location = /DrapeMind {
     return 301 /DrapeMind/;
@@ -145,7 +158,7 @@ location /DrapeMind/api/ {
     proxy_set_header X-Forwarded-Prefix /DrapeMind;
 
     proxy_set_header Upgrade \$http_upgrade;
-    proxy_set_header Connection "upgrade";
+    proxy_set_header Connection \$connection_upgrade;
 
     proxy_read_timeout 600s;
     proxy_send_timeout 600s;
@@ -153,7 +166,7 @@ location /DrapeMind/api/ {
 }
 
 location /DrapeMind/static/ {
-    proxy_pass http://127.0.0.1:${BACKEND_PORT}/static/;
+    proxy_pass http://127.0.0.1:${BACKEND_PORT}/DrapeMind/static/;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -163,7 +176,7 @@ location /DrapeMind/static/ {
 }
 
 location /static/ {
-    proxy_pass http://127.0.0.1:${BACKEND_PORT}/static/;
+    proxy_pass http://127.0.0.1:${BACKEND_PORT}/DrapeMind/static/;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     expires 7d;
