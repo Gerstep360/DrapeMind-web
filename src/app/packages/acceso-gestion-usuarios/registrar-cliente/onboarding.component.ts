@@ -34,7 +34,7 @@ export class OnboardingComponent implements OnInit {
   private readonly runtime = inject(RuntimeConfigService);
   private readonly toasts = inject(ToastService);
 
-  readonly stage = signal<OnboardingStage>('greeting');
+  readonly stage = signal<OnboardingStage>('survey_gender');
   readonly tutorialStep = signal<number>(1);
   readonly greetingData = signal<OnboardingGreeting | null>(null);
   readonly loadingGreeting = signal<boolean>(true);
@@ -144,20 +144,22 @@ export class OnboardingComponent implements OnInit {
 
   readonly progressPercentage = computed(() => {
     switch (this.stage()) {
-      case 'greeting':
-        return 15;
-      case 'tutorial':
-        return 35;
       case 'survey_gender':
-        return 55;
+        return 20;
+      case 'greeting':
+        return 40;
+      case 'tutorial':
+        return 50;
       case 'survey_sizes':
-        return 75;
+        return 70;
       case 'survey_budget':
-        return 90;
+        return 88;
       case 'inferring':
-        return 95;
+        return 96;
       case 'reveal':
         return 100;
+      default:
+        return 20;
     }
   });
 

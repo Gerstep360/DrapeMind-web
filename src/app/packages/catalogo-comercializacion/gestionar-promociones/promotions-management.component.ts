@@ -140,6 +140,14 @@ export class PromotionsManagementComponent implements OnInit {
     });
   }
 
+  copyPromoCode(code: string): void {
+    navigator.clipboard.writeText(code).then(() => {
+      this.toasts.show(`¡Código "${code}" copiado al portapapeles! Puedes pegarlo en el carrito.`, 'success');
+    }).catch(() => {
+      this.toasts.show(`Código: ${code}`, 'info');
+    });
+  }
+
   loadPromotions(): void {
     this.loading.set(true);
     this.adminApi.listPromotions().subscribe({

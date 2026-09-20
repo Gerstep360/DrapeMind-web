@@ -18,6 +18,25 @@ export class CartService {
   readonly totalItems = computed<number>(() => this.cart()?.total_items ?? 0);
   readonly subtotal = computed<number>(() => this.cart()?.subtotal ?? 0);
 
+  // Soporte de Cupones y Promociones
+  readonly appliedPromo = signal<{
+    codigo: string;
+    descuento_calculado: number;
+    mensaje: string;
+    tipo_descuento?: string;
+  } | null>(null);
+
+  readonly discountAmount = computed<number>(() => this.appliedPromo()?.descuento_calculado ?? 0);
+  readonly totalWithDiscount = computed<number>(() => Math.max(0, this.subtotal() - this.discountAmount()));
+
+  setPromo(promo: { codigo: string; descuento_calculado: number; mensaje: string; tipo_descuento?: string } | null): void {
+    this.appliedPromo.set(promo);
+  }
+
+  clearPromo(): void {
+    this.appliedPromo.set(null);
+  }
+
   constructor() {
     effect(() => {
       if (this.auth.isAuthenticated()) {

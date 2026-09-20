@@ -1,0 +1,312 @@
+<section class="optimizer-page">
+  <!-- ENCABEZADO EDITORIAL -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="eyebrow">PK-05 &middot; INTELIGENCIA ARTIFICIAL Y ASISTENCIA DE MODA</span>
+      <h1 class="page-title">Estudio y Optimización de Perchero</h1>
+      <p class="page-subtitle">
+        Asesoría experta de Altair AI. Audita la coherencia cromática y estilo de tus prendas (CU-22), o compara calidades y maximiza tu ahorro con alternativas inteligentes (CU-23).
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" type="button" routerLink="/catalog">
+        Explorar Catálogo
+      </button>
+      <button class="btn btn-primary" type="button" (click)="openCheckout()" [disabled]="cart.totalItems() === 0">
+        Finalizar Compra (Bs {{ cart.totalWithDiscount() | number: '1.2-2' }}) &rarr;
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="optimizer-layout">
+    <!-- COLUMNA IZQUIERDA: PERCHERO ACTUAL -->
+    <aside class="cart-column">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <h2>Prendas en Selección</h2>
+          </div>
+          <span class="count-badge">{{ cart.totalItems() }} items</span>
+        </div>
+
+        @if (cart.items().length > 0) {
+          <div class="cart-items-scroll">
+            @for (item of cart.items(); track item.id) {
+              <article class="garment-row">
+                <div class="garment-row__thumb">
+                  @if (hasRealImage(item.imagen)) {
+                    <img [src]="runtime.resolveImageUrl(item.imagen)" [alt]="item.nombre" />
+                  } @else {
+                    <div class="placeholder-thumb" [attr.data-type]="getGarmentType(item.nombre)">
+                      <span>{{ item.nombre.substring(0, 2).toUpperCase() }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="garment-row__details">
+                  <h3>{{ item.nombre }}</h3>
+                  <div class="garment-meta">
+                    <span class="meta-tag">{{ item.color }}</span>
+                    <span class="meta-tag">Talla {{ item.talla }}</span>
+                    <span class="meta-tag">Cant: {{ item.cantidad }}</span>
+                  </div>
+                  <div class="garment-price">
+                    <small>Bs {{ item.precio_unitario | number: '1.2-2' }} c/u</small>
+                    <strong>Bs {{ item.subtotal | number: '1.2-2' }}</strong>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="btn-remove-item"
+                  (click)="cart.removeItem(item.id)"
+                  title="Retirar prenda del perchero"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </article>
+            }
+          </div>
+
+          <div class="cart-summary-box">
+            <div class="summary-line">
+              <span>Subtotal de prendas</span>
+              <strong>Bs {{ cart.subtotal() | number: '1.2-2' }}</strong>
+            </div>
+            @if (cart.discountAmount() > 0) {
+              <div class="summary-line discount">
+                <span>Descuento cupón ({{ cart.appliedPromo()?.codigo }})</span>
+                <strong>- Bs {{ cart.discountAmount() | number: '1.2-2' }}</strong>
+              </div>
+            }
+            <div class="summary-line total">
+              <span>Total Estimado</span>
+              <strong>Bs {{ cart.totalWithDiscount() | number: '1.2-2' }}</strong>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-cart-state">
+            <p>Tu perchero está vacío.</p>
+            <small>Añade prendas desde el catálogo para analizarlas con Altair AI.</small>
+            <a routerLink="/catalog" class="btn btn-outline btn-sm">Ver Catálogo</a>
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- COLUMNA DERECHA: HERRAMIENTAS DE ALTAIR (CU-22 & CU-23) -->
+    <main class="tools-column">
+      <div class="panel-card tools-card">
+        <!-- PESTAÑAS SELECTORAS -->
+        <div class="tools-tabs">
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab() === 'STYLE'"
+            (click)="activeTab.set('STYLE')"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            <span>Auditoría de Estilo (CU-22)</span>
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab() === 'VALUE'"
+            (click)="activeTab.set('VALUE')"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+              <path d="M12 18V6"/>
+            </svg>
+            <span>Optimización de Ahorro y Calidad (CU-23)</span>
+          </button>
+        </div>
+
+        <!-- PANEL DE ESTILO (CU-22) -->
+        @if (activeTab() === 'STYLE') {
+          <div class="tab-content">
+            <div class="tab-intro">
+              <h3>Crítica y Balance Cromático de Altair</h3>
+              <p>
+                Evalúa si los colores, texturas y niveles de formalidad de tus prendas combinan armoniosamente según la silueta y preferencias registradas en tu perfil.
+              </p>
+              <button
+                class="btn btn-primary"
+                type="button"
+                (click)="runStyleAnalysis()"
+                [disabled]="cart.totalItems() === 0 || analyzingStyle()"
+              >
+                @if (analyzingStyle()) {
+                  <span class="spinner"></span> Consultando a Altair AI...
+                } @else {
+                  Auditar Coherencia de Estilo
+                }
+              </button>
+            </div>
+
+            @if (analyzingStyle()) {
+              <div class="loading-state">
+                <span class="spinner"></span>
+                <p>Analizando armonía cromática, silueta y balance sastrero...</p>
+              </div>
+            } @else if (styleResult(); as res) {
+              <div class="result-box">
+                <div class="result-header">
+                  <span class="result-badge">Dictamen de Altair</span>
+                  <span class="model-tag">Altair AI Studio</span>
+                </div>
+                <div class="ai-prose">
+                  <p>{{ res.respuesta }}</p>
+                </div>
+
+                @if (res.productos && res.productos.length > 0) {
+                  <div class="suggestions-section">
+                    <h4>Prendas sugeridas para elevar tu look:</h4>
+                    <div class="suggestions-grid">
+                      @for (p of res.productos; track p.id) {
+                        <div class="suggestion-card">
+                          <div class="suggestion-info">
+                            <strong>{{ p.nombre }}</strong>
+                            <small>{{ p.material || p.marca }}</small>
+                            <span class="price-val">Bs {{ p.precio | number: '1.2-2' }}</span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-secondary"
+                            (click)="addSuggestedToCart(p)"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PANEL DE VALOR Y AHORRO (CU-23) -->
+        @if (activeTab() === 'VALUE') {
+          <div class="tab-content">
+            <div class="tab-intro">
+              <h3>Balance de Calidad, Materiales y Ahorro Inteligente</h3>
+              <p>
+                Identifica prendas en tu perchero con alternativas de igual o superior composición textil a un costo más eficiente. Puedes aplicar los reemplazos con un solo clic.
+              </p>
+              <button
+                class="btn btn-primary"
+                type="button"
+                (click)="runValueOptimization()"
+                [disabled]="cart.totalItems() === 0 || optimizingValue()"
+              >
+                @if (optimizingValue()) {
+                  <span class="spinner"></span> Analizando inventario y costos...
+                } @else {
+                  Calcular Optimización de Valor
+                }
+              </button>
+            </div>
+
+            @if (optimizingValue()) {
+              <div class="loading-state">
+                <span class="spinner"></span>
+                <p>Comparando composiciones textiles y buscando márgenes de ahorro...</p>
+              </div>
+            } @else if (valueResult(); as res) {
+              <div class="result-box">
+                <div class="result-header">
+                  <span class="result-badge">Diagnóstico Económico</span>
+                  <span class="model-tag">Altair AI</span>
+                </div>
+                <div class="ai-prose">
+                  <p>{{ res.respuesta }}</p>
+                </div>
+
+                <!-- LISTA DE REEMPLAZOS DISPONIBLES CON 1 CLIC (CU-24) -->
+                @if (res.recomendaciones && res.recomendaciones.length > 0) {
+                  <div class="replacements-section">
+                    <h4>Alternativas directas con ahorro garantizado:</h4>
+                    <div class="replacements-list">
+                      @for (rec of res.recomendaciones; track rec.id) {
+                        <div class="replacement-card">
+                          <div class="comparison-row">
+                            <div class="comp-col origin">
+                              <span class="col-lbl">Prenda Actual</span>
+                              <strong>{{ rec.nombre_original }}</strong>
+                              <span class="old-price">Bs {{ rec.precio_original | number: '1.2-2' }}</span>
+                            </div>
+                            <div class="comp-arrow">&rarr;</div>
+                            <div class="comp-col target">
+                              <span class="col-lbl">Reemplazo Sugerido</span>
+                              <strong>{{ rec.nombre }}</strong>
+                              <span class="new-price">Bs {{ rec.precio_recomendado | number: '1.2-2' }}</span>
+                              <small>{{ rec.color }} &middot; Talla {{ rec.talla }}</small>
+                            </div>
+                          </div>
+
+                          <div class="replacement-foot">
+                            <div class="saving-chip">
+                              <span>Ahorro neto:</span>
+                              <strong>Bs {{ rec.ahorro | number: '1.2-2' }}</strong>
+                            </div>
+                            <button
+                              class="btn btn-sm btn-accent"
+                              type="button"
+                              (click)="applyReplacement(rec)"
+                              [disabled]="applyingReplacement() === rec.id"
+                            >
+                              @if (applyingReplacement() === rec.id) {
+                                <span class="spinner"></span> Aplicando...
+                              } @else {
+                                Reemplazar en Perchero
+                              }
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                } @else if (res.productos && res.productos.length > 0) {
+                  <div class="suggestions-section">
+                    <h4>Prendas destacadas de alta relación calidad/precio:</h4>
+                    <div class="suggestions-grid">
+                      @for (p of res.productos; track p.id) {
+                        <div class="suggestion-card">
+                          <div class="suggestion-info">
+                            <strong>{{ p.nombre }}</strong>
+                            <small>{{ p.material || p.marca }}</small>
+                            <span class="price-val">Bs {{ p.precio | number: '1.2-2' }}</span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-secondary"
+                            (click)="addSuggestedToCart(p)"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</section>

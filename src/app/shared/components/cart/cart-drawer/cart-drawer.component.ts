@@ -84,47 +84,62 @@ export class CartDrawerComponent {
     });
   }
 
-  // CU-22 y CU-23: Analitica de estilo y valor
-  readonly analyzingStyle = signal<boolean>(false);
-  readonly optimizingValue = signal<boolean>(false);
-  readonly activeAiTab = signal<'NONE' | 'STYLE' | 'VALUE'>('NONE');
-  readonly styleResult = signal<{ respuesta: string; productos: any[] } | null>(null);
-  readonly valueResult = signal<{ respuesta: string; productos: any[] } | null>(null);
+  // Cupones y Promociones
+  readonly promoInput = signal<string>('');
+  readonly validatingPromo = signal<boolean>(false);
 
-  runStyleAnalysis(): void {
-    if (this.cart.totalItems() === 0 || this.analyzingStyle()) return;
-    this.analyzingStyle.set(true);
-    this.activeAiTab.set('STYLE');
-    this.commerceApi.analyzeCartStyle({ objetivo: 'Evaluar coherencia cromatica y estilo del perchero' }).subscribe({
-      next: (res) => {
-        this.styleResult.set(res);
-        this.analyzingStyle.set(false);
-      },
-      error: (err) => {
-        this.toast.show(err.error?.detail || 'Error al analizar el estilo del perchero', 'error');
-        this.analyzingStyle.set(false);
-      },
-    });
+  applyPromo(): void {
+    const code = this.promoInput().trim().toUpperCase();
+    if (!code) {
+      this.toast.show('Ingresa un código promocional', 'info');
+      return;
+    }
+    if (this.cart.subtotal() <= 0) {
+      this.toast.show('Tu perchero está vacío', 'info');
+      return;
+    }
+    this.validatingPromo.set(true);
+    const prodIds = this.cart.items().map((it) => it.producto_id);
+    this.commerceApi
+      .validatePromotion({
+        codigo: code,
+        monto_subtotal: this.cart.subtotal(),
+        item_producto_ids: prodIds,
+      })
+      .subscribe({
+        next: (res) => {
+          this.validatingPromo.set(false);
+          if (res.valido) {
+            this.cart.setPromo({
+              codigo: res.codigo,
+              descuento_calculado: Number(res.descuento_calculado || 0),
+              mensaje: res.mensaje,
+              tipo_descuento: res.tipo_descuento,
+            });
+            this.toast.show(
+              `¡Cupón ${res.codigo} aplicado! Ahorras Bs ${Number(res.descuento_calculado).toFixed(2)}`,
+              'success',
+            );
+            this.promoInput.set('');
+          } else {
+            this.toast.show(res.mensaje || 'Código no válido o expirado', 'error');
+          }
+        },
+        error: (err) => {
+          this.validatingPromo.set(false);
+          this.toast.show(err.error?.detail || 'Error al validar cupón', 'error');
+        },
+      });
   }
 
-  runValueOptimization(): void {
-    if (this.cart.totalItems() === 0 || this.optimizingValue()) return;
-    this.optimizingValue.set(true);
-    this.activeAiTab.set('VALUE');
-    this.commerceApi.optimizeCartValue({ objetivo: 'Optimizar calidad, precio y balance de ahorro del perchero' }).subscribe({
-      next: (res) => {
-        this.valueResult.set(res);
-        this.optimizingValue.set(false);
-      },
-      error: (err) => {
-        this.toast.show(err.error?.detail || 'Error al calcular la optimizacion de valor', 'error');
-        this.optimizingValue.set(false);
-      },
-    });
+  removePromo(): void {
+    this.cart.clearPromo();
+    this.toast.show('Cupón retirado de la orden', 'info');
   }
 
-  closeAiAnalysis(): void {
-    this.activeAiTab.set('NONE');
+  goToOptimizer(): void {
+    this.cart.close();
+    this.router.navigate(['/cart-optimizer']);
   }
 
   addSuggestedToCart(item: any): void {
@@ -136,12 +151,7 @@ export class CartDrawerComponent {
   }
 
   analyzeWithAi(): void {
-    this.cart.close();
-    this.router.navigate(['/ai-studio'], {
-      queryParams: {
-        autoQuery: 'Mira mi carrito y dime que puedo quitar o que puedo combinar en mi eleccion',
-      },
-    });
+    this.goToOptimizer();
   }
 
   loadAddresses(): void {
@@ -163,6 +173,7 @@ export class CartDrawerComponent {
   goToCheckout(): void {
     if (this.cart.totalItems() === 0) return;
     this.step.set('CHECKOUT');
+    this.loadAddresses();
   }
 
   backToCart(): void {
@@ -174,7 +185,7 @@ export class CartDrawerComponent {
   }
 
   grandTotal(): number {
-    return this.cart.subtotal() + this.shippingCost();
+    return Math.max(0, this.cart.subtotal() - this.cart.discountAmount()) + this.shippingCost();
   }
 
   confirmOrder(): void {
@@ -225,6 +236,7 @@ export class CartDrawerComponent {
         direccion_id: addressId,
         costo_envio: this.shippingCost(),
         observacion: formVal.observacion || null,
+        codigo_promocion: this.cart.appliedPromo()?.codigo || null,
       })
       .subscribe({
         next: (order) => {

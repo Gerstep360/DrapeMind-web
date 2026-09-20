@@ -67,6 +67,7 @@ export interface CheckoutRequest {
   direccion_id?: number | null;
   costo_envio?: number;
   observacion?: string | null;
+  codigo_promocion?: string | null;
 }
 
 export interface Payment {

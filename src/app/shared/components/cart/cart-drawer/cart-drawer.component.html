@@ -158,103 +158,75 @@
 
       @if (cart.items().length > 0) {
         <footer class="cart-footer">
+          <!-- Banner hacia el apartado de optimización (CU-22 & CU-23) -->
+          <div class="ai-optimizer-banner" (click)="goToOptimizer()" role="button" tabindex="0">
+            <div class="ai-optimizer-banner__icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+            <div class="ai-optimizer-banner__text">
+              <strong>Estudio y Optimización de Perchero</strong>
+              <small>Auditoría de estilo (CU-22) y ahorro inteligente (CU-23) &rarr;</small>
+            </div>
+          </div>
+
+          <!-- Cupón de Descuento / Promoción -->
+          <div class="cart-coupon-box">
+            @if (cart.appliedPromo(); as promo) {
+              <div class="applied-coupon-chip">
+                <div class="coupon-info">
+                  <span class="coupon-tag">Cupón Aplicado</span>
+                  <strong>{{ promo.codigo }}</strong>
+                  <span class="coupon-discount">- Bs {{ promo.descuento_calculado | number: '1.2-2' }}</span>
+                </div>
+                <button type="button" class="btn-remove-coupon" (click)="removePromo()" title="Quitar cupón">
+                  &times;
+                </button>
+              </div>
+            } @else {
+              <div class="coupon-input-group">
+                <input
+                  type="text"
+                  placeholder="Código promocional (ej. BIENVENIDA10)"
+                  [value]="promoInput()"
+                  (input)="promoInput.set($any($event.target).value)"
+                  (keydown.enter)="applyPromo()"
+                  [disabled]="validatingPromo()"
+                />
+                <button
+                  type="button"
+                  class="btn-apply-coupon"
+                  (click)="applyPromo()"
+                  [disabled]="validatingPromo() || !promoInput().trim()"
+                >
+                  @if (validatingPromo()) {
+                    <span class="spinner"></span>
+                  } @else {
+                    Aplicar
+                  }
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Totales en el carrito -->
           <div class="cart-totals-summary">
             <div class="total-row">
               <span>Subtotal ({{ cart.totalItems() }} prendas)</span>
               <strong>Bs {{ cart.subtotal() | number: '1.2-2' }}</strong>
             </div>
-          </div>
-
-        @if (activeAiTab() !== 'NONE') {
-          <div class="ai-cart-panel" [class.ai-cart-panel--value]="activeAiTab() === 'VALUE'">
-            <div class="ai-cart-panel__head">
-              <div class="ai-cart-panel__title-wrap">
-                <span class="ai-badge">{{ activeAiTab() === 'STYLE' ? 'CU-22: Estilo y Armonia' : 'CU-23: Valor y Ahorro' }}</span>
-                <h4>{{ activeAiTab() === 'STYLE' ? 'Critica Estilistica de Altair' : 'Optimizacion de Outfit' }}</h4>
+            @if (cart.discountAmount() > 0) {
+              <div class="total-row discount-row">
+                <span>Descuento Promocional</span>
+                <strong>- Bs {{ cart.discountAmount() | number: '1.2-2' }}</strong>
               </div>
-              <button type="button" class="ai-cart-panel__close" (click)="closeAiAnalysis()" aria-label="Cerrar analisis">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            @if (analyzingStyle() || optimizingValue()) {
-              <div class="ai-cart-panel__loading">
-                <span class="spinner"></span>
-                <p>{{ analyzingStyle() ? 'Evaluando coherencia cromatica y balance...' : 'Calculando relacion costo/beneficio...' }}</p>
-              </div>
-            } @else {
-              @if (activeAiTab() === 'STYLE' && styleResult()) {
-                <div class="ai-cart-panel__body">
-                  <p class="ai-response-text">{{ styleResult()?.respuesta }}</p>
-                  @if (styleResult()?.productos && styleResult()!.productos.length > 0) {
-                    <div class="ai-suggestions-box">
-                      <span class="suggestions-label">Prendas recomendadas para complementar:</span>
-                      <div class="suggestions-list">
-                        @for (prod of styleResult()!.productos; track prod.id) {
-                          <div class="suggestion-chip">
-                            <span>{{ prod.nombre }}</span>
-                            <button type="button" class="btn-add-chip" (click)="addSuggestedToCart(prod)">+ Anadir</button>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-
-              @if (activeAiTab() === 'VALUE' && valueResult()) {
-                <div class="ai-cart-panel__body">
-                  <p class="ai-response-text">{{ valueResult()?.respuesta }}</p>
-                  @if (valueResult()?.productos && valueResult()!.productos.length > 0) {
-                    <div class="ai-suggestions-box">
-                      <span class="suggestions-label">Alternativas con mayor relacion valor/ahorro:</span>
-                      <div class="suggestions-list">
-                        @for (prod of valueResult()!.productos; track prod.id) {
-                          <div class="suggestion-chip">
-                            <span>{{ prod.nombre }}</span>
-                            <button type="button" class="btn-add-chip" (click)="addSuggestedToCart(prod)">+ Anadir</button>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
             }
+            <div class="total-row grand-row">
+              <span>Total Estimado</span>
+              <strong>Bs {{ cart.totalWithDiscount() | number: '1.2-2' }}</strong>
+            </div>
           </div>
-        }
-
-        <div class="ai-buttons-group">
-          <button
-            class="button button--secondary button--ai-action"
-            type="button"
-            (click)="runStyleAnalysis()"
-            [disabled]="analyzingStyle()"
-            title="Evaluar coherencia de estilo y cromatica con IA (CU-22)"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            <span>Analizar Estilo (CU-22)</span>
-          </button>
-          <button
-            class="button button--secondary button--ai-action"
-            type="button"
-            (click)="runValueOptimization()"
-            [disabled]="optimizingValue()"
-            title="Optimizar balance de calidad, costo y ahorro (CU-23)"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-              <path d="M12 18V6"/>
-            </svg>
-            <span>Optimizar Ahorro (CU-23)</span>
-          </button>
-        </div>
 
           <button
             class="button button--primary button--wide checkout-btn"
@@ -262,7 +234,7 @@
             (click)="goToCheckout()"
           >
             <span>Continuar al Checkout</span>
-            <span class="checkout-price">Bs {{ cart.subtotal() | number: '1.2-2' }} &rarr;</span>
+            <span class="checkout-price">Bs {{ cart.totalWithDiscount() | number: '1.2-2' }} &rarr;</span>
           </button>
         </footer>
       }
@@ -438,6 +410,12 @@
             <span>Prendas ({{ cart.totalItems() }} items)</span>
             <span>Bs {{ cart.subtotal() | number: '1.2-2' }}</span>
           </div>
+          @if (cart.discountAmount() > 0) {
+            <div class="pricing-row discount-pricing">
+              <span>Descuento Cupón ({{ cart.appliedPromo()?.codigo }})</span>
+              <span class="discount-val">- Bs {{ cart.discountAmount() | number: '1.2-2' }}</span>
+            </div>
+          }
           <div class="pricing-row">
             <span>Costo de entrega</span>
             <span>{{ shippingCost() > 0 ? ('Bs ' + (shippingCost() | number: '1.2-2')) : 'Gratis' }}</span>
@@ -492,6 +470,16 @@
             <span>Modalidad</span>
             <strong>{{ order.tipo_entrega }}</strong>
           </div>
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <span>Bs {{ order.subtotal | number: '1.2-2' }}</span>
+          </div>
+          @if (order.descuento > 0) {
+            <div class="summary-line discount-line">
+              <span>Descuento Aplicado</span>
+              <strong class="discount-val">- Bs {{ order.descuento | number: '1.2-2' }}</strong>
+            </div>
+          }
           <div class="summary-line">
             <span>Monto Total</span>
             <strong class="highlight-price">Bs {{ order.total | number: '1.2-2' }}</strong>

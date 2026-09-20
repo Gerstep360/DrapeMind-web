@@ -320,6 +320,19 @@
   border-radius: 48% 48% 18% 18%;
 }
 
-/* ==========================================================================
-   EDITORIAL GARMENT NOT-FOUND STATE (Section 31)
-   ========================================================================== */
+.editorial-tag-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+
+  .editorial-tag-chip {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--dm-ink, #10110f);
+    background: rgba(18, 23, 20, 0.05);
+    border: 1px solid rgba(18, 23, 20, 0.08);
+    padding: 1px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+}

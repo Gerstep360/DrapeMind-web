@@ -6,20 +6,38 @@
   <main>
     <aside>
       <span class="eyebrow">TU PRIMER RECORRIDO</span>
-      <h1>Tu tienda.<br>Tu manera de vestir.</h1>
-      <p>Elige dónde comprar y comparte lo que te gusta. Tú decides cuándo pedir una recomendación a Altair.</p>
+      <h1>Tu identidad.<br>Tu manera de vestir.</h1>
+      <p>Comienza por definir tu género objetivo y luego configuraremos tu sede y tallas de referencia.</p>
       <ol aria-label="Pasos de configuración">
-        <li [class.current]="stage() === 'greeting'">01 <span>Tu sucursal</span></li>
-        <li [class.current]="stage() === 'survey_gender' || stage() === 'survey_sizes' || stage() === 'survey_budget'">02 <span>Tus preferencias</span></li>
-        <li [class.current]="stage() === 'reveal'">03 <span>Explora a tu ritmo</span></li>
+        <li [class.current]="stage() === 'survey_gender'">01 <span>Identidad y género</span></li>
+        <li [class.current]="stage() === 'greeting'">02 <span>Tu showroom</span></li>
+        <li [class.current]="stage() === 'survey_sizes'">03 <span>Medidas y corte</span></li>
+        <li [class.current]="stage() === 'survey_budget'">04 <span>Estilos y detalles</span></li>
+        <li [class.current]="stage() === 'reveal'">05 <span>Explora a tu ritmo</span></li>
       </ol>
     </aside>
     <section class="step" aria-live="polite">
       @switch (stage()) {
+        @case ('survey_gender') {
+          <span class="eyebrow">01 / 04 · IDENTIDAD</span><h2>¿Para quién buscas prendas?</h2>
+          <p>Altair adaptará todo el catálogo, siluetas y recomendaciones al género que selecciones.</p>
+          <label>Busco prendas orientadas a:</label>
+          <div class="choices">
+            @for (option of genderOptions; track option.id) {
+              <button type="button" [class.selected]="selectedGender() === option.id" [attr.aria-pressed]="selectedGender() === option.id" (click)="selectedGender.set(option.id)">
+                <strong>{{ option.label }}</strong>
+                <small>{{ option.desc }}</small>
+              </button>
+            }
+          </div>
+          <footer>
+            <button class="primary" type="button" [disabled]="!selectedGender()" (click)="goToStep('greeting')">Continuar a sucursal →</button>
+          </footer>
+        }
         @case ('greeting') {
-          <span class="eyebrow">CERCA DE TI</span>
+          <span class="eyebrow">02 / 04 · CERCA DE TI</span>
           <h2>¿En qué sucursal quieres comprar?</h2>
-          <p>La disponibilidad cambia entre tiendas. Puedes cambiar tu selección después.</p>
+          <p>La disponibilidad física cambia entre tiendas. Puedes cambiar tu selección después.</p>
           @if (branchService.loading()) { <p role="status">Cargando sucursales…</p> }
           <div class="choices branches">
             @for (branch of branchService.branches(); track branch.id) {
@@ -31,49 +49,44 @@
           @if (!branchService.loading() && !branchService.branches().length) {
             <p>No pudimos cargar tiendas disponibles.</p><button type="button" (click)="branchService.loadBranches()">Reintentar</button>
           }
-          <footer><button class="primary" type="button" [disabled]="!chosenBranchId()" (click)="goToStep('survey_gender')">Continuar con mis preferencias →</button></footer>
-        }
-        @case ('survey_gender') {
-          <span class="eyebrow">1 / 3 · ESTILO</span><h2>¿Qué te gusta vestir?</h2>
-          <p>Elige solo lo que te represente. Puedes dejar opciones sin definir.</p>
-          <label>Busco prendas</label><div class="choices">
-            @for (option of genderOptions; track option.id) {
-              <button type="button" [class.selected]="selectedGender() === option.id" [attr.aria-pressed]="selectedGender() === option.id" (click)="selectedGender.set(option.id)">{{ option.label }}</button>
-            }
-          </div>
-          <label>Estilos que me interesan</label><div class="choices">
-            @for (option of styleOptions; track option.id) {
-              <button type="button" [class.selected]="selectedStyles().includes(option.id)" [attr.aria-pressed]="selectedStyles().includes(option.id)" (click)="toggleStyle(option.id)">{{ option.id }}</button>
-            }
-          </div>
-          <footer><button type="button" (click)="goToStep('greeting')">Atrás</button><button class="primary" type="button" (click)="goToStep('survey_sizes')">Continuar →</button></footer>
+          <footer>
+            <button type="button" (click)="goToStep('survey_gender')">Atrás</button>
+            <button class="primary" type="button" [disabled]="!chosenBranchId()" (click)="goToStep('survey_sizes')">Continuar con mis medidas →</button>
+          </footer>
         }
         @case ('survey_sizes') {
-          <span class="eyebrow">2 / 3 · MEDIDAS</span><h2>Un punto de partida para tu talla.</h2>
-          <p>No son una medición corporal ni una garantía de calce. Revisa la guía de cada prenda.</p>
+          <span class="eyebrow">03 / 04 · MEDIDAS & CALCE</span><h2>Un punto de partida para tus tallas.</h2>
+          <p>Altair usará estas medidas para proponerte prendas que te queden perfectas.</p>
           <div class="field-grid">
-            <label>Talla superior<input [ngModel]="selectedTopSize()" (ngModelChange)="selectedTopSize.set($event)" placeholder="Sin definir" maxlength="20"></label>
-            <label>Talla inferior<input [ngModel]="selectedBottomSize()" (ngModelChange)="selectedBottomSize.set($event)" placeholder="Sin definir" maxlength="20"></label>
-            <label>Talla de calzado<input [ngModel]="selectedShoeSize()" (ngModelChange)="selectedShoeSize.set($event)" placeholder="Sin definir" maxlength="20"></label>
+            <label>Talla superior (Tops, Camisas, Hoodies)<input [ngModel]="selectedTopSize()" (ngModelChange)="selectedTopSize.set($event)" placeholder="Ej. M, L, S" maxlength="20"></label>
+            <label>Talla inferior (Pantalones, Faldas, Jeans)<input [ngModel]="selectedBottomSize()" (ngModelChange)="selectedBottomSize.set($event)" placeholder="Ej. 30, 32, M" maxlength="20"></label>
+            <label>Talla de calzado (Sneakers, Zapatos)<input [ngModel]="selectedShoeSize()" (ngModelChange)="selectedShoeSize.set($event)" placeholder="Ej. 38, 40, 42" maxlength="20"></label>
           </div>
           <label>Cómo prefiero el corte</label><div class="choices">
             @for (fit of silhouetteOptions; track fit) { <button type="button" [class.selected]="selectedSilhouette() === fit" (click)="selectedSilhouette.set(fit)">{{ fit }}</button> }
           </div>
-          <footer><button type="button" (click)="goToStep('survey_gender')">Atrás</button><button class="primary" type="button" (click)="goToStep('survey_budget')">Continuar →</button></footer>
+          <footer><button type="button" (click)="goToStep('greeting')">Atrás</button><button class="primary" type="button" (click)="goToStep('survey_budget')">Continuar a estilos →</button></footer>
         }
         @case ('survey_budget') {
-          <span class="eyebrow">3 / 3 · PREFERENCIAS</span><h2>Los detalles hacen el look.</h2>
-          <label>Paletas favoritas</label><div class="choices">
+          <span class="eyebrow">04 / 04 · ESTILOS & DETALLES</span><h2>Los detalles hacen tu look.</h2>
+          <label>Estilos que me interesan (multiselección)</label>
+          <div class="choices">
+            @for (option of styleOptions; track option.id) {
+              <button type="button" [class.selected]="selectedStyles().includes(option.id)" [attr.aria-pressed]="selectedStyles().includes(option.id)" (click)="toggleStyle(option.id)">{{ option.id }}</button>
+            }
+          </div>
+          <label>Paletas de color favoritas</label>
+          <div class="choices">
             @for (color of colorOptions; track color.id) { <button type="button" [class.selected]="selectedColors().includes(color.id)" [attr.aria-pressed]="selectedColors().includes(color.id)" (click)="toggleColor(color.id)">{{ color.id }}</button> }
           </div>
           <div class="field-grid">
-            <label>Ocasión habitual (opcional)<input [ngModel]="selectedOccasion()" (ngModelChange)="selectedOccasion.set($event)" placeholder="Dinámica: según cada conversación" maxlength="80"></label>
+            <label>Ocasión habitual (opcional)<input [ngModel]="selectedOccasion()" (ngModelChange)="selectedOccasion.set($event)" placeholder="Casual, Oficina, Noche..." maxlength="80"></label>
             <label>Presupuesto habitual (Bs)<input type="number" min="0" [ngModel]="selectedBudget() || null" (ngModelChange)="selectedBudget.set($event || 0)" placeholder="Sin definir"></label>
           </div>
-          <p>Guardaremos estas preferencias. Todavía no se ejecutará una consulta a Altair.</p>
+          <p>Guardaremos estas preferencias para sincronizarlas con el Atelier y Altair AI.</p>
           <footer><button type="button" (click)="goToStep('survey_sizes')">Atrás</button><button class="primary" type="button" (click)="startInference()">Guardar preferencias →</button></footer>
         }
-        @case ('inferring') { <h2>Guardando tus preferencias…</h2><p role="status">Esperando la confirmación del servidor.</p> }
+        @case ('inferring') { <h2>Guardando tus preferencias…</h2><p role="status">Sincronizando con el Atelier de DrapeMind.</p> }
         @case ('reveal') {
           <span class="saved-mark" aria-hidden="true">✓</span><h2>Todo listo para explorar.</h2>
           <p>Tus preferencias están guardadas. ¿Quieres que Altair consulte novedades y te ayude a elegir?</p>

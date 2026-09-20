@@ -97,6 +97,12 @@
       </span>
     </div>
 
+    @if (product.tags_ai && product.tags_ai.length > 0) {
+      <div class="editorial-tag-row">
+        <span class="editorial-tag-chip">{{ product.tags_ai[0] }}</span>
+      </div>
+    }
+
     <p class="product-card__desc">{{ product.descripcion }}</p>
     <div class="product-card__actions">
       <button class="select-btn" type="button">Ver prenda y seleccionar talla</button>

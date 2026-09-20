@@ -30,6 +30,15 @@ export const packageRoutes: Routes = [
       ),
   },
   {
+    path: 'cart-optimizer',
+    title: 'Estudio de Perchero y Optimización | DrapeMind',
+    data: { package: 'Carrito, pedidos y pagos' },
+    loadComponent: () =>
+      import(
+        '@packages/carrito-pedidos-pagos/optimizar-perchero-ia/cart-optimizer.component'
+      ).then((m) => m.CartOptimizerComponent),
+  },
+  {
     path: 'orders',
     title: 'Pedidos | DrapeMind',
     data: { package: 'Carrito, pedidos y pagos' },

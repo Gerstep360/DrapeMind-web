@@ -65,10 +65,36 @@ export class CommerceApiService {
   optimizeCartValue(payload: { objetivo?: string; sesion_id?: number; modelo_ia?: string } = {}): Observable<{
     respuesta: string;
     productos: any[];
+    recomendaciones?: any[];
     sesion_id?: number;
     skills_ejecutadas?: string[];
   }> {
     const body = { modelo_ia: 'ALTAIR_MINI', ...payload };
     return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/value-check`, body);
+  }
+
+  // CU-24: Aplicar recomendación de IA al carrito (reemplazo inteligente)
+  applyRecommendation(recomendacionId: number): Observable<Cart> {
+    return this.http.post<Cart>(`${this.runtime.apiUrl}/ai/recommendations/apply`, {
+      recomendacion_id: recomendacionId,
+    });
+  }
+
+  // CU-36: Validar código promocional u oferta
+  validatePromotion(payload: {
+    codigo: string;
+    monto_subtotal: number;
+    item_producto_ids?: number[];
+  }): Observable<{
+    valido: boolean;
+    codigo: string;
+    mensaje: string;
+    tipo_descuento?: string;
+    valor_descuento?: number;
+    descuento_calculado?: number;
+    producto_id?: number;
+    producto_nombre?: string;
+  }> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/catalog/promotions/validate`, payload);
   }
 }
