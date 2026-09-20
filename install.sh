@@ -15,7 +15,7 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-SERVER_IP="157.173.102.129"
+SERVER_IP="167.86.106.105"
 BACKEND_PORT=8045
 WEB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WWW_TARGET="/var/www/drapemind/browser"
