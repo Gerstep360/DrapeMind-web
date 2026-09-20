@@ -65,6 +65,16 @@ export class ProductsManagementComponent implements OnInit {
     { nombre: 'Borgoña', hex: '#581845' },
     { nombre: 'Terracota', hex: '#C86446' },
   ];
+  readonly availablePalette = signal<ProductColorChoice[]>([
+    { nombre: 'Negro Azabache', hex: '#10110F' },
+    { nombre: 'Blanco Crudo', hex: '#F4F5EA' },
+    { nombre: 'Azul Marino', hex: '#0B1B3D' },
+    { nombre: 'Verde Esmeralda', hex: '#1B4332' },
+    { nombre: 'Beige Lino', hex: '#D4C7B5' },
+    { nombre: 'Gris Marengo', hex: '#4A4E69' },
+    { nombre: 'Borgoña', hex: '#581845' },
+    { nombre: 'Terracota', hex: '#C86446' },
+  ]);
   readonly selectedColors = signal<ProductColorChoice[]>([
     { nombre: 'Negro Azabache', hex: '#10110F' },
   ]);
@@ -242,6 +252,15 @@ export class ProductsManagementComponent implements OnInit {
             nombre,
             hex,
           }));
+          // Integrar los colores existentes a la paleta disponible si no estaban incluidos
+          const currentPal = this.availablePalette();
+          const merged = [...currentPal];
+          for (const c of colors) {
+            if (!merged.some((p) => p.nombre.toLowerCase() === c.nombre.toLowerCase())) {
+              merged.push(c);
+            }
+          }
+          this.availablePalette.set(merged);
           this.selectedColors.set(colors.length > 0 ? colors : [{ nombre: 'Negro Azabache', hex: '#10110F' }]);
           this.selectedSizes.set(sizeSet.size > 0 ? Array.from(sizeSet) : ['M']);
           this.variantStockMap.set(stockMap);
@@ -285,12 +304,13 @@ export class ProductsManagementComponent implements OnInit {
 
   setPrimaryImage(index: number): void {
     const current = [...this.imagesList()];
-    if (index >= 0 && index < current.length) {
+    if (index > 0 && index < current.length) {
       const [item] = current.splice(index, 1);
       current.unshift(item);
       this.imagesList.set(current);
       this.previewImageUrl.set(item);
       this.productForm.patchValue({ imagenes: current });
+      this.toasts.show('Fotografía principal actualizada', 'info');
     }
   }
 
@@ -316,13 +336,21 @@ export class ProductsManagementComponent implements OnInit {
     const name = this.customColorName().trim();
     const hex = this.customColorHex();
     if (!name) {
-      this.toasts.show('Ingresa un nombre para el color personalizado', 'info');
+      this.toasts.show('Ingresa un nombre para el color personalizado (ej. Verde Botella, Marfil)', 'info');
       return;
     }
-    if (!this.isColorSelected(name)) {
-      this.selectedColors.set([...this.selectedColors(), { nombre: name, hex: hex }]);
-      this.customColorName.set('');
+    const newColor: ProductColorChoice = { nombre: name, hex: hex };
+    const exists = this.availablePalette().some(
+      (c) => c.nombre.toLowerCase() === name.toLowerCase()
+    );
+    if (!exists) {
+      this.availablePalette.update((pal) => [...pal, newColor]);
     }
+    if (!this.isColorSelected(name)) {
+      this.selectedColors.update((sel) => [...sel, newColor]);
+      this.toasts.show(`Color "${name}" añadido a la paleta y seleccionado`, 'info');
+    }
+    this.customColorName.set('');
   }
 
   removeColor(nombre: string): void {

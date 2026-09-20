@@ -283,17 +283,34 @@
             <!-- Grilla de Miniaturas Interactivas -->
             @if (imagesList().length > 0) {
               <div class="gallery-thumbs-grid">
-                @for (img of imagesList(); track img; let idx = $index) {
-                  <div class="thumb-card" [class.thumb-card--primary]="idx === 0">
+                @for (img of imagesList(); track $index; let idx = $index) {
+                  <div
+                    class="thumb-card"
+                    [class.thumb-card--primary]="idx === 0"
+                    (click)="setPrimaryImage(idx)"
+                    [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
+                  >
                     <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
                     @if (idx === 0) {
                       <span class="badge-primary-photo">Principal</span>
                     } @else {
-                      <button type="button" class="btn-make-primary" (click)="setPrimaryImage(idx)" title="Definir como foto principal">
-                        Principal
+                      <button
+                        type="button"
+                        class="btn-make-primary"
+                        (click)="$event.stopPropagation(); setPrimaryImage(idx)"
+                        title="Definir como foto principal"
+                      >
+                        Hacer Principal
                       </button>
                     }
-                    <button type="button" class="btn-remove-photo" (click)="removeImage(idx)" title="Eliminar foto">&times;</button>
+                    <button
+                      type="button"
+                      class="btn-remove-photo"
+                      (click)="$event.stopPropagation(); removeImage(idx)"
+                      title="Eliminar foto"
+                    >
+                      &times;
+                    </button>
                   </div>
                 }
               </div>
@@ -386,7 +403,7 @@
               <div class="palette-builder">
                 <span class="field-label">Paleta de Colores Disponibles:</span>
                 <div class="color-chips-row">
-                  @for (c of defaultPalette; track c.nombre) {
+                  @for (c of availablePalette(); track c.nombre) {
                     <button
                       type="button"
                       class="color-pill"
@@ -412,9 +429,10 @@
                     />
                     <input
                       type="text"
-                      placeholder="Nombre (ej. Verde Botella)"
+                      placeholder="Nombre del color (ej. Verde Botella)"
                       [value]="customColorName()"
                       (input)="customColorName.set($any($event.target).value)"
+                      (keydown.enter)="$event.preventDefault(); addCustomColor()"
                       class="custom-color-text"
                     />
                     <button type="button" class="btn-add-color" (click)="addCustomColor()">+ Añadir Color</button>

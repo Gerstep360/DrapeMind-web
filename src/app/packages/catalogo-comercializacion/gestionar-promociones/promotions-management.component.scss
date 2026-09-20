@@ -995,3 +995,46 @@
     }
   }
 }
+
+.field-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+
+  label {
+    margin-bottom: 0 !important;
+  }
+}
+
+.btn-generate-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #121714;
+  background: #eef1ea;
+  border: 1px solid #d5ddd3;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  svg {
+    stroke: currentColor;
+  }
+
+  &:hover {
+    background: #e0e6db;
+    border-color: #121714;
+  }
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: #727e74;
+  margin-top: 0.25rem;
+}
+

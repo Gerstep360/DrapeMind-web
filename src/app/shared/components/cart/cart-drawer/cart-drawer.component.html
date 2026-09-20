@@ -171,24 +171,66 @@
             </div>
           </div>
 
+          <!-- Promociones y Cupones Disponibles -->
+          @if (!cart.appliedPromo() && availablePromotions().length > 0) {
+            <div class="available-promos-box">
+              <div class="promos-box-header">
+                <span class="promos-box-title">Cupones y Promociones Disponibles</span>
+              </div>
+              <div class="promos-scroll-row">
+                @for (p of availablePromotions(); track p.id) {
+                  <div class="promo-quick-pill" (click)="quickApplyPromo(p.codigo)" role="button" tabindex="0">
+                    <div class="promo-pill-left">
+                      <span class="promo-pill-code">{{ p.codigo }}</span>
+                      <span class="promo-pill-benefit">
+                        @if (p.tipo_descuento === 'PORCENTAJE') {
+                          {{ p.valor_descuento }}% OFF
+                        } @else if (p.tipo_descuento === 'DOS_POR_UNO') {
+                          2x1 PROMO
+                        } @else {
+                          - Bs {{ p.valor_descuento | number: '1.2-2' }}
+                        }
+                        @if (p.monto_minimo_compra > 0) {
+                          <small class="pill-min">Mín. Bs {{ p.monto_minimo_compra }}</small>
+                        }
+                      </span>
+                    </div>
+                    <button type="button" class="btn-quick-apply" [disabled]="validatingPromo()" title="Aplicar cupón">
+                      Usar
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
           <!-- Cupón de Descuento / Promoción -->
           <div class="cart-coupon-box">
             @if (cart.appliedPromo(); as promo) {
-              <div class="applied-coupon-chip">
-                <div class="coupon-info">
-                  <span class="coupon-tag">Cupón Aplicado</span>
-                  <strong>{{ promo.codigo }}</strong>
-                  <span class="coupon-discount">- Bs {{ promo.descuento_calculado | number: '1.2-2' }}</span>
+              <div class="applied-coupon-card">
+                <div class="coupon-card-header">
+                  <div class="coupon-check-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="coupon-card-details">
+                    <div class="coupon-top-line">
+                      <span class="coupon-label-tag">CUPÓN APLICADO</span>
+                      <strong class="coupon-name">{{ promo.codigo }}</strong>
+                    </div>
+                    <span class="coupon-saving-text">Ahorro en este pedido: - Bs {{ promo.descuento_calculado | number: '1.2-2' }}</span>
+                  </div>
                 </div>
-                <button type="button" class="btn-remove-coupon" (click)="removePromo()" title="Quitar cupón">
-                  &times;
+                <button type="button" class="btn-remove-coupon" (click)="removePromo()" title="Quitar cupón de este pedido">
+                  Quitar
                 </button>
               </div>
             } @else {
               <div class="coupon-input-group">
                 <input
                   type="text"
-                  placeholder="Código promocional (ej. BIENVENIDA10)"
+                  placeholder="Código promocional (ej. ATELIER15)"
                   [value]="promoInput()"
                   (input)="promoInput.set($any($event.target).value)"
                   (keydown.enter)="applyPromo()"
@@ -201,7 +243,7 @@
                   [disabled]="validatingPromo() || !promoInput().trim()"
                 >
                   @if (validatingPromo()) {
-                    <span class="spinner"></span>
+                    <span class="spinner-inline"></span>
                   } @else {
                     Aplicar
                   }
@@ -406,13 +448,39 @@
 
       <footer class="cart-footer checkout-footer">
         <div class="checkout-pricing">
+          @if (cart.appliedPromo(); as p) {
+            <div class="checkout-applied-promo-badge">
+              <div class="promo-badge-text">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Cupón <strong>{{ p.codigo }}</strong> activo (-Bs {{ p.descuento_calculado | number: '1.2-2' }})</span>
+              </div>
+              <button type="button" class="btn-checkout-remove-promo" (click)="removePromo()" title="Quitar cupón">Quitar</button>
+            </div>
+          } @else {
+            <div class="checkout-quick-coupon">
+              <input
+                type="text"
+                placeholder="¿Código de cupón? (ej. ATELIER15)"
+                [value]="promoInput()"
+                (input)="promoInput.set($any($event.target).value)"
+                (keydown.enter)="applyPromo()"
+                [disabled]="validatingPromo()"
+              />
+              <button type="button" (click)="applyPromo()" [disabled]="validatingPromo() || !promoInput().trim()">
+                Aplicar
+              </button>
+            </div>
+          }
+
           <div class="pricing-row">
             <span>Prendas ({{ cart.totalItems() }} items)</span>
             <span>Bs {{ cart.subtotal() | number: '1.2-2' }}</span>
           </div>
           @if (cart.discountAmount() > 0) {
             <div class="pricing-row discount-pricing">
-              <span>Descuento Cupón ({{ cart.appliedPromo()?.codigo }})</span>
+              <span>Descuento Promocional ({{ cart.appliedPromo()?.codigo }})</span>
               <span class="discount-val">- Bs {{ cart.discountAmount() | number: '1.2-2' }}</span>
             </div>
           }

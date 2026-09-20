@@ -29,39 +29,44 @@ export class PromotionsManagementComponent implements OnInit {
 
   readonly modalOpen = signal(false);
   readonly editingPromotion = signal<Promotion | null>(null);
-  readonly promoScope = signal<'CUPON' | 'PRENDA'>('CUPON');
+  readonly scopeTarget = signal<'ALL' | 'GARMENT'>('ALL');
 
-  setPromoScope(scope: 'CUPON' | 'PRENDA'): void {
-    this.promoScope.set(scope);
-    if (scope === 'PRENDA' && !this.editingPromotion()) {
-      const autoCode = `DIRECTA-${Math.floor(1000 + Math.random() * 9000)}`;
-      this.promoForm.patchValue({ codigo: autoCode });
+  setScopeTarget(target: 'ALL' | 'GARMENT'): void {
+    this.scopeTarget.set(target);
+    if (target === 'ALL') {
+      this.selectedGarment.set(null);
+      this.promoForm.patchValue({ producto_id: null });
     }
   }
 
   isDirectPromo(promo: Promotion): boolean {
-    const c = (promo.codigo || '').toUpperCase();
-    return (
-      !!promo.producto_id ||
-      c.startsWith('DIRECTA-') ||
-      c.startsWith('OFERTA-') ||
-      c.startsWith('PRENDA-') ||
-      (promo.descripcion || '').toLowerCase().includes('prenda')
-    );
+    return !!promo.producto_id;
   }
 
   selectGarment(prodIdStr: any): void {
     const id = prodIdStr ? Number(prodIdStr) : null;
-    const prod = id ? (this.availableProducts().find(p => p.id === id) || null) : null;
+    const prod = id ? (this.availableProducts().find((p) => p.id === id) || null) : null;
     this.selectedGarment.set(prod);
     this.promoForm.patchValue({ producto_id: id });
-    if (prod && this.promoScope() === 'PRENDA' && !this.editingPromotion()) {
-      const code = `OFERTA-${prod.id}`;
-      this.promoForm.patchValue({
-        codigo: code,
-        descripcion: `Descuento exclusivo en ${prod.nombre}`,
-      });
-    }
+  }
+
+  onCodeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const cleaned = (input.value || '')
+      .toUpperCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^A-Z0-9_-]/g, '');
+    input.value = cleaned;
+    this.promoForm.patchValue({ codigo: cleaned });
+  }
+
+  generatePromoCode(): void {
+    const prefixes = ['ATELIER', 'PROMO', 'ESTILO', 'VIP', 'MODA', 'ESPECIAL'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const num = Math.floor(10 + Math.random() * 89);
+    const code = `${prefix}-${num}`;
+    this.promoForm.patchValue({ codigo: code });
+    this.toasts.show(`Código generado: ${code}`, 'info');
   }
 
   // Simulador de cupones
@@ -127,10 +132,10 @@ export class PromotionsManagementComponent implements OnInit {
 
   private initForm(): void {
     this.promoForm = this.fb.group({
-      codigo: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_-]{3,50}$/)]],
+      codigo: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       descripcion: ['', [Validators.maxLength(255)]],
       tipo_descuento: ['PORCENTAJE', [Validators.required]],
-      valor_descuento: [10, [Validators.required, Validators.min(0.01)]],
+      valor_descuento: [15, [Validators.required, Validators.min(0.01)]],
       monto_minimo_compra: [0, [Validators.min(0)]],
       fecha_inicio: [null],
       fecha_fin: [null],
@@ -142,7 +147,7 @@ export class PromotionsManagementComponent implements OnInit {
 
   copyPromoCode(code: string): void {
     navigator.clipboard.writeText(code).then(() => {
-      this.toasts.show(`¡Código "${code}" copiado al portapapeles! Puedes pegarlo en el carrito.`, 'success');
+      this.toasts.show(`¡Código "${code}" copiado al portapapeles!`, 'success');
     }).catch(() => {
       this.toasts.show(`Código: ${code}`, 'info');
     });
@@ -165,7 +170,7 @@ export class PromotionsManagementComponent implements OnInit {
   openCreateModal(): void {
     this.editingPromotion.set(null);
     this.selectedGarment.set(null);
-    this.promoScope.set('CUPON');
+    this.scopeTarget.set('ALL');
     this.promoForm.reset({
       codigo: '',
       descripcion: '',
@@ -187,7 +192,7 @@ export class PromotionsManagementComponent implements OnInit {
       ? (this.availableProducts().find((p) => p.id === promo.producto_id) || null)
       : null;
     this.selectedGarment.set(linkedProd);
-    this.promoScope.set(this.isDirectPromo(promo) || !!promo.producto_id ? 'PRENDA' : 'CUPON');
+    this.scopeTarget.set(promo.producto_id ? 'GARMENT' : 'ALL');
     this.promoForm.patchValue({
       codigo: promo.codigo,
       descripcion: promo.descripcion || '',
@@ -209,24 +214,57 @@ export class PromotionsManagementComponent implements OnInit {
     this.selectedGarment.set(null);
   }
 
+  private formatPayloadDate(dateStr: string | null | undefined, isEndOfDay = false): string | null {
+    if (!dateStr || typeof dateStr !== 'string' || !dateStr.trim()) return null;
+    const clean = dateStr.trim();
+    try {
+      if (clean.length === 10) {
+        const [year, month, day] = clean.split('-').map(Number);
+        if (!year || !month || !day) return null;
+        const d = new Date(Date.UTC(year, month - 1, day, isEndOfDay ? 23 : 0, isEndOfDay ? 59 : 0, isEndOfDay ? 59 : 0));
+        return d.toISOString();
+      }
+      const d = new Date(clean);
+      return isNaN(d.getTime()) ? null : d.toISOString();
+    } catch {
+      return null;
+    }
+  }
+
   savePromotion(): void {
+    const rawCode = (this.promoForm.value.codigo || '').trim();
+    if (!rawCode) {
+      this.toasts.show('Por favor introduce un código para la promoción (ej. ATELIER15).', 'error');
+      this.promoForm.get('codigo')?.markAsTouched();
+      return;
+    }
+    const val = Number(this.promoForm.value.valor_descuento);
+    if (!val || val <= 0) {
+      this.toasts.show('El valor del descuento debe ser mayor a 0.', 'error');
+      this.promoForm.get('valor_descuento')?.markAsTouched();
+      return;
+    }
+
     if (this.promoForm.invalid) {
       this.promoForm.markAllAsTouched();
+      this.toasts.show('Verifica los campos obligatorios del formulario.', 'error');
       return;
     }
 
     this.submitting.set(true);
     const formVal = this.promoForm.value;
+    const cleanCode = rawCode.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9_-]/g, '');
+
     const payload: PromotionInput = {
-      codigo: formVal.codigo.trim().toUpperCase(),
+      codigo: cleanCode,
       descripcion: formVal.descripcion ? formVal.descripcion.trim() : null,
       tipo_descuento: formVal.tipo_descuento,
-      valor_descuento: Number(formVal.valor_descuento),
+      valor_descuento: val,
       monto_minimo_compra: Number(formVal.monto_minimo_compra || 0),
-      fecha_inicio: formVal.fecha_inicio ? new Date(formVal.fecha_inicio).toISOString() : null,
-      fecha_fin: formVal.fecha_fin ? new Date(formVal.fecha_fin).toISOString() : null,
+      fecha_inicio: this.formatPayloadDate(formVal.fecha_inicio, false),
+      fecha_fin: this.formatPayloadDate(formVal.fecha_fin, true),
       limite_usos: formVal.limite_usos ? Number(formVal.limite_usos) : null,
-      producto_id: formVal.producto_id ? Number(formVal.producto_id) : null,
+      producto_id: this.scopeTarget() === 'GARMENT' && formVal.producto_id ? Number(formVal.producto_id) : null,
       activo: !!formVal.activo,
     };
 

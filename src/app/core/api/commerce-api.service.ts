@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Cart, CheckoutRequest, Order, Payment, PaymentCreate, ReceiptData, User } from '@core/models';
+import { Cart, CheckoutRequest, Order, Payment, PaymentCreate, Promotion, ReceiptData, User } from '@core/models';
 import { RuntimeConfigService } from '@core/runtime-config.service';
 
 export interface PosSalePayload {
@@ -78,6 +78,11 @@ export class CommerceApiService {
     return this.http.post<Cart>(`${this.runtime.apiUrl}/ai/recommendations/apply`, {
       recomendacion_id: recomendacionId,
     });
+  }
+
+  // CU-36: Listar promociones activas para canje o compra
+  listActivePromotions(): Observable<Promotion[]> {
+    return this.http.get<Promotion[]>(`${this.runtime.apiUrl}/catalog/promotions?activo=true`);
   }
 
   // CU-36: Validar código promocional u oferta

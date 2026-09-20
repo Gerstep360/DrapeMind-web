@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { CartService } from '@core/cart.service';
-import { Address, Order, Payment } from '@core/models';
+import { Address, Order, Payment, Promotion } from '@core/models';
 import { AccountApiService } from '@core/api/account-api.service';
 import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ToastService } from '@core/toast.service';
@@ -73,10 +73,16 @@ export class CartDrawerComponent {
     return garmentPresentationType(name);
   }
 
+  // Cupones y Promociones
+  readonly availablePromotions = signal<Promotion[]>([]);
+  readonly promoInput = signal<string>('');
+  readonly validatingPromo = signal<boolean>(false);
+
   constructor() {
     effect(() => {
       if (this.cart.isOpen()) {
         this.loadAddresses();
+        this.loadPromotions();
       } else {
         // Reset to cart view when drawer is closed
         setTimeout(() => this.step.set('CART'), 300);
@@ -84,14 +90,22 @@ export class CartDrawerComponent {
     });
   }
 
-  // Cupones y Promociones
-  readonly promoInput = signal<string>('');
-  readonly validatingPromo = signal<boolean>(false);
+  loadPromotions(): void {
+    this.commerceApi.listActivePromotions().subscribe({
+      next: (promos) => this.availablePromotions.set(promos || []),
+      error: () => {},
+    });
+  }
 
-  applyPromo(): void {
-    const code = this.promoInput().trim().toUpperCase();
+  quickApplyPromo(code: string): void {
+    this.promoInput.set(code);
+    this.applyPromo(code);
+  }
+
+  applyPromo(codeOverride?: string): void {
+    const code = (codeOverride || this.promoInput()).trim().toUpperCase();
     if (!code) {
-      this.toast.show('Ingresa un código promocional', 'info');
+      this.toast.show('Ingresa o selecciona un código promocional', 'info');
       return;
     }
     if (this.cart.subtotal() <= 0) {
@@ -117,12 +131,12 @@ export class CartDrawerComponent {
               tipo_descuento: res.tipo_descuento,
             });
             this.toast.show(
-              `¡Cupón ${res.codigo} aplicado! Ahorras Bs ${Number(res.descuento_calculado).toFixed(2)}`,
+              `¡Cupón "${res.codigo}" aplicado con éxito! Ahorras Bs ${Number(res.descuento_calculado).toFixed(2)}`,
               'success',
             );
             this.promoInput.set('');
           } else {
-            this.toast.show(res.mensaje || 'Código no válido o expirado', 'error');
+            this.toast.show(res.mensaje || 'El cupón no es válido para los productos o montos de este pedido', 'error');
           }
         },
         error: (err) => {
