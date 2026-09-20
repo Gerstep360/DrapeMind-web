@@ -607,6 +607,50 @@
   & > * {
     pointer-events: auto;
     max-width: 46rem;
+    width: 100%;
+  }
+
+  .composer-container-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .cancel-generation-pill-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    animation: fadeIn 180ms ease;
+  }
+
+  .btn-cancel-generation-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: var(--dm-radius-pill, 999px);
+    background: var(--dm-surface, #FFFFFF);
+    border: 1px solid var(--dm-border, #E1E3DA);
+    color: var(--dm-danger, #E85D5D);
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(16, 17, 15, 0.08);
+    transition: all var(--dm-fast, 150ms) ease;
+
+    &:hover {
+      background: var(--dm-danger, #E85D5D);
+      border-color: var(--dm-danger, #E85D5D);
+      color: #FFFFFF;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(232, 93, 93, 0.25);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
   }
 }
 

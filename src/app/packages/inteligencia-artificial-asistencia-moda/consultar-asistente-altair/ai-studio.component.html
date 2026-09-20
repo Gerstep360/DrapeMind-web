@@ -261,14 +261,26 @@
 
   <!-- FLOATING COMPOSER ZONE (CHATGPT STYLE SINGLE CARD) -->
   <div class="ai-composer-zone" role="region" aria-label="Escribir a Altair">
-    <app-chat-composer
-      [isBusy]="ai.isBusy()"
-      [activeModel]="activeModel()"
-      (sendMessage)="onComposerSend($event)"
-      (cancelGeneration)="cancel()"
-      (openOutfitBuilder)="handleOpenQuestionnaire()"
-      (modelChange)="selectModel($event)"
-    />
+    <div class="composer-container-stack">
+      @if (ai.isBusy()) {
+        <div class="cancel-generation-pill-row">
+          <button type="button" class="btn-cancel-generation-pill" (click)="cancel()" title="Detener generacion de respuesta">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <rect width="18" height="18" x="3" y="3" rx="3"/>
+            </svg>
+            <span>Cancelar respuesta</span>
+          </button>
+        </div>
+      }
+      <app-chat-composer
+        [isBusy]="ai.isBusy()"
+        [activeModel]="activeModel()"
+        (sendMessage)="onComposerSend($event)"
+        (cancelGeneration)="cancel()"
+        (openOutfitBuilder)="handleOpenQuestionnaire()"
+        (modelChange)="selectModel($event)"
+      />
+    </div>
   </div>
 
   <!-- SESSIONS DRAWER (HISTORIAL 24 HORAS) -->
