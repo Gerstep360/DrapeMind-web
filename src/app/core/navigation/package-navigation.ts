@@ -34,7 +34,7 @@ export interface PackageNavigation {
   items: PackageNavItem[];
 }
 
-const everyone: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE'];
+const everyone: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIENTE', 'PROVEEDOR'];
 const staff: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'];
 
 export const PACKAGE_NAVIGATION: PackageNavigation[] = [
@@ -99,7 +99,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
       },
       {
         label: 'Promociones y descuentos',
-        description: 'Reglas de descuento y cupones',
+        description: 'Cupones, campañas y porcentajes',
         icon: 'promotions',
         route: '/promotions-admin',
         roles: ['ADMIN'],
@@ -108,18 +108,25 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
   },
   {
     label: 'Carrito, pedidos y pagos',
-    description: 'Compra y venta',
+    description: 'Compras y caja',
     items: [
       {
-        label: 'Pedidos y ventas',
-        description: 'Historial, entregas y cobros',
+        label: 'Pedidos y entregas',
+        description: 'Historial y despacho de compras',
         icon: 'orders',
         route: '/orders',
         roles: everyone,
       },
       {
-        label: 'Caja',
-        description: 'Venta presencial y comprobante',
+        label: 'Optimización de perchero',
+        description: 'Compatibilidad, ocasión y paleta',
+        icon: 'stylist',
+        route: '/cart-optimizer',
+        roles: everyone,
+      },
+      {
+        label: 'Caja presencial',
+        description: 'Cobro rápido y QR en tienda',
         icon: 'pos',
         route: '/pos',
         roles: staff,
@@ -196,7 +203,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         description: 'Agenda de fabricantes e insumos',
         icon: 'suppliers',
         route: '/suppliers-admin',
-        roles: ['ADMIN'],
+        roles: ['ADMIN', 'PROVEEDOR'],
       },
     ],
   },
@@ -207,6 +214,17 @@ export function navigationForRole(role: UserRole | undefined): PackageNavigation
   if (!role) return [];
   return PACKAGE_NAVIGATION.map((group) => ({
     ...group,
-    items: group.items.filter((item) => item.roles.includes(role)),
+    items: group.items
+      .filter((item) => item.roles.includes(role))
+      .map((item) => {
+        if (role === 'PROVEEDOR' && item.route === '/suppliers-admin') {
+          return {
+            ...item,
+            label: 'Mis Prendas y Catálogo',
+            description: 'Gestión de prendas, telas y stock',
+          };
+        }
+        return item;
+      }),
   })).filter((group) => group.items.length > 0);
 }

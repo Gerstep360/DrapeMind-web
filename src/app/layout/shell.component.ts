@@ -98,6 +98,13 @@ export class ShellComponent {
     this.branchService.openSelectorModal();
   }
 
+  onToastClick(toast: import('@core/toast.service').Toast): void {
+    if (toast.url) {
+      this.router.navigateByUrl(toast.url);
+    }
+    this.toasts.dismiss(toast.id);
+  }
+
   logout(): void {
     this.events.disconnect();
     this.ai.disconnect();

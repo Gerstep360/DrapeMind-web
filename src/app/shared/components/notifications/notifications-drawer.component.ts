@@ -48,7 +48,12 @@ export class NotificationsDrawerComponent {
       }
     }
 
-    this.router.navigateByUrl(target);
+    if (target) {
+      this.router.navigateByUrl(target).catch(() => {
+        const fallback = target!.split('?')[0];
+        this.router.navigateByUrl(fallback);
+      });
+    }
   }
 
   formatTime(isoDate: string): string {

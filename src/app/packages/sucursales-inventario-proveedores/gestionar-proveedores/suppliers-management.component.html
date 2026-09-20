@@ -1,254 +1,425 @@
 <section class="suppliers-page">
   @if (isSupplierUser()) {
-    <div class="supplier-banner-card">
-      <div class="banner-content">
-        <span class="portal-badge">Portal del Proveedor</span>
-        <h2>{{ mySupplierProfile()?.nombre_empresa || 'Empresa Proveedora' }}</h2>
-        <p>
-          Bienvenido al portal exclusivo para empresas proveedoras y fabricantes. Registra tus prendas, tejidos de confección, insumos y lotes disponibles para el atelier en tiempo real.
+    <!-- VISTA EXCLUSIVA Y DEDICADA PARA EL PROVEEDOR TEXTIL -->
+    <header class="page-header">
+      <div class="header-content">
+        <span class="eyebrow">PORTAL EXCLUSIVO DE PROVEEDOR TEXTIL</span>
+        <h1 class="page-title">Mi Catálogo de Prendas y Suministros</h1>
+        <p class="page-subtitle">
+          Administración de prendas de confección, tejidos finos, lotes y existencias disponibles para el atelier DrapeMind.
         </p>
-        <div class="banner-quick-actions">
-          <button class="btn btn-primary" (click)="openCreateSupply()">
-            <svg viewBox="0 0 24 24" class="icon-inline">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>+ Registrar Prenda / Insumo</span>
-          </button>
-          @if (mySupplierProfile()) {
-            <button class="btn btn-secondary" (click)="openSuppliesModal(mySupplierProfile()!)">
-              <span>Gestionar Mis Prendas e Insumos ({{ supplierProducts().length }})</span>
-            </button>
-          }
-        </div>
       </div>
-    </div>
-  }
-
-  <!-- Header editorial -->
-  <header class="page-header">
-    <div class="header-content">
-      <span class="eyebrow">PK-07 &middot; SUCURSALES, INVENTARIO Y PROVEEDORES</span>
-      <h1 class="page-title">Directorio de Proveedores Textiles</h1>
-      <p class="page-subtitle">
-        Agenda centralizada de fabricantes, hilanderias y distribuidores de telas artesanales para el atelier.
-      </p>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-primary" (click)="openCreateModal()">
-        <svg class="btn-icon" viewBox="0 0 24 24">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        <span>Nuevo Proveedor</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Metricas rapidas -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">Total Proveedores</div>
-      <div class="stat-value">{{ stats().total }}</div>
-      <div class="stat-desc">Directorio historico registrado</div>
-    </div>
-    <div class="stat-card stat-highlight">
-      <div class="stat-label">Alianzas Activas</div>
-      <div class="stat-value">{{ stats().activos }}</div>
-      <div class="stat-desc">Habilitados para ordenes de compra</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Ciudades de Abastecimiento</div>
-      <div class="stat-value">{{ stats().ciudades }}</div>
-      <div class="stat-desc">Cobertura nacional de suministros</div>
-    </div>
-  </div>
-
-  <!-- Barra de Filtros y Busqueda -->
-  <div class="filters-card">
-    <div class="search-box">
-      <svg class="search-icon" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-      <input
-        type="text"
-        placeholder="Buscar por empresa, NIT, contacto o insumo..."
-        [value]="searchQuery()"
-        (input)="searchQuery.set($any($event.target).value)"
-        class="search-input"
-      />
-      @if (searchQuery()) {
-        <button class="clear-btn" (click)="searchQuery.set('')">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="openCreateSupply()">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>+ Agregar Prenda / Suministro</span>
         </button>
-      }
-    </div>
-
-    <div class="filters-group">
-      <div class="filter-item">
-        <label>Ciudad</label>
-        <select
-          [value]="filterCity()"
-          (change)="filterCity.set($any($event.target).value)"
-          class="select-input"
-        >
-          <option value="TODAS">Todas las ciudades</option>
-          @for (c of availableCities; track c) {
-            <option [value]="c">{{ c }}</option>
-          }
-        </select>
       </div>
+    </header>
 
-      <div class="filter-item">
-        <label>Estado</label>
-        <div class="filter-pills">
-          <button
-            class="pill-tab"
-            [class.active]="filterActive() === 'ALL'"
-            (click)="filterActive.set('ALL')"
-          >
-            Todos
-          </button>
-          <button
-            class="pill-tab"
-            [class.active]="filterActive() === 'ACTIVE'"
-            (click)="filterActive.set('ACTIVE')"
-          >
-            Activos
-          </button>
-          <button
-            class="pill-tab"
-            [class.active]="filterActive() === 'INACTIVE'"
-            (click)="filterActive.set('INACTIVE')"
-          >
-            Inactivos
-          </button>
+    <!-- Ficha del Perfil del Proveedor -->
+    <div class="supplier-profile-summary-card">
+      <div class="profile-main-row">
+        <div class="profile-company-info">
+          <span class="portal-badge">Cuenta de Proveedor Verificada</span>
+          <h2 class="profile-company-name">{{ mySupplierProfile()?.nombre_empresa || 'Empresa Proveedora' }}</h2>
+          <div class="profile-tags">
+            @if (mySupplierProfile()?.nit) {
+              <span class="profile-tag">NIT: {{ mySupplierProfile()?.nit }}</span>
+            }
+            <span class="profile-tag category">{{ mySupplierProfile()?.categoria_suministro || 'Confección Textil' }}</span>
+            <span class="profile-tag city">{{ mySupplierProfile()?.ciudad || 'Bolivia' }}</span>
+          </div>
+        </div>
+        <div class="profile-contact-details">
+          @if (mySupplierProfile()?.contacto_nombre) {
+            <div class="contact-line">
+              <strong>Contacto:</strong> {{ mySupplierProfile()?.contacto_nombre }}
+            </div>
+          }
+          @if (mySupplierProfile()?.telefono) {
+            <div class="contact-line">
+              <strong>Teléfono:</strong> {{ mySupplierProfile()?.telefono }}
+            </div>
+          }
+          @if (mySupplierProfile()?.email) {
+            <div class="contact-line">
+              <strong>Email:</strong> {{ mySupplierProfile()?.email }}
+            </div>
+          }
+          @if (mySupplierProfile()?.direccion) {
+            <div class="contact-line">
+              <strong>Almacén:</strong> {{ mySupplierProfile()?.direccion }}
+            </div>
+          }
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Listado de Proveedores -->
-  @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando agenda de proveedores...</p>
-    </div>
-  } @else if (filteredSuppliers().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon-wrap">
-        <svg viewBox="0 0 24 24">
-          <rect x="1" y="3" width="15" height="13" rx="1" />
-          <polygon points="16 8 20 8 23 11 23 16 16 8" />
-          <circle cx="5.5" cy="18.5" r="2.5" />
-          <circle cx="18.5" cy="18.5" r="2.5" />
-        </svg>
+    <!-- Métricas del Proveedor -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Prendas y Suministros</div>
+        <div class="stat-value">{{ mySupplierStats().total }}</div>
+        <div class="stat-desc">Ítems activos en catálogo</div>
       </div>
-      <h3>No se encontraron proveedores</h3>
-      <p>Intenta ajustar los criterios de busqueda o registra una nueva empresa fabricante.</p>
-      <button class="btn btn-primary" (click)="openCreateModal()">Registrar Primer Proveedor</button>
+      <div class="stat-card stat-highlight">
+        <div class="stat-label">Stock Total Disponible</div>
+        <div class="stat-value">{{ mySupplierStats().totalStock }}</div>
+        <div class="stat-desc">Unidades y metros en almacén</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Disponibilidad Inmediata</div>
+        <div class="stat-value">{{ mySupplierStats().disponibles }}</div>
+        <div class="stat-desc">Listos para despacho al atelier</div>
+      </div>
     </div>
-  } @else {
-    <div class="suppliers-grid">
-      @for (sup of filteredSuppliers(); track sup.id) {
-        <article class="supplier-card" [class.inactive]="!sup.activo">
-          <div class="card-header">
-            <div class="supplier-info">
-              <span class="category-pill">{{ sup.categoria_suministro }}</span>
-              <h3 class="supplier-name">{{ sup.nombre_empresa }}</h3>
-              @if (sup.nit) {
-                <span class="nit-tag">NIT: {{ sup.nit }}</span>
-              }
-            </div>
-            <span class="status-badge" [class.active]="sup.activo">
-              <span class="status-dot"></span>
-              {{ sup.activo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </div>
 
-          <div class="card-details">
-            @if (sup.contacto_nombre) {
+    <!-- Filtro de Búsqueda de Prendas -->
+    <div class="filters-card">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar prenda por nombre, código SKU o categoría..."
+          [value]="mySupplierSearch()"
+          (input)="mySupplierSearch.set($any($event.target).value)"
+          class="search-input"
+        />
+        @if (mySupplierSearch()) {
+          <button class="clear-btn" (click)="mySupplierSearch.set('')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        }
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" (click)="openCreateSupply()">
+          <span>+ Registrar Prenda</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Listado de Prendas e Insumos del Proveedor -->
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando prendas y catálogo...</p>
+      </div>
+    } @else if (filteredSupplierProducts().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <h3>No tienes prendas registradas en tu catálogo</h3>
+        <p>Comienza agregando tus prendas de confección o tejidos disponibles para que el atelier pueda seleccionarlas.</p>
+        <button class="btn btn-primary" (click)="openCreateSupply()">
+          <span>+ Registrar Primera Prenda</span>
+        </button>
+      </div>
+    } @else {
+      <div class="provider-products-container">
+        <div class="supplies-table-wrapper">
+          <table class="supplies-table">
+            <thead>
+              <tr>
+                <th>Prenda / Insumo</th>
+                <th>Categoría</th>
+                <th>Unidad</th>
+                <th>Costo Unitario</th>
+                <th>Stock Disponible</th>
+                <th>Entrega Estimada</th>
+                <th>Estado</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (prod of filteredSupplierProducts(); track prod.id) {
+                <tr>
+                  <td>
+                    <div class="supply-name-cell">
+                      <strong>{{ prod.nombre_suministro }}</strong>
+                      @if (prod.sku_proveedor) {
+                        <span class="supply-sku">SKU: {{ prod.sku_proveedor }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td><span class="category-chip">{{ prod.categoria }}</span></td>
+                  <td>{{ prod.unidad_medida }}</td>
+                  <td><strong class="cost-text">Bs. {{ prod.costo_unitario | number:'1.2-2' }}</strong></td>
+                  <td>
+                    <span class="stock-badge" [class.low]="prod.cantidad_disponible <= 5">
+                      {{ prod.cantidad_disponible }} {{ prod.unidad_medida }}
+                    </span>
+                  </td>
+                  <td>{{ prod.tiempo_entrega_dias }} días</td>
+                  <td>
+                    <span class="availability-tag" [attr.data-status]="prod.estado">
+                      {{ prod.estado }}
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <div class="row-actions-group">
+                      <button
+                        type="button"
+                        class="btn-row-action edit"
+                        (click)="openEditSupply(prod)"
+                        title="Modificar prenda"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-row-action delete"
+                        (click)="deleteSupply(prod)"
+                        title="Eliminar prenda"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  } @else {
+    <!-- VISTA ADMINISTRATIVA: Directorio General de Proveedores -->
+    <header class="page-header">
+      <div class="header-content">
+        <span class="eyebrow">SUCURSALES, INVENTARIO Y PROVEEDORES</span>
+        <h1 class="page-title">Directorio de Proveedores Textiles</h1>
+        <p class="page-subtitle">
+          Agenda centralizada de fabricantes, hilanderias y distribuidores de telas artesanales para el atelier.
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <svg class="btn-icon" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Nuevo Proveedor</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Metricas rapidas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Proveedores</div>
+        <div class="stat-value">{{ stats().total }}</div>
+        <div class="stat-desc">Directorio historico registrado</div>
+      </div>
+      <div class="stat-card stat-highlight">
+        <div class="stat-label">Alianzas Activas</div>
+        <div class="stat-value">{{ stats().activos }}</div>
+        <div class="stat-desc">Habilitados para ordenes de compra</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ciudades de Abastecimiento</div>
+        <div class="stat-value">{{ stats().ciudades }}</div>
+        <div class="stat-desc">Cobertura nacional de suministros</div>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros y Busqueda -->
+    <div class="filters-card">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por empresa, NIT, contacto o insumo..."
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          class="search-input"
+        />
+        @if (searchQuery()) {
+          <button class="clear-btn" (click)="searchQuery.set('')">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        }
+      </div>
+
+      <div class="filters-group">
+        <div class="filter-item">
+          <label>Ciudad</label>
+          <select
+            [value]="filterCity()"
+            (change)="filterCity.set($any($event.target).value)"
+            class="select-input"
+          >
+            <option value="TODAS">Todas las ciudades</option>
+            @for (c of availableCities; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label>Estado</label>
+          <div class="filter-pills">
+            <button
+              class="pill-tab"
+              [class.active]="filterActive() === 'ALL'"
+              (click)="filterActive.set('ALL')"
+            >
+              Todos
+            </button>
+            <button
+              class="pill-tab"
+              [class.active]="filterActive() === 'ACTIVE'"
+              (click)="filterActive.set('ACTIVE')"
+            >
+              Activos
+            </button>
+            <button
+              class="pill-tab"
+              [class.active]="filterActive() === 'INACTIVE'"
+              (click)="filterActive.set('INACTIVE')"
+            >
+              Inactivos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Listado de Proveedores -->
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando agenda de proveedores...</p>
+      </div>
+    } @else if (filteredSuppliers().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
+          <svg viewBox="0 0 24 24">
+            <rect x="1" y="3" width="15" height="13" rx="1" />
+            <polygon points="16 8 20 8 23 11 23 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+        </div>
+        <h3>No se encontraron proveedores</h3>
+        <p>Intenta ajustar los criterios de busqueda o registra una nueva empresa fabricante.</p>
+        <button class="btn btn-primary" (click)="openCreateModal()">Registrar Primer Proveedor</button>
+      </div>
+    } @else {
+      <div class="suppliers-grid">
+        @for (sup of filteredSuppliers(); track sup.id) {
+          <article class="supplier-card" [class.inactive]="!sup.activo">
+            <div class="card-header">
+              <div class="supplier-info">
+                <span class="category-pill">{{ sup.categoria_suministro }}</span>
+                <h3 class="supplier-name">{{ sup.nombre_empresa }}</h3>
+                @if (sup.nit) {
+                  <span class="nit-tag">NIT: {{ sup.nit }}</span>
+                }
+              </div>
+              <span class="status-badge" [class.active]="sup.activo">
+                <span class="status-dot"></span>
+                {{ sup.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+
+            <div class="card-details">
+              @if (sup.contacto_nombre) {
+                <div class="detail-row">
+                  <svg class="detail-icon" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span class="detail-text">{{ sup.contacto_nombre }}</span>
+                </div>
+              }
+
+              @if (sup.telefono) {
+                <div class="detail-row">
+                  <svg class="detail-icon" viewBox="0 0 24 24">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  <span class="detail-text">{{ sup.telefono }}</span>
+                </div>
+              }
+
+              @if (sup.email) {
+                <div class="detail-row">
+                  <svg class="detail-icon" viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                  <span class="detail-text truncate">{{ sup.email }}</span>
+                </div>
+              }
+
               <div class="detail-row">
+                <svg class="detail-icon" viewBox="0 0 24 24">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span class="detail-text">
+                  {{ sup.ciudad }}@if (sup.direccion) { &middot; {{ sup.direccion }} }
+                </span>
+              </div>
+
+              <div class="detail-row account-row">
                 <svg class="detail-icon" viewBox="0 0 24 24">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                <span class="detail-text">{{ sup.contacto_nombre }}</span>
-              </div>
-            }
-
-            @if (sup.telefono) {
-              <div class="detail-row">
-                <svg class="detail-icon" viewBox="0 0 24 24">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-                <span class="detail-text">{{ sup.telefono }}</span>
-              </div>
-            }
-
-            @if (sup.email) {
-              <div class="detail-row">
-                <svg class="detail-icon" viewBox="0 0 24 24">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-                <span class="detail-text truncate">{{ sup.email }}</span>
-              </div>
-            }
-
-            <div class="detail-row">
-              <svg class="detail-icon" viewBox="0 0 24 24">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              <span class="detail-text">
-                {{ sup.ciudad }}@if (sup.direccion) { &middot; {{ sup.direccion }} }
-              </span>
-            </div>
-
-            <div class="detail-row account-row">
-              <svg class="detail-icon" viewBox="0 0 24 24">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              @if (sup.usuario_email) {
-                <div class="account-linked-wrap">
-                  <span class="detail-text account-email-text" [title]="'Cuenta vinculada: ' + sup.usuario_email">
-                    {{ sup.usuario_email }}
-                  </span>
+                @if (sup.usuario_email) {
+                  <div class="account-linked-wrap">
+                    <span class="detail-text account-email-text" [title]="'Cuenta vinculada: ' + sup.usuario_email">
+                      {{ sup.usuario_email }}
+                    </span>
+                    <button
+                      type="button"
+                      class="btn-unlink-mini"
+                      (click)="unlinkSupplierAccount(sup)"
+                      title="Desvincular cuenta de usuario"
+                    >
+                      Desvincular
+                    </button>
+                  </div>
+                } @else {
                   <button
                     type="button"
-                    class="btn-unlink-mini"
-                    (click)="unlinkSupplierAccount(sup)"
-                    title="Desvincular cuenta de usuario"
+                    class="btn-link-account-mini"
+                    (click)="openAccountModal(sup)"
+                    title="Crear credenciales de acceso para este proveedor"
                   >
-                    Desvincular
+                    <svg viewBox="0 0 24 24" class="icon-inline">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Crear Cuenta</span>
                   </button>
-                </div>
-              } @else {
-                <button
-                  type="button"
-                  class="btn-link-account-mini"
-                  (click)="openAccountModal(sup)"
-                  title="Crear credenciales de acceso para este proveedor"
-                >
-                  <svg viewBox="0 0 24 24" class="icon-inline">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  <span>Crear Cuenta</span>
-                </button>
-              }
+                }
+              </div>
             </div>
-          </div>
 
-          <div class="card-footer">
-            <button
-              class="btn-action supplies"
-              (click)="openSuppliesModal(sup)"
-              title="Gestionar catalogo de insumos"
-            >
+            <div class="card-footer">
+              <button
+                type="button"
+                class="btn-action supplies"
+                (click)="openSuppliesModal(sup)"
+                title="Gestionar catalogo de insumos"
+              >
               <svg viewBox="0 0 24 24">
                 <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
@@ -300,6 +471,7 @@
       }
     </div>
   }
+}
 
   <!-- Modal de Creacion / Edicion de Proveedor -->
   @if (modalOpen()) {

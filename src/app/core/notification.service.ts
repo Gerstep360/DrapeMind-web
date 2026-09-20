@@ -268,12 +268,20 @@ export class NotificationService {
 
       case 'notification': {
         const payloadData = data.data || data.payload || {};
-        const screen = String(payloadData.screen || '').toLowerCase();
+        const screen = String(payloadData.screen || payloadData.url || payloadData.enlace || '').toLowerCase();
         const nType = String(data.notification_type || '').toUpperCase();
         let enlace = '/orders';
         let tipoNotif: 'PEDIDO' | 'RESERVA' | 'PAGO' | 'PROMOCION' | 'IA' | 'SISTEMA' = 'PEDIDO';
 
-        if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio') || nType.includes('AI')) {
+        const directUrl = payloadData.enlace || payloadData.url;
+        if (directUrl && typeof directUrl === 'string' && directUrl.startsWith('/')) {
+          enlace = directUrl;
+          if (directUrl.includes('ai') || directUrl.includes('chat')) tipoNotif = 'IA';
+          else if (directUrl.includes('reservation') || directUrl.includes('reserva')) tipoNotif = 'RESERVA';
+          else if (directUrl.includes('promo')) tipoNotif = 'PROMOCION';
+          else if (directUrl.includes('order')) tipoNotif = 'PEDIDO';
+          else tipoNotif = 'SISTEMA';
+        } else if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio') || nType.includes('AI')) {
           enlace = payloadData.sesion_id ? `/ai-studio?session=${payloadData.sesion_id}` : '/ai-studio';
           tipoNotif = 'IA';
         } else if (screen.includes('reservation') || screen.includes('reserva') || nType.includes('RESERVA')) {
@@ -358,7 +366,7 @@ export class NotificationService {
 
     if (notif) {
       this.addNotification(notif);
-      this.toasts.show(notif.mensaje, 'info');
+      this.toasts.show(notif.mensaje, 'info', notif.enlace, 'Ver');
     }
   }
 

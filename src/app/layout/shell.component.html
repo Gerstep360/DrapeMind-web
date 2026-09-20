@@ -1339,10 +1339,11 @@
         class="toast"
         [class]="
           'toast toast--' +
-          toast.tone
+          toast.tone +
+          (toast.url ? ' toast--interactive' : '')
         "
         (click)="
-          toasts.dismiss(toast.id)
+          onToastClick(toast)
         "
         type="button"
       >
@@ -1441,6 +1442,12 @@
         <span class="toast__message">
           {{ toast.message }}
         </span>
+
+        @if (toast.url) {
+          <span class="toast__action-badge">
+            {{ toast.actionLabel || 'Ver' }} &rarr;
+          </span>
+        }
 
 
         <!-- CLOSE -->

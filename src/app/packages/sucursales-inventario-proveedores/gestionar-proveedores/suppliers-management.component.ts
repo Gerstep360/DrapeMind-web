@@ -50,11 +50,34 @@ export class SuppliersManagementComponent implements OnInit {
   readonly submittingSupply = signal(false);
   readonly showAddSupplyForm = signal(false);
   readonly editingSupply = signal<SupplierProduct | null>(null);
+  readonly mySupplierSearch = signal('');
+
+  readonly filteredSupplierProducts = computed(() => {
+    let list = this.supplierProducts();
+    const q = this.mySupplierSearch().trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+      (p) =>
+        p.nombre_suministro.toLowerCase().includes(q) ||
+        (p.sku_proveedor && p.sku_proveedor.toLowerCase().includes(q)) ||
+        p.categoria.toLowerCase().includes(q) ||
+        p.estado.toLowerCase().includes(q),
+    );
+  });
+
+  readonly mySupplierStats = computed(() => {
+    const list = this.supplierProducts();
+    const total = list.length;
+    const totalStock = list.reduce((acc, p) => acc + (p.cantidad_disponible || 0), 0);
+    const disponibles = list.filter((p) => p.estado === 'DISPONIBLE').length;
+    return { total, totalStock, disponibles };
+  });
 
   supplyForm!: FormGroup;
 
   readonly availableCities = ['La Paz', 'Santa Cruz', 'Cochabamba', 'Oruro', 'Sucre', 'Tarija', 'Potosi'];
   readonly supplyCategories = [
+    'Prendas y Confeccion Textil',
     'Telas y Confeccion',
     'Lana de Alpaca y Cachemira',
     'Lino 100% y Algodon Pima',
@@ -65,6 +88,7 @@ export class SuppliersManagementComponent implements OnInit {
   ];
 
   readonly supplyCategoriesForProduct = [
+    'Prendas y Confeccion',
     'Telas y Tejidos',
     'Lana y Fibras',
     'Hilos de Sastreria',
@@ -76,10 +100,11 @@ export class SuppliersManagementComponent implements OnInit {
   ];
 
   readonly unitsOfMeasure = [
+    'Unidades',
+    'Prendas',
     'Metros',
     'Yardas',
     'Kilogramos',
-    'Unidades',
     'Rollos',
     'Conos',
     'Docenas',
@@ -491,8 +516,8 @@ export class SuppliersManagementComponent implements OnInit {
   }
 
   saveSupply(): void {
-    const supplier = this.selectedSupplier();
-    if (!supplier) return;
+    const supplier = this.selectedSupplier() || this.mySupplierProfile();
+    if (!supplier && !this.isSupplierUser()) return;
 
     if (this.supplyForm.invalid) {
       this.supplyForm.markAllAsTouched();
@@ -514,6 +539,48 @@ export class SuppliersManagementComponent implements OnInit {
     };
 
     const currentSupply = this.editingSupply();
+
+    if (this.isSupplierUser()) {
+      if (currentSupply) {
+        this.adminApi.updateMySupplierProduct(currentSupply.id, payload).subscribe({
+          next: (updated) => {
+            this.supplierProducts.update((list) =>
+              list.map((item) => (item.id === updated.id ? updated : item)),
+            );
+            this.toasts.show(`Prenda/Insumo "${updated.nombre_suministro}" actualizado correctamente.`, 'success');
+            this.submittingSupply.set(false);
+            this.showAddSupplyForm.set(false);
+            this.editingSupply.set(null);
+            this.suppliesModalOpen.set(false);
+          },
+          error: (err) => {
+            this.toasts.show('Error al actualizar: ' + (err.error?.detail || err.message), 'error');
+            this.submittingSupply.set(false);
+          },
+        });
+      } else {
+        this.adminApi.createMySupplierProduct(payload).subscribe({
+          next: (created) => {
+            this.supplierProducts.update((list) => [created, ...list]);
+            this.toasts.show(`Prenda/Insumo "${created.nombre_suministro}" agregado a tu catalogo.`, 'success');
+            this.submittingSupply.set(false);
+            this.showAddSupplyForm.set(false);
+            this.suppliesModalOpen.set(false);
+          },
+          error: (err) => {
+            this.toasts.show('Error al registrar prenda/insumo: ' + (err.error?.detail || err.message), 'error');
+            this.submittingSupply.set(false);
+          },
+        });
+      }
+      return;
+    }
+
+    if (!supplier) {
+      this.submittingSupply.set(false);
+      return;
+    }
+
     if (currentSupply) {
       this.adminApi.updateSupplierProduct(supplier.id, currentSupply.id, payload).subscribe({
         next: (updated) => {
@@ -547,11 +614,24 @@ export class SuppliersManagementComponent implements OnInit {
   }
 
   deleteSupply(item: SupplierProduct): void {
+    const confirmed = window.confirm(`Desea eliminar "${item.nombre_suministro}" del catalogo?`);
+    if (!confirmed) return;
+
+    if (this.isSupplierUser()) {
+      this.adminApi.deleteMySupplierProduct(item.id).subscribe({
+        next: () => {
+          this.supplierProducts.update((list) => list.filter((i) => i.id !== item.id));
+          this.toasts.show(`Prenda "${item.nombre_suministro}" eliminada de tu catalogo.`, 'success');
+        },
+        error: (err) => {
+          this.toasts.show('Error al eliminar prenda: ' + (err.error?.detail || err.message), 'error');
+        },
+      });
+      return;
+    }
+
     const supplier = this.selectedSupplier();
     if (!supplier) return;
-
-    const confirmed = window.confirm(`Desea eliminar el insumo "${item.nombre_suministro}" del catalogo?`);
-    if (!confirmed) return;
 
     this.adminApi.deleteSupplierProduct(supplier.id, item.id).subscribe({
       next: () => {
