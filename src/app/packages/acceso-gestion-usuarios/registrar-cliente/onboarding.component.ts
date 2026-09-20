@@ -341,7 +341,9 @@ export class OnboardingComponent implements OnInit {
   exploreWithAltair(): void {
     const profile = this.resultProfile();
     if (!profile) return;
+    const resolvedGender = profile.genero || this.selectedGender() || 'UNISEX';
     const preferences = {
+      genero: resolvedGender,
       estilos: profile.estilos_preferidos,
       tallas: [profile.talla_superior, profile.talla_inferior, profile.talla_calzado],
       colores: profile.colores_favoritos,
@@ -349,7 +351,8 @@ export class OnboardingComponent implements OnInit {
       ocasiones: profile.ocasiones_frecuentes,
     };
     const branch = this.branchService.branches().find((item) => item.id === this.chosenBranchId());
-    const message = `Quiero explorar novedades disponibles en ${branch?.nombre}. Consulta stock real antes de recomendar. Estas son mis preferencias: ${JSON.stringify(preferences)}`;
+    const generoText = resolvedGender === 'MUJER' ? 'ropa de Dama / Femenina' : resolvedGender === 'HOMBRE' ? 'ropa de Caballero / Masculina' : 'ropa Unisex';
+    const message = `Quiero explorar novedades exclusivas para mí (${generoText}) disponibles en ${branch?.nombre || 'Showroom Central'}. Consulta stock real antes de recomendar. Estas son mis preferencias y medidas: ${JSON.stringify(preferences)}`;
     void this.router.navigate(['/ai-studio'], { queryParams: { autoQuery: message } });
   }
 

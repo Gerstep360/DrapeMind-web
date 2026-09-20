@@ -80,9 +80,9 @@
 .modal-scrim {
   position: fixed;
   inset: 0;
-  z-index: 1050;
-  background: rgba(16, 17, 15, 0.5);
-  backdrop-filter: blur(8px);
+  z-index: 3000;
+  background: rgba(16, 17, 15, 0.6);
+  backdrop-filter: blur(10px);
   animation: fadeIn 200ms ease;
 }
 
@@ -123,15 +123,15 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1051;
+  z-index: 3010;
   width: min(56rem, calc(100vw - 2.5rem));
-  max-height: calc(100vh - 3.5rem);
+  max-height: calc(100vh - 5rem);
   overflow-y: auto;
   background: var(--dm-surface, #ffffff);
   color: var(--dm-ink, #10110f);
   border: 1px solid var(--dm-border, #e1e3da);
   border-radius: var(--dm-radius-xl, 34px);
-  box-shadow: var(--dm-shadow-lg, 0 24px 64px rgba(16, 17, 15, 0.16));
+  box-shadow: var(--dm-shadow-lg, 0 24px 64px rgba(16, 17, 15, 0.25));
   animation: scaleUp 260ms var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 

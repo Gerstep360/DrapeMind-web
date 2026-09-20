@@ -50,11 +50,90 @@ export class PosAiModalComponent {
     { label: '< Bs 350 Económico', query: 'menos de 350 bs accesible' },
   ];
 
+  // Controles de Personalización Libre para el Vendedor (CU-37)
+  readonly selectedGender = signal<'TODOS' | 'MUJER' | 'HOMBRE' | 'UNISEX'>('TODOS');
+  readonly selectedTopSize = signal<string>('');
+  readonly selectedBottomSize = signal<string>('');
+  readonly selectedShoeSize = signal<string>('');
+  readonly selectedOccasionQuick = signal<string>('');
+  readonly maxBudget = signal<number | null>(null);
+  readonly customNotes = signal<string>('');
+  readonly showCustomControls = signal<boolean>(true);
+
+  readonly topSizesList = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  readonly bottomSizesList = ['28', '30', '32', '34', '36', '38', '40'];
+  readonly shoeSizesList = ['37', '38', '39', '40', '41', '42', '43', '44'];
+
   /** IDs de prendas añadidas temporalmente para dar feedback visual de confirmación */
   readonly addedPieceIds = signal<Set<number>>(new Set<number>());
 
   /** IDs de conjuntos añadidos temporalmente para dar feedback visual */
   readonly addedOutfitIds = signal<Set<string>>(new Set<string>());
+
+  setGenderFilter(g: 'TODOS' | 'MUJER' | 'HOMBRE' | 'UNISEX'): void {
+    this.selectedGender.set(g);
+    this.syncPromptWithFilters();
+  }
+
+  setTopSizeFilter(s: string): void {
+    this.selectedTopSize.set(this.selectedTopSize() === s ? '' : s);
+    this.syncPromptWithFilters();
+  }
+
+  setBottomSizeFilter(s: string): void {
+    this.selectedBottomSize.set(this.selectedBottomSize() === s ? '' : s);
+    this.syncPromptWithFilters();
+  }
+
+  setShoeSizeFilter(s: string): void {
+    this.selectedShoeSize.set(this.selectedShoeSize() === s ? '' : s);
+    this.syncPromptWithFilters();
+  }
+
+  setOccasionQuick(occ: string): void {
+    this.selectedOccasionQuick.set(this.selectedOccasionQuick() === occ ? '' : occ);
+    this.syncPromptWithFilters();
+  }
+
+  onBudgetChange(val: number | null): void {
+    this.maxBudget.set(val && val > 0 ? val : null);
+    this.syncPromptWithFilters();
+  }
+
+  onCustomNotesChange(val: string): void {
+    this.customNotes.set(val);
+    this.syncPromptWithFilters();
+  }
+
+  private syncPromptWithFilters(): void {
+    const parts: string[] = [];
+
+    if (this.selectedGender() === 'MUJER') parts.push('Para Dama / Femenino');
+    else if (this.selectedGender() === 'HOMBRE') parts.push('Para Caballero / Masculino');
+    else if (this.selectedGender() === 'UNISEX') parts.push('Estilo Unisex');
+
+    if (this.selectedOccasionQuick()) {
+      parts.push(`Ocasión: ${this.selectedOccasionQuick()}`);
+    }
+
+    const sizes: string[] = [];
+    if (this.selectedTopSize()) sizes.push(`Sup ${this.selectedTopSize()}`);
+    if (this.selectedBottomSize()) sizes.push(`Inf ${this.selectedBottomSize()}`);
+    if (this.selectedShoeSize()) sizes.push(`Calzado ${this.selectedShoeSize()}`);
+    if (sizes.length > 0) parts.push(`Tallas: ${sizes.join(', ')}`);
+
+    if (this.maxBudget()) {
+      parts.push(`Presupuesto máx: ${this.maxBudget()} Bs`);
+    }
+
+    if (this.customNotes().trim()) {
+      parts.push(this.customNotes().trim());
+    }
+
+    if (parts.length > 0) {
+      this.occasionControl.setValue(parts.join('. '));
+    }
+  }
 
   constructor() {
     marked.setOptions({

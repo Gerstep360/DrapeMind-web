@@ -88,9 +88,158 @@
         </div>
       </div>
 
+      <!-- PERSONALIZACIÓN LIBRE Y CONTROLES DEL VENDEDOR (CU-37) -->
+      <div class="stylist-custom-panel">
+        <div class="custom-panel-header">
+          <span class="custom-panel-title">Personalización de Estilo del Cliente:</span>
+          <button type="button" class="toggle-custom-btn" (click)="showCustomControls.set(!showCustomControls())">
+            {{ showCustomControls() ? 'Ocultar Filtros' : 'Mostrar Filtros Avanzados' }}
+          </button>
+        </div>
+
+        @if (showCustomControls()) {
+          <div class="stylist-filters-grid">
+            <!-- Género -->
+            <div class="filter-group">
+              <span class="filter-group-label">Línea de Género:</span>
+              <div class="chips-group">
+                <button
+                  type="button"
+                  class="pill-opt"
+                  [class.active]="selectedGender() === 'TODOS'"
+                  (click)="setGenderFilter('TODOS')"
+                >
+                  Cualquiera
+                </button>
+                <button
+                  type="button"
+                  class="pill-opt"
+                  [class.active]="selectedGender() === 'MUJER'"
+                  (click)="setGenderFilter('MUJER')"
+                >
+                  Dama / Femenino
+                </button>
+                <button
+                  type="button"
+                  class="pill-opt"
+                  [class.active]="selectedGender() === 'HOMBRE'"
+                  (click)="setGenderFilter('HOMBRE')"
+                >
+                  Caballero / Masculino
+                </button>
+                <button
+                  type="button"
+                  class="pill-opt"
+                  [class.active]="selectedGender() === 'UNISEX'"
+                  (click)="setGenderFilter('UNISEX')"
+                >
+                  Unisex
+                </button>
+              </div>
+            </div>
+
+            <!-- Ocasión Rápida -->
+            <div class="filter-group">
+              <span class="filter-group-label">Ocasión de Uso:</span>
+              <div class="chips-group">
+                @for (occ of ['Casual', 'Gala', 'Trabajo', 'Urbano', 'Noche']; track occ) {
+                  <button
+                    type="button"
+                    class="pill-opt"
+                    [class.active]="selectedOccasionQuick() === occ"
+                    (click)="setOccasionQuick(occ)"
+                  >
+                    {{ occ }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Tallas -->
+            <div class="filter-group sizes-group">
+              <span class="filter-group-label">Tallas Deseadas:</span>
+              <div class="sizes-row">
+                <div class="size-col">
+                  <small>Superior:</small>
+                  <div class="micro-pills">
+                    @for (s of topSizesList; track s) {
+                      <button
+                        type="button"
+                        class="micro-pill"
+                        [class.active]="selectedTopSize() === s"
+                        (click)="setTopSizeFilter(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="size-col">
+                  <small>Inferior:</small>
+                  <div class="micro-pills">
+                    @for (s of bottomSizesList; track s) {
+                      <button
+                        type="button"
+                        class="micro-pill"
+                        [class.active]="selectedBottomSize() === s"
+                        (click)="setBottomSizeFilter(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="size-col">
+                  <small>Calzado:</small>
+                  <div class="micro-pills">
+                    @for (s of shoeSizesList; track s) {
+                      <button
+                        type="button"
+                        class="micro-pill"
+                        [class.active]="selectedShoeSize() === s"
+                        (click)="setShoeSizeFilter(s)"
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Presupuesto y Notas Libres -->
+            <div class="filter-group-split">
+              <div class="budget-input-wrap">
+                <span class="filter-group-label">Presupuesto Máximo (Bs):</span>
+                <input
+                  type="number"
+                  placeholder="Sin tope o ej: 400"
+                  [value]="maxBudget() || ''"
+                  (input)="onBudgetChange($any($event.target).value ? +$any($event.target).value : null)"
+                  class="stylist-input"
+                />
+              </div>
+
+              <div class="notes-input-wrap">
+                <span class="filter-group-label">Notas Libres / Petición Especial:</span>
+                <input
+                  type="text"
+                  placeholder="Ej. tonos tierra, lino suave, corte holgado..."
+                  [value]="customNotes()"
+                  (input)="onCustomNotesChange($any($event.target).value)"
+                  class="stylist-input"
+                />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
       <!-- PROMPT SEARCH BAR -->
       <div class="ai-prompt-bar">
-        <label>Ocasión, estilo o presupuesto del cliente:</label>
+        <label>Prompt final sintetizado para Altair AI:</label>
         <div class="prompt-input-group">
           <input
             [formControl]="occasionControl"
@@ -118,7 +267,7 @@
 
         <!-- QUICK OCCASION SUGGESTIONS -->
         <div class="ai-quick-chips">
-          <span class="chips-label">Sugerencias rápidas:</span>
+          <span class="chips-label">Atajos directos:</span>
           <div class="chips-list">
             @for (chip of quickSuggestions; track chip.label) {
               <button

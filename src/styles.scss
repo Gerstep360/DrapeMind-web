@@ -675,3 +675,31 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   GLOBAL MODAL HIERARCHY & TOPBAR NON-INTERFERENCE
+   ========================================================================== */
+
+.modal-scrim,
+.modal-backdrop {
+  z-index: 3000 !important;
+}
+
+[role="dialog"],
+.product-detail-modal,
+.ai-outfit-dialog,
+.modal-card {
+  z-index: 3010 !important;
+}
+
+body:has(.modal-scrim),
+body:has(.modal-backdrop),
+body:has([role="dialog"]),
+body:has(.product-detail-modal) {
+  .topbar,
+  .dm-topbar {
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+}
+

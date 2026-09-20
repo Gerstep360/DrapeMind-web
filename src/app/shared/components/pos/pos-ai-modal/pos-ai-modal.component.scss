@@ -207,6 +207,170 @@
       }
     }
 
+    /* STYLIST CUSTOM CONTROLS (CU-37) */
+    .stylist-custom-panel {
+      background: var(--dm-surface-soft, #F8F9F2);
+      border: 1px solid var(--dm-border, #E1E3DA);
+      border-radius: var(--dm-radius-md, 20px);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+
+      .custom-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .custom-panel-title {
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--dm-ink, #10110F);
+        }
+
+        .toggle-custom-btn {
+          background: transparent;
+          border: none;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--dm-text-muted, #7B7F75);
+          cursor: pointer;
+          text-decoration: underline;
+
+          &:hover {
+            color: var(--dm-ink, #10110F);
+          }
+        }
+      }
+
+      .stylist-filters-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+
+          .filter-group-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--dm-text-muted, #7B7F75);
+            text-transform: uppercase;
+          }
+
+          .chips-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+
+            .pill-opt {
+              padding: 0.35rem 0.85rem;
+              border-radius: var(--dm-radius-pill, 999px);
+              border: 1px solid var(--dm-border, #E1E3DA);
+              background: #FFFFFF;
+              font-size: 0.78rem;
+              font-weight: 600;
+              cursor: pointer;
+              color: var(--dm-text, #22231F);
+              transition: all 0.15s ease;
+
+              &:hover {
+                border-color: var(--dm-ink, #10110F);
+              }
+
+              &.active {
+                background: var(--dm-ink, #10110F);
+                color: #FFFFFF;
+                border-color: var(--dm-ink, #10110F);
+              }
+            }
+          }
+        }
+
+        .sizes-group {
+          .sizes-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+
+            .size-col {
+              display: flex;
+              flex-direction: column;
+              gap: 0.25rem;
+
+              small {
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: var(--dm-text-muted, #7B7F75);
+              }
+
+              .micro-pills {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.3rem;
+
+                .micro-pill {
+                  min-width: 28px;
+                  padding: 0.2rem 0.45rem;
+                  border-radius: 6px;
+                  border: 1px solid var(--dm-border, #E1E3DA);
+                  background: #FFFFFF;
+                  font-size: 0.72rem;
+                  font-weight: 700;
+                  color: var(--dm-text, #22231F);
+                  cursor: pointer;
+
+                  &:hover {
+                    border-color: var(--dm-ink);
+                  }
+
+                  &.active {
+                    background: var(--dm-lime, #DFFF3F);
+                    border-color: var(--dm-lime);
+                    color: var(--dm-ink, #10110F);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .filter-group-split {
+          display: grid;
+          grid-template-columns: 180px 1fr;
+          gap: 0.85rem;
+
+          @media (max-width: 600px) {
+            grid-template-columns: 1fr;
+          }
+
+          .budget-input-wrap,
+          .notes-input-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+          }
+
+          .stylist-input {
+            padding: 0.45rem 0.85rem;
+            border: 1px solid var(--dm-border, #E1E3DA);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            background: #FFFFFF;
+            outline: none;
+
+            &:focus {
+              border-color: var(--dm-ink, #10110F);
+            }
+          }
+        }
+      }
+    }
+
     /* PROMPT BAR & QUICK CHIPS */
     .ai-prompt-bar {
       display: flex;
