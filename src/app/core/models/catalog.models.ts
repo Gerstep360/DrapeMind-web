@@ -126,8 +126,17 @@ export interface Supplier {
   direccion: string | null;
   categoria_suministro: string;
   activo: boolean;
+  usuario_id?: number | null;
+  usuario_email?: string | null;
+  usuario_nombre?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface SupplierAccountInput {
+  email: string;
+  password: string;
+  nombre?: string;
 }
 
 export interface SupplierInput {

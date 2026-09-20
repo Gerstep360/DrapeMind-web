@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminApiService } from '@core/api/admin-api.service';
+import { AuthService } from '@core/auth.service';
 import { Supplier, SupplierInput, SupplierProduct, SupplierProductInput } from '@core/models';
 import { ToastService } from '@core/toast.service';
 
@@ -15,8 +16,12 @@ import { ToastService } from '@core/toast.service';
 })
 export class SuppliersManagementComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly toasts = inject(ToastService);
+
+  readonly isSupplierUser = computed(() => this.auth.user()?.rol === 'PROVEEDOR');
+  readonly mySupplierProfile = signal<Supplier | null>(null);
 
   // CU-32: Proveedores base
   readonly suppliers = signal<Supplier[]>([]);
@@ -30,6 +35,12 @@ export class SuppliersManagementComponent implements OnInit {
   readonly editingSupplier = signal<Supplier | null>(null);
 
   supplierForm!: FormGroup;
+
+  // CU-33: Cuentas de acceso de proveedor
+  readonly accountModalOpen = signal(false);
+  readonly accountSupplier = signal<Supplier | null>(null);
+  readonly submittingAccount = signal(false);
+  accountForm!: FormGroup;
 
   // CU-33: Catalogo e insumos de proveedor
   readonly suppliesModalOpen = signal(false);
@@ -122,7 +133,36 @@ export class SuppliersManagementComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.initSupplyForm();
-    this.loadSuppliers();
+    this.initAccountForm();
+    if (this.isSupplierUser()) {
+      this.loadMySupplierData();
+    } else {
+      this.loadSuppliers();
+    }
+  }
+
+  private initAccountForm(): void {
+    this.accountForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+      nombre: ['', [Validators.maxLength(120)]],
+    });
+  }
+
+  loadMySupplierData(): void {
+    this.loading.set(true);
+    this.adminApi.getMySupplierProfile().subscribe({
+      next: (sup) => {
+        this.mySupplierProfile.set(sup);
+        this.selectedSupplier.set(sup);
+        this.loadSupplies(sup.id);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.toasts.show('Perfil de proveedor: ' + (err.error?.detail || err.message), 'info');
+        this.loading.set(false);
+      },
+    });
   }
 
   private initForm(): void {
@@ -301,6 +341,74 @@ export class SuppliersManagementComponent implements OnInit {
   }
 
   // ==========================================
+  // CU-33: Cuentas de Acceso de Proveedor
+  // ==========================================
+  openAccountModal(supplier: Supplier): void {
+    this.accountSupplier.set(supplier);
+    this.accountForm.reset({
+      email: supplier.email || '',
+      password: '',
+      nombre: supplier.contacto_nombre || supplier.nombre_empresa || '',
+    });
+    this.accountModalOpen.set(true);
+  }
+
+  closeAccountModal(): void {
+    this.accountModalOpen.set(false);
+    this.accountSupplier.set(null);
+  }
+
+  saveSupplierAccount(): void {
+    const supplier = this.accountSupplier();
+    if (!supplier) return;
+
+    if (this.accountForm.invalid) {
+      this.accountForm.markAllAsTouched();
+      return;
+    }
+
+    this.submittingAccount.set(true);
+    const formVal = this.accountForm.value;
+    this.adminApi
+      .createSupplierAccount(supplier.id, {
+        email: formVal.email.trim(),
+        password: formVal.password,
+        nombre: formVal.nombre ? formVal.nombre.trim() : undefined,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.suppliers.update((list) =>
+            list.map((s) => (s.id === updated.id ? updated : s)),
+          );
+          this.toasts.show(`Cuenta de acceso vinculada a "${updated.nombre_empresa}".`, 'success');
+          this.submittingAccount.set(false);
+          this.closeAccountModal();
+        },
+        error: (err) => {
+          this.toasts.show('Error al vincular cuenta: ' + (err.error?.detail || err.message), 'error');
+          this.submittingAccount.set(false);
+        },
+      });
+  }
+
+  unlinkSupplierAccount(supplier: Supplier): void {
+    const confirmed = window.confirm(`Desea desvincular la cuenta de acceso de "${supplier.nombre_empresa}"?`);
+    if (!confirmed) return;
+
+    this.adminApi.unlinkSupplierAccount(supplier.id).subscribe({
+      next: (updated) => {
+        this.suppliers.update((list) =>
+          list.map((s) => (s.id === updated.id ? updated : s)),
+        );
+        this.toasts.show(`Cuenta desvinculada de "${supplier.nombre_empresa}".`, 'info');
+      },
+      error: (err) => {
+        this.toasts.show('Error al desvincular cuenta: ' + (err.error?.detail || err.message), 'error');
+      },
+    });
+  }
+
+  // ==========================================
   // CU-33: Catalogo de Suministros por Proveedor
   // ==========================================
   openSuppliesModal(supplier: Supplier): void {
@@ -334,6 +442,9 @@ export class SuppliersManagementComponent implements OnInit {
   }
 
   openCreateSupply(): void {
+    if (this.isSupplierUser() && !this.selectedSupplier()) {
+      this.selectedSupplier.set(this.mySupplierProfile());
+    }
     this.editingSupply.set(null);
     this.supplyForm.reset({
       nombre_suministro: '',
@@ -347,9 +458,15 @@ export class SuppliersManagementComponent implements OnInit {
       activo: true,
     });
     this.showAddSupplyForm.set(true);
+    if (this.isSupplierUser()) {
+      this.suppliesModalOpen.set(true);
+    }
   }
 
   openEditSupply(item: SupplierProduct): void {
+    if (this.isSupplierUser() && !this.selectedSupplier()) {
+      this.selectedSupplier.set(this.mySupplierProfile());
+    }
     this.editingSupply.set(item);
     this.supplyForm.patchValue({
       nombre_suministro: item.nombre_suministro,
@@ -363,6 +480,9 @@ export class SuppliersManagementComponent implements OnInit {
       activo: item.activo,
     });
     this.showAddSupplyForm.set(true);
+    if (this.isSupplierUser()) {
+      this.suppliesModalOpen.set(true);
+    }
   }
 
   cancelSupplyForm(): void {

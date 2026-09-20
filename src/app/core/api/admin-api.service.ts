@@ -24,6 +24,7 @@ import {
   Season,
   SeasonInput,
   Supplier,
+  SupplierAccountInput,
   SupplierInput,
   SupplierProduct,
   SupplierProductInput,
@@ -210,6 +211,34 @@ export class AdminApiService {
 
   deleteSupplier(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.runtime.apiUrl}/admin/suppliers/${id}`);
+  }
+
+  createSupplierAccount(supplierId: number, payload: SupplierAccountInput): Observable<Supplier> {
+    return this.http.post<Supplier>(`${this.runtime.apiUrl}/admin/suppliers/${supplierId}/account`, payload);
+  }
+
+  unlinkSupplierAccount(supplierId: number): Observable<Supplier> {
+    return this.http.delete<Supplier>(`${this.runtime.apiUrl}/admin/suppliers/${supplierId}/account`);
+  }
+
+  getMySupplierProfile(): Observable<Supplier> {
+    return this.http.get<Supplier>(`${this.runtime.apiUrl}/admin/suppliers/me/profile`);
+  }
+
+  getMySupplierProducts(): Observable<SupplierProduct[]> {
+    return this.http.get<SupplierProduct[]>(`${this.runtime.apiUrl}/admin/suppliers/me/products`);
+  }
+
+  createMySupplierProduct(payload: SupplierProductInput): Observable<SupplierProduct> {
+    return this.http.post<SupplierProduct>(`${this.runtime.apiUrl}/admin/suppliers/me/products`, payload);
+  }
+
+  updateMySupplierProduct(productId: number, payload: SupplierProductInput): Observable<SupplierProduct> {
+    return this.http.put<SupplierProduct>(`${this.runtime.apiUrl}/admin/suppliers/me/products/${productId}`, payload);
+  }
+
+  deleteMySupplierProduct(productId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.runtime.apiUrl}/admin/suppliers/me/products/${productId}`);
   }
 
   // ==========================================

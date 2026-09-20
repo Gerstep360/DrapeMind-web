@@ -1,4 +1,4 @@
-export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO';
+export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO' | 'PROVEEDOR';
 export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO' | 'SUSPENDIDO';
 
 export interface User {

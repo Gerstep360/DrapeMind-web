@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { RuntimeConfigService } from './runtime-config.service';
@@ -17,6 +18,7 @@ export interface AppNotification {
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
+  private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly runtime = inject(RuntimeConfigService);
   private readonly toasts = inject(ToastService);
@@ -33,14 +35,23 @@ export class NotificationService {
   private socket: WebSocket | null = null;
   private pingInterval: any = null;
   private reconnectTimer: any = null;
+  private pollTimer: any = null;
   private isDestroyed = false;
 
   constructor() {
     this.loadFromStorage();
-    // Iniciar conexión reactiva si hay sesión activa
-    if (this.auth.token()) {
-      this.connect();
-    }
+
+    effect(() => {
+      const token = this.auth.token();
+      if (token) {
+        this.connect();
+        this.fetchNotifications();
+        this.startPolling();
+      } else {
+        this.disconnect();
+        this.stopPolling();
+      }
+    });
   }
 
   togglePanel(): void {
@@ -92,6 +103,21 @@ export class NotificationService {
     } catch {
       this.scheduleReconnect();
     }
+  }
+
+  disconnect(): void {
+    this.stopHeartbeat();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.socket) {
+      try {
+        this.socket.close();
+      } catch {}
+      this.socket = null;
+    }
+    this.isConnected.set(false);
   }
 
   private startHeartbeat(): void {
@@ -369,16 +395,100 @@ export class NotificationService {
     }
   }
 
+  fetchNotifications(): void {
+    if (!this.auth.token()) return;
+    this.http.get<any>(`${this.runtime.apiUrl}/notifications?limit=50`).subscribe({
+      next: (res) => {
+        if (res && Array.isArray(res.items)) {
+          const mapped: AppNotification[] = res.items.map((item: any) => {
+            const payloadData = item.data_payload || {};
+            const screen = String(payloadData.screen || '').toLowerCase();
+            const nType = String(item.tipo || '').toUpperCase();
+            let enlace = '/orders';
+            let tipoNotif: 'PEDIDO' | 'RESERVA' | 'PAGO' | 'PROMOCION' | 'IA' | 'SISTEMA' = 'PEDIDO';
+
+            if (screen.includes('ai') || screen.includes('chat') || screen.includes('studio') || nType.includes('AI')) {
+              enlace = payloadData.sesion_id ? `/ai-studio?session=${payloadData.sesion_id}` : '/ai-studio';
+              tipoNotif = 'IA';
+            } else if (screen.includes('reservation') || screen.includes('reserva') || nType.includes('RESERVA')) {
+              const rId = payloadData.reservation_id || payloadData.id || item.id;
+              enlace = rId ? `/reservations?id=${rId}` : '/reservations';
+              tipoNotif = 'RESERVA';
+            } else if (screen.includes('catalog') || screen.includes('ropa') || screen.includes('prenda')) {
+              enlace = '/catalog';
+              tipoNotif = 'SISTEMA';
+            } else if (screen.includes('promo') || nType.includes('PROMO')) {
+              enlace = '/promotions-admin';
+              tipoNotif = 'PROMOCION';
+            } else {
+              const oId = payloadData.order_id || payloadData.id;
+              enlace = oId ? `/orders?id=${oId}` : '/orders';
+              tipoNotif = nType.includes('PAGO') ? 'PAGO' : 'PEDIDO';
+            }
+
+            return {
+              id: `notif_${item.id}`,
+              tipo: tipoNotif,
+              titulo: item.titulo,
+              mensaje: item.mensaje,
+              leido: item.leido,
+              fecha: item.created_at,
+              enlace,
+              metadata: payloadData,
+            };
+          });
+
+          this.notifications.update((prev) => {
+            const prevMap = new Map(prev.map((p) => [p.id, p]));
+            for (const m of mapped) {
+              prevMap.set(m.id, m);
+            }
+            return Array.from(prevMap.values())
+              .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+              .slice(0, 50);
+          });
+          this.saveToStorage();
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  private startPolling(): void {
+    this.stopPolling();
+    this.pollTimer = setInterval(() => {
+      this.fetchNotifications();
+    }, 25000);
+  }
+
+  private stopPolling(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+  }
+
   markAsRead(id: string): void {
     this.notifications.update((list) =>
       list.map((n) => (n.id === id ? { ...n, leido: true } : n)),
     );
     this.saveToStorage();
+
+    const rawId = id.replace('notif_', '');
+    if (!isNaN(Number(rawId))) {
+      this.http.patch(`${this.runtime.apiUrl}/notifications/${rawId}/read`, {}).subscribe({
+        error: () => {},
+      });
+    }
   }
 
   markAllAsRead(): void {
     this.notifications.update((list) => list.map((n) => ({ ...n, leido: true })));
     this.saveToStorage();
+
+    this.http.post(`${this.runtime.apiUrl}/notifications/read-all`, {}).subscribe({
+      error: () => {},
+    });
   }
 
   deleteNotification(id: string): void {

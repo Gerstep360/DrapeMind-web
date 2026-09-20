@@ -1,4 +1,30 @@
 <section class="suppliers-page">
+  @if (isSupplierUser()) {
+    <div class="supplier-banner-card">
+      <div class="banner-content">
+        <span class="portal-badge">Portal del Proveedor</span>
+        <h2>{{ mySupplierProfile()?.nombre_empresa || 'Empresa Proveedora' }}</h2>
+        <p>
+          Bienvenido al portal exclusivo para empresas proveedoras y fabricantes. Registra tus prendas, tejidos de confección, insumos y lotes disponibles para el atelier en tiempo real.
+        </p>
+        <div class="banner-quick-actions">
+          <button class="btn btn-primary" (click)="openCreateSupply()">
+            <svg viewBox="0 0 24 24" class="icon-inline">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>+ Registrar Prenda / Insumo</span>
+          </button>
+          @if (mySupplierProfile()) {
+            <button class="btn btn-secondary" (click)="openSuppliesModal(mySupplierProfile()!)">
+              <span>Gestionar Mis Prendas e Insumos ({{ supplierProducts().length }})</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Header editorial -->
   <header class="page-header">
     <div class="header-content">
@@ -179,6 +205,41 @@
               <span class="detail-text">
                 {{ sup.ciudad }}@if (sup.direccion) { &middot; {{ sup.direccion }} }
               </span>
+            </div>
+
+            <div class="detail-row account-row">
+              <svg class="detail-icon" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              @if (sup.usuario_email) {
+                <div class="account-linked-wrap">
+                  <span class="detail-text account-email-text" [title]="'Cuenta vinculada: ' + sup.usuario_email">
+                    {{ sup.usuario_email }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-unlink-mini"
+                    (click)="unlinkSupplierAccount(sup)"
+                    title="Desvincular cuenta de usuario"
+                  >
+                    Desvincular
+                  </button>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-link-account-mini"
+                  (click)="openAccountModal(sup)"
+                  title="Crear credenciales de acceso para este proveedor"
+                >
+                  <svg viewBox="0 0 24 24" class="icon-inline">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>Crear Cuenta</span>
+                </button>
+              }
             </div>
           </div>
 
@@ -573,6 +634,72 @@
             </table>
           </div>
         }
+      </div>
+    </div>
+  }
+
+  <!-- Modal Crear Cuenta de Acceso para Proveedor -->
+  @if (accountModalOpen()) {
+    <div class="modal-backdrop" (click)="closeAccountModal()">
+      <div class="modal-card modal-compact" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Acceso Proveedor</span>
+            <h2 class="modal-title">Cuenta de Proveedor</h2>
+            <p class="modal-subtitle">
+              Genera credenciales de inicio de sesion para {{ accountSupplier()?.nombre_empresa }}.
+            </p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeAccountModal()">&times;</button>
+        </div>
+
+        <form [formGroup]="accountForm" (ngSubmit)="saveSupplierAccount()" class="modal-form">
+          <div class="form-group">
+            <label for="acc-email">Correo Electronico *</label>
+            <input
+              id="acc-email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="proveedor@empresa.com"
+            />
+            @if (accountForm.get('email')?.touched && accountForm.get('email')?.invalid) {
+              <small class="error-msg">Ingresa un correo electronico valido.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="acc-password">Contraseña de Acceso *</label>
+            <input
+              id="acc-password"
+              type="password"
+              class="form-control"
+              formControlName="password"
+              placeholder="Minimo 6 caracteres"
+            />
+            @if (accountForm.get('password')?.touched && accountForm.get('password')?.invalid) {
+              <small class="error-msg">La contraseña debe tener al menos 6 caracteres.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="acc-nombre">Nombre de Contacto o Representante</label>
+            <input
+              id="acc-nombre"
+              type="text"
+              class="form-control"
+              formControlName="nombre"
+              placeholder="Nombre completo"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeAccountModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="submittingAccount()">
+              <span>{{ submittingAccount() ? 'Guardando...' : 'Vincular Cuenta' }}</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   }
