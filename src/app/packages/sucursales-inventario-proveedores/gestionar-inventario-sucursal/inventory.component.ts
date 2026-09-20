@@ -139,7 +139,7 @@ export class InventoryComponent {
 
   categoryEmoji(name: string): string {
     const n = (name || '').toLowerCase();
-    if (n.includes('vestido') || n.includes('dress')) return '👗';
+    if (n.includes('vestido') || n.includes('dress')) return 'VEST';
     if (
       n.includes('camis') ||
       n.includes('top') ||
@@ -148,9 +148,9 @@ export class InventoryComponent {
       n.includes('remera') ||
       n.includes('polo')
     )
-      return '👕';
+      return 'TOP';
     if (n.includes('pantalon') || n.includes('jean') || n.includes('short') || n.includes('falda'))
-      return '👖';
+      return 'BOT';
     if (
       n.includes('abrigo') ||
       n.includes('chaqueta') ||
@@ -158,7 +158,7 @@ export class InventoryComponent {
       n.includes('blazer') ||
       n.includes('chamarra')
     )
-      return '🧥';
+      return 'OUT';
     if (
       n.includes('calzad') ||
       n.includes('zapato') ||
@@ -166,7 +166,7 @@ export class InventoryComponent {
       n.includes('bota') ||
       n.includes('sneaker')
     )
-      return '👟';
+      return 'CAL';
     if (
       n.includes('reloj') ||
       n.includes('accesorio') ||
@@ -174,20 +174,23 @@ export class InventoryComponent {
       n.includes('cinturon') ||
       n.includes('corbata')
     )
-      return '⌚';
+      return 'ACC';
     if (
       n.includes('bols') ||
       n.includes('cartera') ||
       n.includes('mochila') ||
       n.includes('billetera')
     )
-      return '👜';
-    return '✨';
+      return 'BAG';
+    return 'DRP';
   }
 
   constructor() {
     this.catalogApi.categories().subscribe({
       next: (cats) => this.categories.set(cats),
+    });
+    this.catalogApi.products().subscribe({
+      next: (prods) => this.products.set(prods),
     });
     this.inventoryApi.assignedBranches().subscribe({
       next: (branches) => {

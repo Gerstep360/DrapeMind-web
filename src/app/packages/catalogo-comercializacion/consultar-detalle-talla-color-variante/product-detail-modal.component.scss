@@ -151,6 +151,39 @@
     letter-spacing: -0.035em;
     line-height: 1.15;
   }
+
+  .admin-edit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #103828;
+    background: linear-gradient(135deg, #eaf7df 0%, #ddf2cb 100%);
+    border: 1px solid #b7e59c;
+    border-radius: var(--dm-radius-pill, 999px);
+    padding: 0.35rem 0.85rem;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(183, 229, 156, 0.35);
+    transition: all var(--dm-fast, 150ms) ease;
+
+    svg {
+      stroke: #103828;
+      transition: transform var(--dm-fast, 150ms) ease;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #ddf2cb 0%, #ccedb1 100%);
+      border-color: #9cdb79;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(156, 219, 121, 0.4);
+
+      svg {
+        transform: rotate(-10deg) scale(1.1);
+      }
+    }
+  }
 }
 
 .close-button {
@@ -306,6 +339,55 @@
     font-size: 0.84rem;
     line-height: 1.5;
     color: #edf0ea;
+  }
+}
+
+.ai-combine-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.85rem 1.4rem;
+  border: 1.5px solid #a3dedf;
+  border-radius: var(--dm-radius-pill, 999px);
+  background: linear-gradient(135deg, var(--dm-cyan-soft, #e7f7f7) 0%, #d8f3f5 100%);
+  color: #0d4243;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(163, 222, 223, 0.35);
+  transition:
+    transform var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease,
+    box-shadow var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease;
+
+  svg {
+    stroke: #0d4243;
+    transition: transform var(--dm-fast, 150ms) ease;
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--dm-cyan, #c9eef0) 0%, #b8e9ec 100%);
+    border-color: #55bfc4;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(85, 191, 196, 0.4);
+
+    svg {
+      transform: rotate(15deg) scale(1.15);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 

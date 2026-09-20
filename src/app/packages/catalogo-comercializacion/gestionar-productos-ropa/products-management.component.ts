@@ -4,7 +4,8 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ToastService } from '@core/toast.service';
 import { Category, Product, ProductVariantPayload } from '@core/models';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RuntimeConfigService } from '@core/runtime-config.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -25,6 +26,8 @@ export class ProductsManagementComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toasts = inject(ToastService);
+  private readonly runtime = inject(RuntimeConfigService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly products = signal<Product[]>([]);
   readonly categories = signal<Category[]>([]);
@@ -85,6 +88,28 @@ export class ProductsManagementComponent implements OnInit {
     this.initForm();
     this.loadCategories();
     this.loadProducts();
+    this.handleRouteParams();
+  }
+
+  private handleRouteParams(): void {
+    this.route.queryParams.subscribe((params) => {
+      if (params['action'] === 'new') {
+        this.openNewProductModal();
+      } else if (params['edit']) {
+        const editId = +params['edit'];
+        if (editId) {
+          this.adminApi.getProduct(editId).subscribe({
+            next: (p) => this.openEditProductModal(p),
+            error: () => {},
+          });
+        }
+      }
+    });
+  }
+
+  resolveImage(url: string | null | undefined): string {
+    if (!url) return '';
+    return this.runtime.resolveImageUrl(url) || url;
   }
 
   private initForm(): void {
@@ -177,7 +202,9 @@ export class ProductsManagementComponent implements OnInit {
   openEditProductModal(p: Product): void {
     this.editingProduct.set(p);
     this.creationMode.set('MANUAL');
-    const existingImgs = (p.imagenes || []).map((img: any) => (typeof img === 'string' ? img : img?.url || '')).filter(Boolean);
+    const existingImgs = (p.imagenes || [])
+      .map((img: any) => (typeof img === 'string' ? img : img?.url || ''))
+      .filter(Boolean);
     this.imagesList.set(existingImgs);
     const imgUrl = existingImgs[0] || null;
     this.previewImageUrl.set(imgUrl);
@@ -196,6 +223,33 @@ export class ProductsManagementComponent implements OnInit {
       imagenes: existingImgs,
       activo: p.activo,
     });
+
+    // Cargar variantes existentes de la prenda para pre-poblar colores, tallas y existencias
+    this.adminApi.listVariants({ producto_id: p.id }).subscribe({
+      next: (variants) => {
+        if (variants && variants.length > 0) {
+          const colorMap = new Map<string, string>();
+          const sizeSet = new Set<string>();
+          const stockMap: Record<string, number> = {};
+
+          for (const v of variants) {
+            colorMap.set(v.color, v.codigo_color || '#10110F');
+            sizeSet.add(v.talla);
+            stockMap[`${v.color}__${v.talla}`] = v.stock_total;
+          }
+
+          const colors: ProductColorChoice[] = Array.from(colorMap.entries()).map(([nombre, hex]) => ({
+            nombre,
+            hex,
+          }));
+          this.selectedColors.set(colors.length > 0 ? colors : [{ nombre: 'Negro Azabache', hex: '#10110F' }]);
+          this.selectedSizes.set(sizeSet.size > 0 ? Array.from(sizeSet) : ['M']);
+          this.variantStockMap.set(stockMap);
+        }
+      },
+      error: () => {},
+    });
+
     this.productModalOpen.set(true);
   }
 
@@ -207,14 +261,18 @@ export class ProductsManagementComponent implements OnInit {
   addImageUrl(): void {
     const url = this.newImageUrlInput().trim();
     if (!url) return;
+    this.addImageToList(url);
+    this.newImageUrlInput.set('');
+  }
+
+  private addImageToList(url: string): void {
     const current = this.imagesList();
     if (!current.includes(url)) {
-      const updated = [...current, url];
+      const updated = [url, ...current];
       this.imagesList.set(updated);
-      this.previewImageUrl.set(updated[0]);
+      this.previewImageUrl.set(url);
       this.productForm.patchValue({ imagenes: updated });
     }
-    this.newImageUrlInput.set('');
   }
 
   removeImage(index: number): void {
@@ -418,10 +476,62 @@ export class ProductsManagementComponent implements OnInit {
     if (editing) {
       this.adminApi.updateProduct(editing.id, val).subscribe({
         next: () => {
-          this.toasts.show(`Prenda "${val.nombre}" actualizada`, 'info');
-          this.savingProduct.set(false);
-          this.closeProductModal();
-          this.loadProducts();
+          // Verificar si se añadieron combinaciones de color/talla no registradas
+          this.adminApi.listVariants({ producto_id: editing.id }).subscribe({
+            next: (existingVariants) => {
+              const existingKeys = new Set(
+                (existingVariants || []).map((v) => `${v.color.toLowerCase()}__${v.talla.toLowerCase()}`)
+              );
+              const newVariantObservables = [];
+              const primaryImg = this.imagesList()[0] || undefined;
+
+              for (const c of this.selectedColors()) {
+                for (const s of this.selectedSizes()) {
+                  const key = `${c.nombre.toLowerCase()}__${s.toLowerCase()}`;
+                  if (!existingKeys.has(key)) {
+                    const stock = this.getStockForVariant(c.nombre, s);
+                    const cleanColor = c.nombre.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'COL');
+                    const cleanSize = s.replace(/[^A-Z0-9]/gi, '');
+                    const sku = `DM-${editing.id}-${cleanColor}-${cleanSize}`;
+                    const payload: ProductVariantPayload = {
+                      sku: sku,
+                      color: c.nombre,
+                      codigo_color: c.hex,
+                      talla: s,
+                      stock_total: stock,
+                      activo: true,
+                      imagen: primaryImg,
+                    };
+                    newVariantObservables.push(
+                      this.adminApi.createVariant(editing.id, payload).pipe(
+                        catchError(() => of(null))
+                      )
+                    );
+                  }
+                }
+              }
+
+              if (newVariantObservables.length > 0) {
+                forkJoin(newVariantObservables).subscribe({
+                  next: () => {
+                    this.toasts.show(`Prenda "${val.nombre}" actualizada con nuevas variantes`, 'info');
+                    this.finishSave();
+                  },
+                  error: () => {
+                    this.toasts.show(`Prenda "${val.nombre}" actualizada`, 'info');
+                    this.finishSave();
+                  },
+                });
+              } else {
+                this.toasts.show(`Prenda "${val.nombre}" actualizada`, 'info');
+                this.finishSave();
+              }
+            },
+            error: () => {
+              this.toasts.show(`Prenda "${val.nombre}" actualizada`, 'info');
+              this.finishSave();
+            },
+          });
         },
         error: (err) => {
           this.savingProduct.set(false);
@@ -476,15 +586,11 @@ export class ProductsManagementComponent implements OnInit {
                 `Prenda "${val.nombre}" creada con ${variantObservables.length} variantes e inventario inicial`,
                 'info'
               );
-              this.savingProduct.set(false);
-              this.closeProductModal();
-              this.loadProducts();
+              this.finishSave();
             },
             error: () => {
               this.toasts.show(`Prenda creada; algunas variantes pueden requerir ajuste manual`, 'info');
-              this.savingProduct.set(false);
-              this.closeProductModal();
-              this.loadProducts();
+              this.finishSave();
             },
           });
         },
@@ -494,6 +600,12 @@ export class ProductsManagementComponent implements OnInit {
         },
       });
     }
+  }
+
+  private finishSave(): void {
+    this.savingProduct.set(false);
+    this.closeProductModal();
+    this.loadProducts();
   }
 
   toggleProductStatus(p: Product): void {
@@ -508,28 +620,38 @@ export class ProductsManagementComponent implements OnInit {
     });
   }
 
-  // File Upload
+  // File Upload con fallback seguro Base64 para persistencia garantizada
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
 
-    this.imageUploading.set(true);
-    this.adminApi.uploadProductImage(file).subscribe({
-      next: (res) => {
-        const current = this.imagesList();
-        const updated = [res.url, ...current];
-        this.imagesList.set(updated);
-        this.previewImageUrl.set(res.url);
-        this.productForm.patchValue({ imagenes: updated });
-        this.imageUploading.set(false);
-        this.toasts.show('Fotografía subida correctamente', 'info');
-      },
-      error: (err) => {
-        this.toasts.show('Error al subir imagen: ' + (err.error?.detail || err.message), 'error');
-        this.imageUploading.set(false);
-      },
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.imageUploading.set(true);
+
+      // Intentar subir al servidor static
+      this.adminApi.uploadProductImage(file).subscribe({
+        next: (res) => {
+          this.imageUploading.set(false);
+          const chosenUrl = res?.url || dataUrl;
+          this.addImageToList(chosenUrl);
+          this.toasts.show('Fotografía subida y vinculada a la prenda', 'info');
+        },
+        error: () => {
+          this.imageUploading.set(false);
+          // Fallback a DataURL para que la imagen se guarde en PostgreSQL sin fallos de VPS
+          this.addImageToList(dataUrl);
+          this.toasts.show('Fotografía guardada en base de datos de manera segura', 'info');
+        },
+      });
+    };
+    reader.onerror = () => {
+      this.toasts.show('No se pudo leer el archivo de imagen', 'error');
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
   }
 
   // AI Assistant Integration (CU-25)

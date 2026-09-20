@@ -14,17 +14,20 @@ import {
   garmentPresentationType,
   hasUsableGarmentImage,
 } from '@shared/presentation/garment-presentation';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '@core/auth.service';
 import { ProductDetailAction, ProductDetailState } from './product-detail-modal.models';
 
 @Component({
   selector: 'app-product-detail-modal',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, RouterLink],
   templateUrl: './product-detail-modal.component.html',
   styleUrl: './product-detail-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailModalComponent {
+  readonly auth = inject(AuthService);
   private readonly runtime = inject(RuntimeConfigService);
   private readonly failedImageIds = signal<ReadonlySet<number>>(new Set());
 

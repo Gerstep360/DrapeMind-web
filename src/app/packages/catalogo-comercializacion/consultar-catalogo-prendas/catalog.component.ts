@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, forkJoin, Observable } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { BranchService } from '@core/branch.service';
@@ -25,6 +25,7 @@ import {
   selector: 'app-catalog',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     ProductCardComponent,
     ProductDetailModalComponent,
     CatalogFiltersComponent,

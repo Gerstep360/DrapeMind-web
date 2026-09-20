@@ -104,6 +104,12 @@
       border-color: var(--dm-lime, #DFFF3F);
       box-shadow: 0 0 0 4px var(--dm-lime-glow);
     }
+
+    option {
+      background-color: #1a1b18;
+      color: #FFFFFF;
+      padding: 0.5rem;
+    }
   }
 
   button {

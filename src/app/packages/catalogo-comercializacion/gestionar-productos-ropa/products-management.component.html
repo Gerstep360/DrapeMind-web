@@ -119,7 +119,7 @@
               <div class="product-info-cell">
                 <div class="thumb-box">
                   @if (extractFirstImage(prod.imagenes)) {
-                    <img [src]="extractFirstImage(prod.imagenes)!" [alt]="prod.nombre" class="thumb-img" />
+                    <img [src]="resolveImage(extractFirstImage(prod.imagenes))" [alt]="prod.nombre" class="thumb-img" />
                   } @else {
                     <div class="thumb-placeholder">
                       <span>{{ prod.nombre.slice(0, 2).toUpperCase() }}</span>
@@ -285,7 +285,7 @@
               <div class="gallery-thumbs-grid">
                 @for (img of imagesList(); track img; let idx = $index) {
                   <div class="thumb-card" [class.thumb-card--primary]="idx === 0">
-                    <img [src]="img" alt="Foto prenda {{ idx + 1 }}" />
+                    <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
                     @if (idx === 0) {
                       <span class="badge-primary-photo">Principal</span>
                     } @else {
@@ -374,14 +374,13 @@
           </div>
 
           <!-- SECCIÓN: Colores y Tallas (Variantes e Inventario Inicial) -->
-          @if (!editingProduct()) {
-            <div class="variants-config-card">
-              <div class="section-title-row">
-                <div>
-                  <span class="section-title">Variantes de Color, Talla e Inventario Inicial</span>
-                  <p class="section-sub">Define los colores y tallas con que se lanzará la prenda para venta inmediata.</p>
-                </div>
+          <div class="variants-config-card">
+            <div class="section-title-row">
+              <div>
+                <span class="section-title">{{ editingProduct() ? 'Variantes de Color y Talla de la Prenda' : 'Variantes de Color, Talla e Inventario Inicial' }}</span>
+                <p class="section-sub">{{ editingProduct() ? 'Configura o añade colores, tallas y existencias para esta prenda en el catálogo.' : 'Define los colores y tallas con que se lanzará la prenda para venta inmediata.' }}</p>
               </div>
+            </div>
 
               <!-- Selector Visual de Colores -->
               <div class="palette-builder">
@@ -486,7 +485,6 @@
                 </div>
               </div>
             </div>
-          }
 
           <!-- Descripción y Cuidado Textil -->
           <div class="ai-editor-box">
