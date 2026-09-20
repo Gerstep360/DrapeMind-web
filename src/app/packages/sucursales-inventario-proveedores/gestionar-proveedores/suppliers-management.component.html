@@ -5,7 +5,7 @@
       <span class="eyebrow">PK-07 &middot; SUCURSALES, INVENTARIO Y PROVEEDORES</span>
       <h1 class="page-title">Directorio de Proveedores Textiles</h1>
       <p class="page-subtitle">
-        Agenda centralizada de fabricantes, hilanderias y distribuidores de telas artesanales para el atelier (CU-32 y CU-33).
+        Agenda centralizada de fabricantes, hilanderias y distribuidores de telas artesanales para el atelier.
       </p>
     </div>
     <div class="header-actions">
@@ -186,7 +186,7 @@
             <button
               class="btn-action supplies"
               (click)="openSuppliesModal(sup)"
-              title="Gestionar catalogo de insumos (CU-33)"
+              title="Gestionar catalogo de insumos"
             >
               <svg viewBox="0 0 24 24">
                 <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -240,7 +240,7 @@
     </div>
   }
 
-  <!-- Modal de Creacion / Edicion de Proveedor (CU-32) -->
+  <!-- Modal de Creacion / Edicion de Proveedor -->
   @if (modalOpen()) {
     <div class="modal-backdrop" (click)="closeModal()">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
@@ -371,13 +371,13 @@
     </div>
   }
 
-  <!-- Modal de Catalogo de Insumos y Disponibilidad (CU-33) -->
+  <!-- Modal de Catalogo de Insumos y Disponibilidad -->
   @if (suppliesModalOpen()) {
     <div class="modal-backdrop" (click)="closeSuppliesModal()">
       <div class="modal-dialog modal-dialog--wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <div class="modal-title-group">
-            <span class="modal-eyebrow">CU-33 &middot; CATALOGO EXTERNO DE PROVEEDOR</span>
+            <span class="modal-eyebrow">CATALOGO EXTERNO DE PROVEEDOR</span>
             <h2>Insumos: {{ selectedSupplier()?.nombre_empresa }}</h2>
             <p class="modal-lead-note">
               Registro de telas, insumos, costos por unidad y disponibilidad de entrega para abastecimiento.

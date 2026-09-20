@@ -5,7 +5,7 @@
       <span class="eyebrow">PK-05 &middot; INTELIGENCIA ARTIFICIAL Y ASISTENCIA DE MODA</span>
       <h1 class="page-title">Estudio y Optimización de Perchero</h1>
       <p class="page-subtitle">
-        Asesoría experta de Altair AI. Audita la coherencia cromática y estilo de tus prendas (CU-22), o compara calidades y maximiza tu ahorro con alternativas inteligentes (CU-23).
+        Asesoría experta de Altair AI. Audita la coherencia cromática y estilo de tus prendas, o compara calidades y maximiza tu ahorro con alternativas inteligentes.
       </p>
     </div>
     <div class="header-actions">
@@ -101,7 +101,7 @@
       </div>
     </aside>
 
-    <!-- COLUMNA DERECHA: HERRAMIENTAS DE ALTAIR (CU-22 & CU-23) -->
+    <!-- COLUMNA DERECHA: HERRAMIENTAS DE ALTAIR -->
     <main class="tools-column">
       <div class="panel-card tools-card">
         <!-- PESTAÑAS SELECTORAS -->
@@ -115,7 +115,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
-            <span>Auditoría de Estilo (CU-22)</span>
+            <span>Auditoría de Estilo</span>
           </button>
 
           <button
@@ -129,11 +129,11 @@
               <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
               <path d="M12 18V6"/>
             </svg>
-            <span>Optimización de Ahorro y Calidad (CU-23)</span>
+            <span>Optimización de Ahorro y Calidad</span>
           </button>
         </div>
 
-        <!-- PANEL DE ESTILO (CU-22) -->
+        <!-- PANEL DE ESTILO -->
         @if (activeTab() === 'STYLE') {
           <div class="tab-content">
             <div class="tab-intro">
@@ -198,7 +198,7 @@
           </div>
         }
 
-        <!-- PANEL DE VALOR Y AHORRO (CU-23) -->
+        <!-- PANEL DE VALOR Y AHORRO -->
         @if (activeTab() === 'VALUE') {
           <div class="tab-content">
             <div class="tab-intro">
@@ -235,7 +235,7 @@
                   <p>{{ res.respuesta }}</p>
                 </div>
 
-                <!-- LISTA DE REEMPLAZOS DISPONIBLES CON 1 CLIC (CU-24) -->
+                <!-- LISTA DE REEMPLAZOS DISPONIBLES CON 1 CLIC -->
                 @if (res.recomendaciones && res.recomendaciones.length > 0) {
                   <div class="replacements-section">
                     <h4>Alternativas directas con ahorro garantizado:</h4>

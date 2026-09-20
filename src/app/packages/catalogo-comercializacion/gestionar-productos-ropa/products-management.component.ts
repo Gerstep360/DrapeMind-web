@@ -117,9 +117,11 @@ export class ProductsManagementComponent implements OnInit {
     });
   }
 
-  resolveImage(url: string | null | undefined): string {
+  resolveImage(url: any): string {
     if (!url) return '';
-    return this.runtime.resolveImageUrl(url) || url;
+    const resolved = this.runtime.resolveImageUrl(url);
+    if (resolved) return resolved;
+    return typeof url === 'string' ? url : (url?.url || url?.src || '');
   }
 
   private initForm(): void {

@@ -15,7 +15,7 @@
 } @else {
   <section class="account-layout">
     <article class="profile-panel">
-      <p class="eyebrow">CU-03 · Perfil</p>
+      <p class="eyebrow">Perfil de Usuario</p>
       <h2>Datos personales</h2>
       <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
         <label>Nombre completo<input formControlName="nombre" autocomplete="name" /></label>
@@ -54,7 +54,7 @@
   <section class="style-section">
     <header class="style-header">
       <div>
-        <p class="eyebrow">CU-19 / CU-20 · ADN DE ESTILO</p>
+        <p class="eyebrow">ADN DE ESTILO</p>
         <h2>Perfil de estilo y Onboarding</h2>
       </div>
       <button class="button button--secondary" type="button" (click)="openOnboarding()">
@@ -115,7 +115,7 @@
 
   <section class="collection-section">
     <header>
-      <div><p class="eyebrow">CU-08 · Selección personal</p><h2>Favoritos</h2></div>
+      <div><p class="eyebrow">Selección Personal</p><h2>Favoritos</h2></div>
       <div class="fav-header-actions">
         <a class="text-link" routerLink="/favorites">Ver galería dedicada -&gt;</a>
         <span>{{ favorites().length }} prendas</span>
@@ -140,7 +140,7 @@
   </section>
 
   <section class="showroom-section">
-    <header><p class="eyebrow">CU-07 · Disponibilidad física</p><h2>Showrooms disponibles</h2></header>
+    <header><p class="eyebrow">Disponibilidad Física</p><h2>Showrooms disponibles</h2></header>
     <div class="branch-line">
       @for (branch of branches(); track branch.id) {
         <article><span>{{ branch.codigo }}</span><strong>{{ branch.nombre }}</strong><p>{{ branch.direccion }} · {{ branch.ciudad }}</p></article>

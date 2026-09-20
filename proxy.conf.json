@@ -1,4 +1,13 @@
 {
+  "/DrapeMind/api": {
+    "target": "http://127.0.0.1:8000",
+    "pathRewrite": {
+      "^/DrapeMind/api": "/api"
+    },
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true
+  },
   "/api": {
     "target": "http://127.0.0.1:8000",
     "secure": false,

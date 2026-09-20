@@ -35,13 +35,13 @@ export class RuntimeConfigService {
   }
 
   private normalizePrefix(prefix: string): string {
-    if (!this.backendUrl && typeof document !== 'undefined') {
-      const base = document.querySelector('base')?.getAttribute('href') || '/';
-      const cleanBase = base.endsWith('/') ? base : `${base}/`;
-      const trimmedBase = cleanBase.replace(/^\/|\/$/g, '');
-      if (trimmedBase && !prefix.includes(trimmedBase)) {
+    if (!this.backendUrl && typeof window !== 'undefined') {
+      const path = window.location.pathname || '';
+      const baseHref = typeof document !== 'undefined' ? (document.querySelector('base')?.getAttribute('href') || '') : '';
+      const isSubpath = path.toLowerCase().startsWith('/drapemind') || baseHref.toLowerCase().includes('/drapemind');
+      if (isSubpath && !prefix.toLowerCase().includes('/drapemind')) {
         const cleanPrefix = prefix.startsWith('/') ? prefix : `/${prefix}`;
-        return `/${trimmedBase}${cleanPrefix}`;
+        return `/DrapeMind${cleanPrefix}`;
       }
     }
     return prefix;
@@ -61,10 +61,12 @@ export class RuntimeConfigService {
     return `${socketBase}${prefix}/ws/${channel}`;
   }
 
-  resolveImageUrl(url: string | null | undefined): string | null {
+  resolveImageUrl(url: any): string | null {
     if (!url) return null;
-    if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    const clean = url.replace(/^\/+/, '');
+    const str = typeof url === 'string' ? url : (url?.url || url?.src || '');
+    if (!str || typeof str !== 'string') return null;
+    if (/^(https?:|data:|blob:)/i.test(str)) return str;
+    const clean = str.replace(/^\/+/, '');
     if (this.backendUrl) {
       return `${this.backendUrl}/${clean}`;
     }
