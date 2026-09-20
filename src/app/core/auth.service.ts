@@ -35,6 +35,7 @@ export class AuthService {
       .post<TokenResponse>(`${this.runtime.apiUrl}/auth/login`, { email, password })
       .pipe(
         tap((response) => {
+          localStorage.setItem(TOKEN_KEY, response.access_token);
           sessionStorage.setItem(TOKEN_KEY, response.access_token);
           this.tokenState.set(response.access_token);
           this.scheduleExpiry(response.access_token);
@@ -58,6 +59,7 @@ export class AuthService {
   loadMe(): Observable<User> {
     return this.http.get<User>(`${this.runtime.apiUrl}/auth/me`).pipe(
       tap((user) => {
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
         sessionStorage.setItem(USER_KEY, JSON.stringify(user));
         this.user.set(user);
       }),
@@ -76,6 +78,7 @@ export class AuthService {
     const u = this.user();
     if (u) {
       const updated = { ...u, has_style_profile: true };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
       sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
       this.user.set(updated);
     }
@@ -91,6 +94,8 @@ export class AuthService {
 
   logout(redirect = true): void {
     this.clearExpiryTimer();
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
     this.tokenState.set(null);
@@ -103,7 +108,8 @@ export class AuthService {
   hasValidToken(): boolean {
     const token = this.tokenState();
     if (!token) return false;
-    if (this.tokenExpiryMs(token) <= Date.now() + 5_000) {
+    const expiry = this.tokenExpiryMs(token);
+    if (expiry > 0 && expiry <= Date.now() + 5_000) {
       this.logout();
       return false;
     }
@@ -111,8 +117,12 @@ export class AuthService {
   }
 
   private readStoredToken(): string | null {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    if (!token || this.tokenExpiryMs(token) <= Date.now() + 5_000) {
+    const token = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
+    if (!token) return null;
+    const expiry = this.tokenExpiryMs(token);
+    if (expiry > 0 && expiry <= Date.now() + 5_000) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       sessionStorage.removeItem(TOKEN_KEY);
       sessionStorage.removeItem(USER_KEY);
       return null;
@@ -123,6 +133,10 @@ export class AuthService {
   private scheduleExpiry(token: string): void {
     this.clearExpiryTimer();
     const remaining = this.tokenExpiryMs(token) - Date.now();
+    // Si la duracion del token es muy amplia (ej: 10 anos), no requerimos temporizador activo en memoria
+    if (remaining > 86_400_000 * 7) {
+      return;
+    }
     const delay = Math.max(5_000, remaining - 60_000);
     if (remaining <= 5_000) {
       this.logout();
@@ -144,7 +158,7 @@ export class AuthService {
   private renewSession(): Promise<void> {
     if (this.refreshPending) return this.refreshPending;
     const previous = this.tokenState();
-    if (!previous || this.tokenExpiryMs(previous) <= Date.now() + 5_000) {
+    if (!previous || (this.tokenExpiryMs(previous) > 0 && this.tokenExpiryMs(previous) <= Date.now() + 5_000)) {
       this.logout();
       return Promise.resolve();
     }
@@ -152,6 +166,7 @@ export class AuthService {
       this.http.post<TokenResponse>(this.runtime.apiUrl + '/auth/refresh', {}).pipe(timeout(10_000)),
     ).then((response) => {
       if (this.tokenState() !== previous) return;
+      localStorage.setItem(TOKEN_KEY, response.access_token);
       sessionStorage.setItem(TOKEN_KEY, response.access_token);
       this.tokenState.set(response.access_token);
       this.scheduleExpiry(response.access_token);
@@ -177,7 +192,7 @@ export class AuthService {
   }
 
   private readUser(): User | null {
-    const value = sessionStorage.getItem(USER_KEY);
+    const value = localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY);
     if (!value) return null;
     try {
       return JSON.parse(value) as User;
