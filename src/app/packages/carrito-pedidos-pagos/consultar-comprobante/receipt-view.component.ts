@@ -13,8 +13,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError } from 'rxjs';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ReceiptData } from '@core/models';
 import { RECEIPT_STATUS_META, ReceiptStatusMeta } from './receipt-view.models';
@@ -74,8 +72,8 @@ export class ReceiptViewComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (data) => {
-          this.receipt.set(data);
+        next: (data: any) => {
+          this.receipt.set(data as ReceiptData);
           this.loading.set(false);
         },
         error: (err) => {
@@ -95,6 +93,7 @@ export class ReceiptViewComponent implements OnInit {
     this.pdfError.set('');
 
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -103,6 +102,7 @@ export class ReceiptViewComponent implements OnInit {
         scrollX: 0,
       });
 
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',

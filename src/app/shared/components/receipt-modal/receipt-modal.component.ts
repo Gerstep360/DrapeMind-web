@@ -12,9 +12,6 @@ import {
 
 import { CommonModule } from '@angular/common';
 
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
-import QRCode from 'qrcode';
 
 import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ToastService } from '@core/toast.service';
@@ -111,6 +108,7 @@ export class ReceiptModalComponent {
 
       this.verificationUrl.set(fullVerifyUrl);
 
+      const { default: QRCode } = await import('qrcode');
       const qrDataUrl = await QRCode.toDataURL(
         fullVerifyUrl,
         {
@@ -177,6 +175,7 @@ export class ReceiptModalComponent {
     const naturalWidth = el.scrollWidth;
     const naturalHeight = el.scrollHeight;
 
+    const { default: html2canvas } = await import('html2canvas');
     const canvas = await html2canvas(el, {
       scale: 2,
 
@@ -362,6 +361,7 @@ export class ReceiptModalComponent {
           1.0
         );
 
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',

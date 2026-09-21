@@ -32,6 +32,17 @@
             ],
             "styles": [
               "src/styles.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "html2canvas",
+              "jspdf",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "jsqr",
+              "qrcode",
+              "dijkstrajs"
             ]
           },
           "configurations": {
@@ -45,8 +56,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",

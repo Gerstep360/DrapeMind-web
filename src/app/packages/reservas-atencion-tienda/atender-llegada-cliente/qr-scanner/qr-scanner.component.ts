@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import jsQR from 'jsqr';
 import { ToastService } from '@core/toast.service';
 
 @Component({
@@ -25,6 +24,7 @@ export class QrScannerComponent {
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('scannerVideo');
   private mediaStream: MediaStream | null = null;
   private animationFrameId: number | null = null;
+  private jsQrLib: any = null;
 
   readonly cameraSupported = signal(true);
   readonly isScanning = signal(false);
@@ -36,8 +36,17 @@ export class QrScannerComponent {
     inject(DestroyRef).onDestroy(() => this.stopCamera());
   }
 
+  private async loadJsQr(): Promise<any> {
+    if (!this.jsQrLib) {
+      const m = await import('jsqr');
+      this.jsQrLib = (m as any).default || m;
+    }
+    return this.jsQrLib;
+  }
+
   async open(): Promise<void> {
     this.cameraError.set(null);
+    void this.loadJsQr();
     this.dialog()?.nativeElement.showModal();
     await this.startCamera();
   }
@@ -116,7 +125,8 @@ export class QrScannerComponent {
 
   private decodeImageFile(file: File): void {
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
+      await this.loadJsQr();
       const image = new Image();
       image.onload = () => {
         const code = this.decodeCanvas(
@@ -143,7 +153,7 @@ export class QrScannerComponent {
     height: number,
     inversionAttempts: 'dontInvert' | 'attemptBoth',
   ): string | null {
-    if (!width || !height) return null;
+    if (!width || !height || !this.jsQrLib) return null;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -151,7 +161,7 @@ export class QrScannerComponent {
     if (!context) return null;
     context.drawImage(source, 0, 0, width, height);
     const imageData = context.getImageData(0, 0, width, height);
-    return jsQR(imageData.data, width, height, { inversionAttempts })?.data ?? null;
+    return this.jsQrLib(imageData.data, width, height, { inversionAttempts })?.data ?? null;
   }
 
   private complete(raw: string): void {
