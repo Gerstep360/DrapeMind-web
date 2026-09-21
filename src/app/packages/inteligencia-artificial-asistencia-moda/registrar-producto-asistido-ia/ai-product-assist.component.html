@@ -221,6 +221,189 @@
             </div>
           </div>
 
+          <!-- SECCIÓN: Galería de Fotografía Múltiple -->
+          <div class="gallery-section">
+            <div class="section-title-row">
+              <span class="section-title">Fotografías del Atelier</span>
+              <span class="section-sub">{{ imagesList().length }} imagen(es) registrada(s)</span>
+            </div>
+
+            <div class="gallery-uploader-row">
+              <label class="upload-file-chip">
+                <span>{{ imageUploading() ? 'Subiendo...' : '+ Subir Archivo Local' }}</span>
+                <input type="file" accept="image/*" (change)="onFileSelected($event)" [disabled]="imageUploading()" />
+              </label>
+
+              <div class="url-add-group">
+                <input
+                  type="text"
+                  placeholder="https://... URL de imagen externa"
+                  [value]="newImageUrlInput()"
+                  (input)="newImageUrlInput.set($any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); addImageUrl()"
+                />
+                <button type="button" class="btn-url-add" (click)="addImageUrl()">Añadir URL</button>
+              </div>
+            </div>
+
+            <!-- Grilla de Miniaturas Interactivas -->
+            @if (imagesList().length > 0) {
+              <div class="gallery-thumbs-grid">
+                @for (img of imagesList(); track $index; let idx = $index) {
+                  <div
+                    class="thumb-card"
+                    [class.thumb-card--primary]="idx === 0"
+                    (click)="setPrimaryImage(idx)"
+                    [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
+                  >
+                    @if (resolveImage(img)) {
+                      <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
+                    } @else {
+                      <div class="thumb-placeholder"><span>IMG</span></div>
+                    }
+                    @if (idx === 0) {
+                      <span class="badge-primary-photo">Principal</span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-make-primary"
+                        (click)="$event.stopPropagation(); setPrimaryImage(idx)"
+                      >
+                        Hacer Principal
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="btn-remove-photo"
+                      (click)="$event.stopPropagation(); removeImage(idx)"
+                      title="Eliminar fotografía"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="gallery-empty-hint">
+                <span>Sin fotografías registradas. Sube un archivo local o pega enlaces directos para la ficha de catálogo.</span>
+              </div>
+            }
+          </div>
+
+          <!-- SECCIÓN: Colores y Tallas (Variantes e Inventario Inicial) -->
+          <div class="variants-config-card">
+            <div class="section-title-row">
+              <div>
+                <span class="section-title">Variantes de Color, Talla e Inventario Inicial</span>
+                <p class="section-sub">Define los colores y tallas con que se lanzará la prenda para venta inmediata.</p>
+              </div>
+            </div>
+
+            <!-- Selector Visual de Colores -->
+            <div class="palette-builder">
+              <span class="field-label">Paleta de Colores Disponibles:</span>
+              <div class="color-chips-row">
+                @for (c of availablePalette(); track c.nombre) {
+                  <button
+                    type="button"
+                    class="color-pill"
+                    [class.active]="isColorSelected(c.nombre)"
+                    (click)="toggleColor(c)"
+                  >
+                    <span class="color-swatch" [style.background-color]="c.hex"></span>
+                    <span>{{ c.nombre }}</span>
+                  </button>
+                }
+              </div>
+
+              <!-- Custom color addition -->
+              <div class="custom-color-adder">
+                <span class="adder-label">O añade color personalizado:</span>
+                <div class="custom-color-inputs">
+                  <input
+                    type="color"
+                    [value]="customColorHex()"
+                    (input)="customColorHex.set($any($event.target).value)"
+                    class="color-picker-input"
+                    title="Seleccionar tonalidad exacta"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nombre del color (ej. Verde Botella)"
+                    [value]="customColorName()"
+                    (input)="customColorName.set($any($event.target).value)"
+                    (keydown.enter)="$event.preventDefault(); addCustomColor()"
+                    class="custom-color-text"
+                  />
+                  <button type="button" class="btn-add-color" (click)="addCustomColor()">+ Añadir Color</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selector de Tallas con Presets Rápidos -->
+            <div class="size-builder">
+              <div class="size-presets-bar">
+                <span class="field-label">Tallas Disponibles:</span>
+                <div class="preset-buttons">
+                  <button type="button" class="preset-btn" (click)="applySizePreset('TOPS')">Superior</button>
+                  <button type="button" class="preset-btn" (click)="applySizePreset('BOTTOMS')">Inferior</button>
+                  <button type="button" class="preset-btn" (click)="applySizePreset('SHOES')">Calzado</button>
+                  <button type="button" class="preset-btn" (click)="applySizePreset('UNIQUE')">Talla Única</button>
+                </div>
+              </div>
+
+              <div class="size-chips-row">
+                @for (s of [...topSizes, ...bottomSizes.slice(0, 4), 'Única']; track s) {
+                  <button
+                    type="button"
+                    class="size-pill"
+                    [class.active]="isSizeSelected(s)"
+                    (click)="toggleSize(s)"
+                  >
+                    {{ s }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Matriz de Stock Inicial -->
+            <div class="stock-matrix-box">
+              <div class="stock-matrix-header">
+                <span class="field-label">Inventario Inicial Estimado:</span>
+                <div class="bulk-stock-setter">
+                  <span>Stock por defecto:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    [value]="defaultStockPerVariant()"
+                    (input)="updateDefaultStock(+$any($event.target).value)"
+                  />
+                  <span>uds/variante</span>
+                </div>
+              </div>
+
+              <div class="variants-tags-summary">
+                @for (c of selectedColors(); track c.nombre) {
+                  @for (s of selectedSizes(); track s) {
+                    <div class="variant-tag-row">
+                      <span class="swatch-mini" [style.background-color]="c.hex"></span>
+                      <span class="variant-tag-name">{{ c.nombre }} &middot; Talla {{ s }}</span>
+                      <div class="stock-input-wrap">
+                        <input
+                          type="number"
+                          min="0"
+                          [value]="getStockForVariant(c.nombre, s)"
+                          (input)="setStockForVariant(c.nombre, s, +$any($event.target).value)"
+                        />
+                        <span>uds</span>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+
           <div class="result-actions">
             <button
               type="submit"
