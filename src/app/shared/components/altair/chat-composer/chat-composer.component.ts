@@ -64,7 +64,7 @@ export class ChatComposerComponent {
     {
       label: 'Diseñar Outfit a Medida',
       desc: 'Diseña un look completo según criterio estético y ocasión',
-      template: 'Diseña un outfit completo según ocasión, corte y tallas.',
+      template: 'Diseña un outfit completo para una ocasión casual elegante con piezas del showroom.',
     },
   ];
 

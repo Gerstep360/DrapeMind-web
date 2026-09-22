@@ -103,6 +103,115 @@
           />
         </div>
 
+        <!-- Galeria de Fotografia de la Prenda (Insumo Visual) -->
+        <div class="gallery-section input-gallery-section">
+          <div class="section-title-row">
+            <span class="section-title">Fotografia de la Prenda</span>
+            <span class="section-sub">{{ imagesList().length }} imagen(es) seleccionada(s)</span>
+          </div>
+
+          <div class="gallery-uploader-row">
+            <label class="upload-file-chip">
+              <span>{{ imageUploading() ? 'Subiendo...' : '+ Subir Archivo Local' }}</span>
+              <input type="file" accept="image/*" (change)="onFileSelected($event)" [disabled]="imageUploading()" />
+            </label>
+
+            <div class="url-add-group">
+              <input
+                type="text"
+                placeholder="https://... URL de imagen externa"
+                [value]="newImageUrlInput()"
+                (input)="newImageUrlInput.set($any($event.target).value)"
+                (keydown.enter)="$event.preventDefault(); addImageUrl()"
+              />
+              <button type="button" class="btn-url-add" (click)="addImageUrl()">Anadir URL</button>
+            </div>
+          </div>
+
+          @if (imagesList().length > 0) {
+            <div class="gallery-thumbs-grid">
+              @for (img of imagesList(); track $index; let idx = $index) {
+                <div
+                  class="thumb-card"
+                  [class.thumb-card--primary]="idx === 0"
+                  (click)="setPrimaryImage(idx)"
+                  [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
+                >
+                  @if (resolveImage(img)) {
+                    <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
+                  } @else {
+                    <div class="thumb-placeholder"><span>IMG</span></div>
+                  }
+                  @if (idx === 0) {
+                    <span class="badge-primary-photo">Principal</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-make-primary"
+                      (click)="$event.stopPropagation(); setPrimaryImage(idx)"
+                    >
+                      Hacer Principal
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="btn-remove-photo"
+                    (click)="$event.stopPropagation(); removeImage(idx)"
+                    title="Eliminar fotografia"
+                  >
+                    &times;
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="gallery-empty-hint">
+              <span>Sube una foto de tu prenda o boceto para vincularla desde el inicio.</span>
+            </div>
+          }
+        </div>
+
+        <!-- Paleta de Colores de la Prenda -->
+        <div class="palette-builder input-palette-builder">
+          <span class="field-label">Colores de la Prenda:</span>
+          <div class="color-chips-row">
+            @for (c of availablePalette(); track c.nombre) {
+              <button
+                type="button"
+                class="color-pill"
+                [class.active]="isColorSelected(c.nombre)"
+                (click)="toggleColor(c)"
+              >
+                <span class="color-swatch" [style.background-color]="c.hex"></span>
+                <span>{{ c.nombre }}</span>
+              </button>
+            }
+          </div>
+
+          <!-- Color personalizado -->
+          <div class="custom-color-adder">
+            <span class="adder-label">O anade color personalizado:</span>
+            <div class="custom-color-inputs">
+              <input
+                type="color"
+                [value]="customColorHex()"
+                (input)="customColorHex.set($any($event.target).value)"
+                class="color-picker-input"
+                title="Seleccionar tonalidad exacta"
+              />
+              <input
+                type="text"
+                placeholder="Nombre del color (ej. Verde Botella)"
+                [value]="customColorName()"
+                (input)="customColorName.set($any($event.target).value)"
+                (keydown.enter)="$event.preventDefault(); addCustomColor()"
+                class="custom-color-text"
+              />
+              <button type="button" class="btn-add-color" (click)="addCustomColor()">+ Anadir Color</button>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group model-selection-group">
           <app-altair-model-selector
             [(selectedModel)]="selectedModel"
@@ -110,30 +219,45 @@
           />
         </div>
 
-        <button
-          type="submit"
-          class="btn btn-primary full-width action-generate"
-          [disabled]="drafting()"
-        >
-          @if (drafting()) {
-            <div class="spinner-sm"></div>
-            <span>Redactando con Altair AI...</span>
-          } @else {
-            <svg class="btn-icon" viewBox="0 0 24 24">
-              <path d="M12 3l1.912 5.885a2 2 0 001.272 1.272L21 12l-5.816 1.843a2 2 0 00-1.272 1.272L12 21l-1.912-5.885a2 2 0 00-1.272-1.272L3 12l5.816-1.843a2 2 0 001.272-1.272L12 3z" />
+        <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.5rem;">
+          <button
+            type="submit"
+            class="btn btn-primary full-width action-generate"
+            [disabled]="drafting()"
+          >
+            @if (drafting()) {
+              <div class="spinner-sm"></div>
+              <span>Redactando con Altair AI...</span>
+            } @else {
+              <svg class="btn-icon" viewBox="0 0 24 24">
+                <path d="M12 3l1.912 5.885a2 2 0 001.272 1.272L21 12l-5.816 1.843a2 2 0 00-1.272 1.272L12 21l-1.912-5.885a2 2 0 00-1.272-1.272L3 12l5.816-1.843a2 2 0 001.272-1.272L12 3z" />
+              </svg>
+              <span>Generar Ficha con Altair AI</span>
+            }
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-secondary full-width"
+            (click)="enableManualDraft()"
+            style="justify-content: center; border-radius: 14px;"
+          >
+            <svg class="btn-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            <span>Generar Ficha con Altair AI</span>
-          }
-        </button>
+            <span>Completar Ficha Manualmente sin IA</span>
+          </button>
+        </div>
       </form>
     </div>
 
-    <!-- Columna Derecha: Ficha Técnica Editorial Generada -->
+    <!-- Columna Derecha: Ficha Tecnica Editorial Generada -->
     <div class="panel-card output-panel">
       <div class="panel-heading">
         <div class="step-badge step-accent">Paso 2</div>
         <h2>Ficha Editorial Generada</h2>
-        <p>Revisa, ajusta detalles y confirma para registrar la prenda directamente en el catálogo de producción.</p>
+        <p>Revisa, ajusta detalles y confirma para registrar la prenda directamente en el catalogo de produccion.</p>
       </div>
 
       @if (!generatedDraft()) {
@@ -146,9 +270,17 @@
           </div>
           <h3>Esperando Insumos Creativos</h3>
           <p>
-            Rellena el formulario de la izquierda con la idea de diseño y pulsa <strong>"Generar Ficha con Altair AI"</strong>.
-            La IA redactará la descripción editorial sastrera, la guía de cuidados y estimará el precio.
+            Rellena los datos de la prenda a la izquierda, sube tu foto, selecciona tus colores y pulsa <strong>"Generar Ficha con Altair AI"</strong>
+            o utiliza <strong>"Completar Ficha Manualmente sin IA"</strong> para editarla y publicarla directamente.
           </p>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="enableManualDraft()"
+            style="margin-top: 1rem;"
+          >
+            <span>Habilitar Ficha para Edicion Manual</span>
+          </button>
         </div>
       } @else {
         <form [formGroup]="resultForm" (ngSubmit)="publishToCatalog()" class="studio-form result-form">

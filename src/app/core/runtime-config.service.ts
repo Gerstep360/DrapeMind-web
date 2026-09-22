@@ -16,7 +16,15 @@ export class RuntimeConfigService {
       const base = typeof document !== 'undefined'
         ? (document.querySelector('base')?.getAttribute('href') || '/')
         : '/';
-      const cleanBase = base.endsWith('/') ? base : `${base}/`;
+      let cleanBase = base.endsWith('/') ? base : `${base}/`;
+
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname || '';
+        if (path.toLowerCase().startsWith('/drapemind') && !cleanBase.toLowerCase().includes('/drapemind')) {
+          cleanBase = '/DrapeMind/';
+        }
+      }
+
       const configUrl = `${cleanBase}config.json`;
       const response = await fetch(configUrl, { cache: 'no-store' });
       if (response.ok) {
@@ -67,28 +75,28 @@ export class RuntimeConfigService {
     if (!str || typeof str !== 'string') return null;
     if (/^(https?:|data:|blob:)/i.test(str)) return str;
 
-    let clean = str.replace(/^\/+/, '');
+    let clean = str.replace(/\\/g, '/').replace(/^\/+/, '');
+
+    // Normalizar si ya viene con prefijo drapemind/
+    if (clean.toLowerCase().startsWith('drapemind/')) {
+      clean = clean.substring('drapemind/'.length).replace(/^\/+/, '');
+    }
 
     // Si es solo un nombre de archivo de imagen subido (ej. 'f53227296d92475084c3c0b4cbcf51c4.png')
     if (!clean.includes('/') && /\.(png|jpe?g|webp|svg|gif)$/i.test(clean)) {
       clean = `static/products/${clean}`;
+    } else if (!clean.startsWith('static/') && /\.(png|jpe?g|webp|svg|gif)$/i.test(clean)) {
+      clean = `static/${clean}`;
     }
 
     if (this.backendUrl) {
       return `${this.backendUrl}/${clean}`;
     }
 
-    const base = typeof document !== 'undefined'
-      ? (document.querySelector('base')?.getAttribute('href') || '/DrapeMind/')
-      : '/DrapeMind/';
-    const cleanBase = base.endsWith('/') ? base : `${base}/`;
+    const isSubpath = typeof window !== 'undefined' &&
+      window.location.pathname.toLowerCase().includes('/drapemind');
+    const prefix = isSubpath ? '/DrapeMind/' : '/';
 
-    // Evitar duplicación de prefijo si clean ya contiene drapemind/
-    const baseSegment = cleanBase.replace(/^\/+|\/+$/g, '').toLowerCase();
-    if (baseSegment && clean.toLowerCase().startsWith(`${baseSegment}/`)) {
-      return `/${clean}`;
-    }
-
-    return `${cleanBase}${clean}`;
+    return `${prefix}${clean}`;
   }
 }

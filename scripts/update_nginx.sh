@@ -109,6 +109,19 @@ location = /DrapeMind/config.json {
     add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
 }
 
+location = /config.json {
+    alias ${WWW_TARGET}/config.json;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
+}
+
+location = /DrapeMind/favicon.ico {
+    alias ${WWW_TARGET}/favicon.ico;
+}
+
+location = /favicon.ico {
+    alias ${WWW_TARGET}/favicon.ico;
+}
+
 location /DrapeMind/ {
     alias ${WWW_TARGET}/;
     index index.html;

@@ -46,7 +46,7 @@ export class OutfitConfiguratorModalComponent {
     if (vals.occasion && vals.occasion !== 'dinamico') {
       parts.push(`Arma un outfit para ocasión ${vals.occasion}`);
     } else {
-      parts.push('Diseña un outfit completo según criterio estético y contexto');
+      parts.push('Diseña un outfit completo para ocasión casual elegante con piezas del showroom');
     }
 
     if (vals.topType && vals.topSize) {

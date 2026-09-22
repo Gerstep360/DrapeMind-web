@@ -315,6 +315,39 @@ export class AiProductAssistComponent implements OnInit {
     }
   }
 
+  enableManualDraft(): void {
+    const val = this.inputForm.value;
+    const fallbackTitle = val.nombre_borrador?.trim() || 'Prenda Atelier de Autor';
+    const fallbackMaterial = val.material || 'Material de Alta Costura';
+    const matchedCat = this.categories().find(
+      (c) => c.nombre.toLowerCase() === (val.categoria_sugerida || '').toLowerCase()
+    ) || this.categories()[0];
+
+    const manualResponse: ProductAiAssistStudioResponse = {
+      titulo_comercial: fallbackTitle,
+      descripcion_editorial: `Confeccion sastrera artesanal elaborada en ${fallbackMaterial} con silueta refinada, caida impecable y acabados de autor.`,
+      guia_cuidado: 'Limpieza en seco especializada. Evitar lavado mecanico. Planchado a baja temperatura con pano protector.',
+      categoria_recomendada: matchedCat ? matchedCat.nombre : 'Sacos',
+      precio_sugerido_estimado: 280,
+      silueta_corte: 'Corte sastrero contemporaneo de caida limpia',
+      tags_estilo: ['Atelier', 'Exclusivo', 'Alta Costura'],
+      modelo_utilizado: 'Edicion Manual',
+    };
+
+    this.generatedDraft.set(manualResponse);
+    this.resultForm.patchValue({
+      titulo_comercial: fallbackTitle,
+      descripcion_editorial: manualResponse.descripcion_editorial,
+      guia_cuidado: manualResponse.guia_cuidado,
+      categoria_id: matchedCat ? matchedCat.id : null,
+      precio: 280,
+      genero_objetivo: val.genero_objetivo || 'UNISEX',
+      silueta_corte: manualResponse.silueta_corte,
+      tags_estilo: manualResponse.tags_estilo.join(', '),
+    });
+    this.toasts.show('Ficha tecnica lista para edicion y registro directo en el catalogo.', 'info');
+  }
+
   generateDraft(): void {
     if (this.inputForm.invalid) {
       this.inputForm.markAllAsTouched();
@@ -324,13 +357,21 @@ export class AiProductAssistComponent implements OnInit {
 
     this.drafting.set(true);
     const val = this.inputForm.value;
+    const selectedColorNames = this.selectedColors().map((c) => c.nombre).join(', ');
+    const photoNote = this.imagesList().length > 0 ? ` (${this.imagesList().length} foto(s) adjuntas)` : '';
+    const mergedDetails = [
+      val.detalles_confeccion ? val.detalles_confeccion.trim() : '',
+      selectedColorNames ? `Colores: ${selectedColorNames}` : '',
+      photoNote,
+    ].filter(Boolean).join(' | ');
+
     const req: ProductAiAssistStudioRequest = {
       nombre_borrador: val.nombre_borrador.trim(),
       material: val.material,
       estilo_objetivo: val.estilo_objetivo,
       categoria_sugerida: val.categoria_sugerida || null,
       genero_objetivo: val.genero_objetivo,
-      detalles_confeccion: val.detalles_confeccion ? val.detalles_confeccion.trim() : null,
+      detalles_confeccion: mergedDetails || null,
       descripcion_imagen: val.descripcion_imagen ? val.descripcion_imagen.trim() : null,
       modelo_ia: this.selectedModel(),
     };
@@ -356,7 +397,9 @@ export class AiProductAssistComponent implements OnInit {
           tags_estilo: res.tags_estilo.join(', '),
         });
 
-        this.autoSuggestPaletteAndSizes(res.titulo_comercial, val.detalles_confeccion || '');
+        if (this.selectedColors().length === 0) {
+          this.autoSuggestPaletteAndSizes(res.titulo_comercial, val.detalles_confeccion || '');
+        }
         this.toasts.show('Ficha de alta costura generada exitosamente con Altair AI.', 'success');
       },
       error: (err) => {

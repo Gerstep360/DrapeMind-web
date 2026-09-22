@@ -78,13 +78,22 @@ export class ReceiptModalComponent {
       },
 
       error: (err) => {
-        this.loading.set(false);
-
-        this.toast.show(
-          err?.error?.detail ||
-            'No se pudo cargar la información del comprobante',
-          'error'
-        );
+        // Respaldo de contingencia: comprobante oficial publico autenticado
+        this.api.publicReceiptData(orderId).subscribe({
+          next: (pubData) => {
+            this.receipt.set(pubData);
+            this.loading.set(false);
+            void this.generateQrCode(pubData.order.id);
+          },
+          error: () => {
+            this.loading.set(false);
+            this.toast.show(
+              err?.error?.detail ||
+                'No se pudo cargar la información del comprobante',
+              'error'
+            );
+          },
+        });
       },
     });
   }
