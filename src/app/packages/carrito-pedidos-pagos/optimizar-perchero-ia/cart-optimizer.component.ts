@@ -6,6 +6,7 @@ import { CartService } from '@core/cart.service';
 import { RuntimeConfigService } from '@core/runtime-config.service';
 import { ToastService } from '@core/toast.service';
 import { garmentPresentationType } from '@shared/presentation/garment-presentation';
+import { marked } from 'marked';
 
 @Component({
   selector: 'app-cart-optimizer',
@@ -26,12 +27,54 @@ export class CartOptimizerComponent implements OnInit {
 
   // CU-22: Estilo
   readonly analyzingStyle = signal<boolean>(false);
-  readonly styleResult = signal<{ respuesta: string; productos: any[] } | null>(null);
+  readonly styleResult = signal<{ respuesta: string; productos: any[]; recomendaciones?: any[] } | null>(null);
 
   // CU-23: Valor y Ahorro
   readonly optimizingValue = signal<boolean>(false);
   readonly valueResult = signal<{ respuesta: string; productos: any[]; recomendaciones?: any[] } | null>(null);
   readonly applyingReplacement = signal<number | null>(null);
+
+  constructor() {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+    });
+  }
+
+  renderMarkdown(content?: string | null): string {
+    if (!content) return '';
+    try {
+      return marked.parse(content, { async: false }) as string;
+    } catch {
+      return content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+    }
+  }
+
+  auditedCartItems(): any[] {
+    const res = this.styleResult();
+    if (!res || !res.productos) return [];
+    return res.productos.filter((p: any) => p.en_carrito || p.accion === 'QUITAR' || (!p.accion && !('en_carrito' in p)));
+  }
+
+  suggestedComplements(): any[] {
+    const res = this.styleResult();
+    if (!res) return [];
+    if (res.recomendaciones && res.recomendaciones.length > 0) {
+      return res.recomendaciones;
+    }
+    return (res.productos || []).filter((p: any) => p.accion === 'AGREGAR' || p.en_carrito === false);
+  }
+
+  generateOutfitWithCart(): void {
+    this.router.navigate(['/ai-studio'], {
+      queryParams: {
+        prompt: 'Armar un outfit completo y coordinado de pasarela basado en las prendas de mi perchero actual',
+      },
+    });
+  }
 
   ngOnInit(): void {
     if (this.cart.totalItems() === 0) {

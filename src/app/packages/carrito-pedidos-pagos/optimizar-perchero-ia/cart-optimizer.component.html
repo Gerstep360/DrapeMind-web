@@ -166,19 +166,68 @@
                   <span class="result-badge">Dictamen de Altair</span>
                   <span class="model-tag">Altair AI Studio</span>
                 </div>
-                <div class="ai-prose">
-                  <p>{{ res.respuesta }}</p>
-                </div>
+                <div class="ai-prose" [innerHTML]="renderMarkdown(res.respuesta)"></div>
 
-                @if (res.productos && res.productos.length > 0) {
+                <!-- PRENDAS AUDITADAS EN TU PERCHERO -->
+                @if (auditedCartItems().length > 0) {
+                  <div class="audited-section">
+                    <div class="section-title-row">
+                      <h4>Prendas auditadas en tu perchero:</h4>
+                      <span class="count-pill">{{ auditedCartItems().length }} prendas analizadas</span>
+                    </div>
+                    <div class="audited-grid">
+                      @for (item of auditedCartItems(); track item.id) {
+                        <div class="audited-card">
+                          <div class="audited-thumb">
+                            @if (hasRealImage(item.imagen)) {
+                              <img [src]="runtime.resolveImageUrl(item.imagen)" [alt]="item.nombre" />
+                            } @else {
+                              <div class="placeholder-thumb" [attr.data-type]="getGarmentType(item.nombre)">
+                                <span>{{ item.nombre.substring(0, 2).toUpperCase() }}</span>
+                              </div>
+                            }
+                          </div>
+                          <div class="audited-info">
+                            <strong>{{ item.nombre }}</strong>
+                            <div class="meta-row">
+                              <span class="meta-chip">{{ item.color }}</span>
+                              <span class="meta-chip">Talla {{ item.talla }}</span>
+                              <span class="meta-chip">Cant: {{ item.cantidad }}</span>
+                            </div>
+                            <span class="price-val">Bs {{ (item.subtotal || item.precio) | number: '1.2-2' }}</span>
+                          </div>
+                          <span class="in-cart-badge">En Perchero</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- COMPLEMENTOS SUGERIDOS PARA ELEVAR TU LOOK -->
+                @if (suggestedComplements().length > 0) {
                   <div class="suggestions-section">
-                    <h4>Prendas sugeridas para elevar tu look:</h4>
+                    <div class="section-title-row">
+                      <h4>Complementos sugeridos para elevar tu look:</h4>
+                      <span class="rec-pill">Recomendación a tu medida</span>
+                    </div>
                     <div class="suggestions-grid">
-                      @for (p of res.productos; track p.id) {
+                      @for (p of suggestedComplements(); track p.id) {
                         <div class="suggestion-card">
+                          <div class="suggestion-thumb">
+                            @if (hasRealImage(p.imagen)) {
+                              <img [src]="runtime.resolveImageUrl(p.imagen)" [alt]="p.nombre" />
+                            } @else {
+                              <div class="placeholder-thumb" [attr.data-type]="getGarmentType(p.nombre)">
+                                <span>{{ p.nombre.substring(0, 2).toUpperCase() }}</span>
+                              </div>
+                            }
+                          </div>
                           <div class="suggestion-info">
                             <strong>{{ p.nombre }}</strong>
-                            <small>{{ p.material || p.marca }}</small>
+                            <div class="meta-row">
+                              <span class="meta-chip">{{ p.color || 'Tono Coordinado' }}</span>
+                              <span class="meta-chip">Talla {{ p.talla || 'Recomendada' }}</span>
+                            </div>
                             <span class="price-val">Bs {{ p.precio | number: '1.2-2' }}</span>
                           </div>
                           <button
@@ -186,13 +235,35 @@
                             class="btn btn-sm btn-secondary"
                             (click)="addSuggestedToCart(p)"
                           >
-                            + Añadir
+                            + Añadir al Perchero
                           </button>
                         </div>
                       }
                     </div>
                   </div>
                 }
+
+                <!-- CARD PARA GENERAR OUTFIT COMPLETO A MEDIDA -->
+                <div class="outfit-cta-card">
+                  <div class="outfit-cta-content">
+                    <div class="cta-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </div>
+                    <div class="cta-text">
+                      <strong>¿Quieres diseñar un outfit completo coordinado?</strong>
+                      <p>Altair AI puede combinar las prendas de tu perchero con calzado, accesorios y prendas de abrigo según tu silueta y ocasión.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    (click)="generateOutfitWithCart()"
+                  >
+                    Diseñar Outfit Completo &rarr;
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -231,9 +302,7 @@
                   <span class="result-badge">Diagnóstico Económico</span>
                   <span class="model-tag">Altair AI</span>
                 </div>
-                <div class="ai-prose">
-                  <p>{{ res.respuesta }}</p>
-                </div>
+                <div class="ai-prose" [innerHTML]="renderMarkdown(res.respuesta)"></div>
 
                 <!-- LISTA DE REEMPLAZOS DISPONIBLES CON 1 CLIC -->
                 @if (res.recomendaciones && res.recomendaciones.length > 0) {
