@@ -240,7 +240,7 @@ export interface ProductAiAssistStudioRequest {
   genero_objetivo?: string;
   detalles_confeccion?: string | null;
   descripcion_imagen?: string | null;
-  modelo_ia?: 'ALTAIR' | 'ALTAIR_MINI' | 'ALTAIR_VARIABLE';
+  modelo_ia?: 'ALTAIR' | 'NVIDIA' | 'NVIDIA';
 }
 
 export interface ProductAiAssistStudioResponse {
@@ -257,7 +257,7 @@ export interface ProductAiAssistStudioResponse {
 export interface ExecutiveReportRequest {
   tipo_reporte: 'VENTAS_Y_TENDENCIAS' | 'INVENTARIO_Y_STOCK' | 'ASISTENCIA_IA_Y_CLIENTES' | 'ESTRATEGICO_GLOBAL';
   periodo: 'MES_ACTUAL' | 'TRIMESTRE' | 'HISTORICO';
-  modelo_ia?: 'ALTAIR' | 'ALTAIR_MINI' | 'ALTAIR_VARIABLE';
+  modelo_ia?: 'ALTAIR' | 'NVIDIA' | 'NVIDIA';
   enfoque_especifico?: string | null;
   seed?: number;
 }

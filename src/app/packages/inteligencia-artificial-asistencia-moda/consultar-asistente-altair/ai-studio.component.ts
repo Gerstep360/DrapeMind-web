@@ -5,10 +5,14 @@ import {
   OnInit,
   ViewChild,
   effect,
+  DestroyRef,
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { AiDataBlock, readAiDataBlocks } from '@core/models/ai-presentation.models';
+import { CatalogApiService } from '@core/api/catalog-api.service';
 import { AiSocketService } from '@core/ai-socket.service';
 import { AuthService } from '@core/auth.service';
 import { CartService } from '@core/cart.service';
@@ -17,8 +21,9 @@ import { RuntimeConfigService } from '@core/runtime-config.service';
 import { ToastService } from '@core/toast.service';
 
 import { GarmentCardComponent } from '@shared/components/altair/garment-card/garment-card.component';
-import { ThinkingDropdownComponent } from '@shared/components/altair/thinking-dropdown/thinking-dropdown.component';
+import { AiPresentationComponent } from '@shared/components/altair/ai-presentation/ai-presentation.component';
 import { OutfitReceiptComponent } from '@shared/components/altair/outfit-receipt/outfit-receipt.component';
+import { ToolActivityComponent } from '@shared/components/altair/tool-activity/tool-activity.component';
 import { ChatComposerComponent } from '@shared/components/altair/chat-composer/chat-composer.component';
 import { GarmentModalComponent } from '@shared/components/altair/garment-modal/garment-modal.component';
 import { OutfitConfiguratorModalComponent } from '@shared/components/altair/outfit-configurator-modal/outfit-configurator-modal.component';
@@ -32,7 +37,9 @@ import {
   standalone: true,
   imports: [
     GarmentCardComponent,
-    ThinkingDropdownComponent,
+    AiPresentationComponent,
+    ToolActivityComponent,
+
     OutfitReceiptComponent,
     ChatComposerComponent,
     GarmentModalComponent,
@@ -49,10 +56,61 @@ export class AiStudioComponent implements OnInit {
   readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly runtime = inject(RuntimeConfigService);
+  private readonly catalog = inject(CatalogApiService);
+  private readonly router = inject(Router);
+  private detailRequest = 0;
+  private readonly http = inject(HttpClient);
+  readonly shoppingSetup = signal<AiDataBlock[]>([]);
+  readonly setupLoading = signal(false);
+  readonly setupOwner = signal('');
+  private setupVersion = 0;
+
+  openShoppingSetup(goal: string): void {
+    const version = ++this.setupVersion;
+    const session = this.ai.activeSessionId();
+    this.setupOwner.set(session);
+    const backendSession = this.ai.currentSession().backendSessionId;
+    this.setupLoading.set(true);
+    this.shoppingSetup.set([]);
+    this.http
+      .get<unknown>(`${this.runtime.apiUrl}/ai/shopping-setup`, {
+        params: backendSession ? { goal, session_id: backendSession } : { goal },
+      })
+      .subscribe({
+        next: (block) => {
+          if (version !== this.setupVersion || session !== this.ai.activeSessionId()) return;
+          this.shoppingSetup.set(readAiDataBlocks([block]));
+          this.setupLoading.set(false);
+          this.followLatest = true;
+          setTimeout(() => this.scrollToBottom(), 50);
+        },
+        error: () => {
+          if (version === this.setupVersion) {
+            this.setupLoading.set(false);
+            this.toast.show(
+              'No pude cargar tus preferencias. Reintenta desde Herramientas.',
+              'error',
+            );
+          }
+        },
+      });
+  }
+
+  closeShoppingSetup(): void {
+    ++this.setupVersion;
+    this.shoppingSetup.set([]);
+    this.setupLoading.set(false);
+  }
+  submitShoppingSetup(message: string): void {
+    if (!this.ai.canSend()) return;
+    this.closeShoppingSetup();
+    this.send(message);
+  }
 
   @ViewChild('conversation') conversation?: ElementRef<HTMLElement>;
 
   private followLatest = true;
+  private scrollFrame: number | null = null;
   onConversationScroll(): void {
     const el = this.conversation?.nativeElement;
     if (el) this.followLatest = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
@@ -60,29 +118,28 @@ export class AiStudioComponent implements OnInit {
 
   readonly isConfiguratorOpen = signal(false);
   readonly isSessionsOpen = signal(false);
-  readonly availableModels = [
-    { id: 'mini' as const, name: 'Altair Mini', desc: 'Respuesta ultrarrápida y concisa (predeterminado)' },
-    { id: 'dynamic' as const, name: 'Altair Variable', desc: 'Ajuste dinámico según la complejidad de la consulta' },
-    { id: 'gemma' as const, name: 'Altair Principal', desc: 'Análisis minucioso con contexto estilístico extendido' },
-  ];
-  readonly activeModel = signal<'mini' | 'dynamic' | 'gemma'>(this.readStoredModel());
   readonly selectedGarment = signal<AiActionItem | null>(null);
   readonly expandedTraces = signal<Record<string, boolean>>({});
   readonly openThoughts = signal<Set<string>>(new Set());
 
   constructor() {
     this.ai.connect();
+    inject(DestroyRef).onDestroy(() => {
+      if (this.scrollFrame !== null) cancelAnimationFrame(this.scrollFrame);
+    });
     effect(() => {
       this.ai.messages();
-      if (this.followLatest) window.setTimeout(() => this.scrollToBottom(), 0);
+      if (this.followLatest && this.scrollFrame === null) {
+        this.scrollFrame = window.requestAnimationFrame(() => {
+          this.scrollFrame = null;
+          this.scrollToBottom();
+        });
+      }
     });
   }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      if (params['mode'] === 'mini' || params['mode'] === 'dynamic' || params['mode'] === 'gemma') {
-        this.selectModel(params['mode']);
-      }
       if (params['openConfigurator'] === 'true') {
         this.isConfiguratorOpen.set(true);
       }
@@ -92,27 +149,18 @@ export class AiStudioComponent implements OnInit {
     });
   }
 
-  private readStoredModel(): 'mini' | 'dynamic' | 'gemma' {
-    try {
-      const val = localStorage.getItem('drapemind_altair_model');
-      if (val === 'mini' || val === 'dynamic' || val === 'gemma') return val;
-    } catch {
-      // ignore storage error
-    }
-    return 'mini';
-  }
-
-  selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {
-    this.activeModel.set(model);
-    try {
-      localStorage.setItem('drapemind_altair_model', model);
-    } catch {
-      // ignore storage error
-    }
-  }
-
   handleNewChat(): void {
+    this.closeShoppingSetup();
     this.ai.createNewSession();
+  }
+
+  async copyMessage(content: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(content);
+      this.toast.show('Respuesta copiada', 'success');
+    } catch {
+      this.toast.show('No se pudo copiar. Puedes seleccionar el texto de la respuesta.', 'info');
+    }
   }
 
   handleOpenSessions(): void {
@@ -132,10 +180,43 @@ export class AiStudioComponent implements OnInit {
   }
 
   openGarmentDetail(item: AiActionItem): void {
-    this.selectedGarment.set(item);
+    if (item.accion === 'VER_PEDIDO' || item.accion === 'VER_RESERVA') {
+      void this.router.navigate([item.accion === 'VER_PEDIDO' ? '/orders' : '/reservations']);
+      return;
+    }
+    const request = ++this.detailRequest;
+    this.selectedGarment.set(null);
+    this.catalog.product(item.id).subscribe({
+      next: (product) => {
+        if (request !== this.detailRequest) return;
+        const variant = product.variantes?.find((row) => row.id === item.variante_id && row.activo);
+        if (!variant) {
+          this.toast.show(
+            'Esta variante ya no está disponible. Puedes elegir otra desde el catálogo.',
+            'info',
+          );
+          return;
+        }
+        this.selectedGarment.set({
+          ...item,
+          nombre: product.nombre,
+          precio: product.precio,
+          talla: variant.talla,
+          color: variant.color,
+          sku: variant.sku,
+          imagen: variant.imagen || item.imagen,
+          stock_disponible: variant.stock_disponible,
+        });
+      },
+      error: () => {
+        if (request === this.detailRequest)
+          this.toast.show('No pude consultar los datos actuales de la prenda. Reintenta.', 'error');
+      },
+    });
   }
 
   closeGarmentDetail(): void {
+    this.detailRequest++;
     this.selectedGarment.set(null);
   }
 
@@ -181,7 +262,7 @@ export class AiStudioComponent implements OnInit {
   ): void {
     const raw = (value ?? '').trim();
     if (!raw) return;
-    if (this.ai.isBusy()) return;
+    if (!this.ai.canSend()) return;
 
     const cmdLabel = options?.commandLabel;
     const isCmd = options?.isCommand ?? !!cmdLabel;
@@ -197,7 +278,7 @@ export class AiStudioComponent implements OnInit {
     this.ai.sendMessage(fullContent, {
       isCommand: isCmd,
       commandLabel: cmdLabel || undefined,
-      mode: this.activeModel(),
+
       context: options?.context,
     });
 
@@ -268,7 +349,13 @@ export class AiStudioComponent implements OnInit {
       compare_products: 'Analizando relación valor y calidad',
       get_my_orders: 'Verificando compras recientes',
       get_my_reservations: 'Revisando reservas activas en tienda',
-      evaluate_garment_fit: 'Evaluando caída y holgura textil',
+      evaluate_garment_fit: 'Comprobando datos para evaluar ajuste',
+      ask_shopping_preferences: 'Preparando las opciones para ti',
+      get_my_shopping_context: 'Consultando tus preferencias',
+      discover_for_me: 'Buscando prendas para ti',
+      recommend_pickup_branches: 'Comparando stock entre sucursales',
+      plan_more_for_less: 'Calculando más prendas por tu presupuesto',
+      find_cart_savings: 'Buscando ahorro real en tu carrito',
       analyze_styling: 'Analizando armonía de look',
       prepare_model: 'Preparando Altair AI',
       compose_response: 'Sintetizando dictamen de estilo',
@@ -401,13 +488,7 @@ export class AiStudioComponent implements OnInit {
   private scrollToBottom(): void {
     const element = this.conversation?.nativeElement;
     if (element) {
-      const latest = element.querySelector<HTMLElement>('.message:last-child');
-      const availableHeight = element.clientHeight - 32;
-      if (latest && latest.offsetHeight > availableHeight) {
-        element.scrollTop = Math.max(0, latest.offsetTop - 16);
-      } else {
-        element.scrollTop = element.scrollHeight;
-      }
+      element.scrollTop = element.scrollHeight;
     }
   }
 }

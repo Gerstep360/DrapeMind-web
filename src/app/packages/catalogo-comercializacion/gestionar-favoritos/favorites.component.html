@@ -33,13 +33,7 @@
     @for (product of favorites(); track product.id) {
       <article class="favorite-card">
         <div class="favorite-card__media">
-          @if (imageUrl(product); as img) {
-            <img [src]="img" [alt]="product.nombre" loading="lazy" />
-          } @else {
-            <div class="favorite-card__placeholder">
-              <span>{{ product.nombre.charAt(0) }}</span>
-            </div>
-          }
+          <app-product-media [src]="imageUrl(product)" [label]="product.nombre" />
           <button
             type="button"
             class="btn-favorite-heart"

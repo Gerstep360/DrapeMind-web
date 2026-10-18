@@ -1,17 +1,11 @@
-export type AiModelMode = 'mini' | 'dynamic' | 'gemma';
+import { AiDataBlock } from './ai-presentation.models';
+export type AiModelMode = 'nvidia';
 
 export interface AiRuntimeStatus {
+  provider: 'nvidia';
+  configured: boolean;
   healthy: boolean;
-  managed: boolean;
-  running: boolean;
-  active_requests: number;
-  idle_seconds: number | null;
-  idle_timeout_seconds: number;
   model: string;
-  model_exists: boolean;
-  mmproj_exists: boolean;
-  executable: string | null;
-  platform: 'windows' | 'linux';
 }
 
 export interface AiActionItem {
@@ -26,6 +20,7 @@ export interface AiActionItem {
   accion: 'AGREGAR' | 'QUITAR' | 'REEMPLAZAR' | 'VER_PEDIDO' | 'VER_RESERVA';
   item_id?: number;
   motivo?: string;
+  stock_disponible?: number;
 }
 
 export type AiPresentationMode = 'text' | 'cards' | 'mixed';
@@ -61,6 +56,7 @@ export interface AgentTraceStep {
 }
 
 export interface ChatMessage {
+  uiBlocks?: AiDataBlock[];
   id: string;
   role: 'user' | 'assistant';
   content: string;
@@ -93,8 +89,13 @@ export interface ChatSession {
 }
 
 export interface AiSocketEvent {
+  ui_blocks?: unknown;
   type:
     | 'connected'
+    | 'task_started'
+    | 'task_cancelled'
+    | 'task_completed'
+    | 'task_failed'
     | 'thought'
     | 'progress'
     | 'answer_snapshot'
@@ -108,6 +109,10 @@ export interface AiSocketEvent {
     | 'error'
     | 'pong';
   status?: 'loading' | 'ready';
+  concurrent?: boolean;
+  request_id?: string;
+  task_id?: string;
+  request_version?: number;
   content?: string;
   text?: string;
   message?: string;

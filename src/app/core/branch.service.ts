@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { AuthService } from './auth.service';
 import { Branch } from './models';
 import { BranchInventoryApiService } from './api/branch-inventory-api.service';
 
@@ -8,6 +9,22 @@ const SELECTED_BRANCH_KEY = 'drapemind_selected_branch_id';
 export class BranchService {
   private readonly api = inject(BranchInventoryApiService);
 
+  private readonly auth = inject(AuthService);
+  private owner: number | null = null;
+  private get storageKey() {
+    return SELECTED_BRANCH_KEY + '_' + (this.auth.user()?.tenant_id || 'none');
+  }
+  constructor() {
+    effect(() => {
+      const owner = this.auth.user()?.tenant_id || null;
+      if (this.owner !== owner) {
+        this.owner = owner;
+        this.branches.set([]);
+        this.loading.set(false);
+        this.selectedBranchId.set(this.readStoredBranchId());
+      }
+    });
+  }
   readonly branches = signal<Branch[]>([]);
   readonly selectedBranchId = signal<number | null>(this.readStoredBranchId());
   readonly showSelectorModal = signal<boolean>(false);
@@ -20,6 +37,14 @@ export class BranchService {
   });
 
   loadBranches(): void {
+    const company = this.auth.user()?.tenant_id || null;
+    if (!company) return;
+    if (this.owner !== company) {
+      this.owner = company;
+      this.branches.set([]);
+      this.loading.set(false);
+      this.selectedBranchId.set(this.readStoredBranchId());
+    }
     if (this.branches().length > 0 || this.loading()) return;
     this.loading.set(true);
 
@@ -36,7 +61,7 @@ export class BranchService {
           // Default to first active branch if none stored
           this.selectedBranchId.set(activeBranches[0].id);
           try {
-            localStorage.setItem(SELECTED_BRANCH_KEY, String(activeBranches[0].id));
+            localStorage.setItem(this.storageKey, String(activeBranches[0].id));
           } catch {
             // ignore storage errors
           }
@@ -52,7 +77,7 @@ export class BranchService {
     this.selectedBranchId.set(branch.id);
     this.showSelectorModal.set(false);
     try {
-      localStorage.setItem(SELECTED_BRANCH_KEY, String(branch.id));
+      localStorage.setItem(this.storageKey, String(branch.id));
     } catch {
       // ignore storage errors
     }
@@ -69,7 +94,7 @@ export class BranchService {
 
   private readStoredBranchId(): number | null {
     try {
-      const val = localStorage.getItem(SELECTED_BRANCH_KEY);
+      const val = localStorage.getItem(this.storageKey);
       return val ? parseInt(val, 10) : null;
     } catch {
       return null;

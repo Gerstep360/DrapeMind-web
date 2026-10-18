@@ -1,3 +1,4 @@
+@use '../../../../styles/fashion' as fashion;
 .notifications-backdrop {
   position: fixed;
   inset: 0;
@@ -18,7 +19,7 @@
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  box-shadow: -8px 0 28px rgba(18, 23, 20, 0.18);
+  box-shadow: none;
   animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -43,7 +44,7 @@
         font-size: 1.25rem;
         font-weight: 700;
         letter-spacing: -0.02em;
-        color: #121714;
+        color: var(--dm-ink);
         margin: 0;
       }
     }
@@ -62,17 +63,17 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid #dde3db;
     background: #fafbfa;
-    color: #4a544c;
+    color: var(--dm-text);
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
-      background: #121714;
+      background: var(--dm-ink);
       color: #ffffff;
-      border-color: #121714;
+      border-color: var(--dm-ink);
     }
   }
 }
@@ -86,7 +87,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.15rem 0.45rem;
-  border-radius: 999px;
+  border-radius: 4px;
   background: #f1f3f0;
   color: #727c73;
 
@@ -103,7 +104,7 @@
 
     .live-dot {
       background: #4caf50;
-      box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+      box-shadow: none;
     }
   }
 }
@@ -127,7 +128,7 @@
       align-items: center;
       gap: 0.35rem;
       padding: 0.35rem 0.75rem;
-      border-radius: 999px;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
       background: #ffffff;
@@ -139,25 +140,25 @@
 
       .pill-count {
         font-size: 0.625rem;
-        background: #121714;
+        background: var(--dm-ink);
         color: #ffffff;
         padding: 0.1rem 0.35rem;
-        border-radius: 999px;
+        border-radius: 4px;
       }
 
       &:hover {
-        border-color: #121714;
-        color: #121714;
+        border-color: var(--dm-ink);
+        color: var(--dm-ink);
       }
 
       &.active {
-        background: #121714;
+        background: var(--dm-ink);
         color: #ffffff;
-        border-color: #121714;
+        border-color: var(--dm-ink);
 
         .pill-count {
-          background: #dfff3f;
-          color: #121714;
+          background: var(--dm-lime);
+          color: var(--dm-ink);
         }
       }
     }
@@ -178,12 +179,12 @@
       font-weight: 600;
       background: none;
       border: none;
-      color: #4a544c;
+      color: var(--dm-text);
       cursor: pointer;
       padding: 0;
 
       &:hover:not(:disabled) {
-        color: #121714;
+        color: var(--dm-ink);
         text-decoration: underline;
       }
 
@@ -219,7 +220,7 @@
   display: flex;
   gap: 0.85rem;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: 4px;
   background: #ffffff;
   border: 1px solid #e5eae3;
   cursor: pointer;
@@ -228,7 +229,7 @@
 
   &:hover {
     border-color: #ccd7ca;
-    box-shadow: 0 4px 12px rgba(18, 23, 20, 0.05);
+    box-shadow: none;
   }
 
   &:active {
@@ -237,8 +238,8 @@
 
   &.unread {
     background: #fbfdfa;
-    border-color: #121714;
-    box-shadow: 0 2px 8px rgba(18, 23, 20, 0.04);
+    border-color: var(--dm-ink);
+    box-shadow: none;
   }
 
   .card-left {
@@ -248,7 +249,7 @@
       justify-content: center;
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: 4px;
       background: #f0f4ee;
       color: #3b453d;
 
@@ -295,14 +296,14 @@
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #121714;
-          box-shadow: 0 0 4px rgba(18, 23, 20, 0.4);
+          background: var(--dm-ink);
+          box-shadow: none;
         }
 
         h4 {
           font-size: 0.875rem;
           font-weight: 700;
-          color: #121714;
+          color: var(--dm-ink);
           margin: 0;
         }
       }
@@ -316,7 +317,7 @@
 
     .notif-text {
       font-size: 0.8125rem;
-      color: #4a544c;
+      color: var(--dm-text);
       margin: 0;
       line-height: 1.45;
     }
@@ -335,7 +336,7 @@
         gap: 0.25rem;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #121714;
+        color: var(--dm-ink);
         background: none;
         border: none;
         padding: 0;
@@ -366,7 +367,7 @@
 
           &:hover {
             background: #f0f4ee;
-            color: #121714;
+            color: var(--dm-ink);
           }
 
           &.danger:hover {
@@ -403,7 +404,7 @@
   h3 {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #121714;
+    color: var(--dm-ink);
     margin: 0 0 0.35rem;
   }
 
@@ -424,3 +425,5 @@
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
+@include fashion.controls;

@@ -2,7 +2,7 @@
 
 /* ==========================================================================
    DRAPEMIND GLOBAL STYLES & FOUNDATION
-   Direction: AI Fashion Commerce + Soft Futurism + Editorial Minimal
+   Direction: Fashion Neubrutalism
    ========================================================================== */
 
 *,
@@ -40,7 +40,7 @@ body {
   font-size: clamp(2.75rem, 6.5vw, 6.8rem);
   line-height: 0.94;
   letter-spacing: -0.055em;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .dm-h1 {
@@ -48,7 +48,7 @@ body {
   font-size: clamp(2rem, 4vw, 4.25rem);
   line-height: 1.02;
   letter-spacing: -0.045em;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .dm-h2 {
@@ -56,7 +56,7 @@ body {
   font-size: clamp(1.5rem, 2.8vw, 2.6rem);
   line-height: 1.1;
   letter-spacing: -0.035em;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .dm-h3 {
@@ -95,8 +95,8 @@ textarea {
 }
 
 select option {
-  background-color: #FFFFFF;
-  color: var(--dm-ink, #10110F);
+  background-color: #ffffff;
+  color: var(--dm-ink, var(--dm-ink));
 }
 
 button,
@@ -123,8 +123,8 @@ select,
 textarea,
 .dm-input {
   min-height: 3rem;
-  border: 1px solid var(--dm-border);
-  border-radius: var(--dm-radius-md);
+  border: 2px solid var(--dm-ink);
+  border-radius: var(--dm-radius-sm);
   padding: 0.7rem 1.1rem;
   color: var(--dm-ink);
   background: var(--dm-surface);
@@ -146,7 +146,7 @@ textarea,
     border-color: var(--dm-ink);
     box-shadow: 0 0 0 4px var(--dm-lime-glow);
     outline: 0;
-    background: #FFFFFF;
+    background: #ffffff;
   }
 
   &:disabled {
@@ -195,7 +195,7 @@ textarea {
   place-items: center;
   background: var(--dm-ink);
   color: var(--dm-lime);
-  border-radius: var(--dm-radius-pill);
+  border-radius: var(--dm-radius-sm);
   font-style: normal;
   font-weight: 800;
   font-size: 1.05rem;
@@ -231,7 +231,7 @@ textarea {
   margin: 0.45rem 0 0;
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 4.5vw, 4.4rem);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.96;
   color: var(--dm-ink);
@@ -258,8 +258,8 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
-  border: 1px solid transparent;
-  border-radius: var(--dm-radius-pill);
+  border: 2px solid var(--dm-ink);
+  border-radius: var(--dm-radius-sm);
   padding: 0.7rem 1.4rem;
   color: var(--dm-ink);
   background: var(--dm-surface);
@@ -293,7 +293,7 @@ textarea {
 
 .button--primary,
 .dm-btn-primary {
-  color: #FFFFFF;
+  color: #ffffff;
   background: var(--dm-ink);
   border-color: var(--dm-ink);
 
@@ -305,25 +305,25 @@ textarea {
 .button--accent,
 .button--ai,
 .dm-btn-ai {
-  border-color: transparent;
+  border-color: var(--dm-ink);
   color: var(--dm-ink);
   background: var(--dm-lime);
   font-weight: 800;
 
   &:not(:disabled):hover {
     background: var(--dm-lime-hover);
-    box-shadow: 0 4px 18px var(--dm-lime-glow);
+    box-shadow: 2px 2px 0 var(--dm-ink);
   }
 }
 
 .button--inverse {
   border-color: rgba(255, 255, 255, 0.4);
-  color: #FFFFFF;
+  color: #ffffff;
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
 
   &:not(:disabled):hover {
-    background: #FFFFFF;
+    background: #ffffff;
     color: var(--dm-ink);
   }
 }
@@ -336,7 +336,7 @@ textarea {
 
   &:not(:disabled):hover {
     border-color: var(--dm-ink);
-    background: #FFFFFF;
+    background: #ffffff;
   }
 }
 
@@ -347,7 +347,7 @@ textarea {
 
   &:not(:disabled):hover {
     background: var(--dm-danger);
-    color: #FFFFFF;
+    color: #ffffff;
   }
 }
 
@@ -394,7 +394,9 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  transition: gap var(--dm-fast) ease, color var(--dm-fast) ease;
+  transition:
+    gap var(--dm-fast) ease,
+    color var(--dm-fast) ease;
 
   &:hover {
     gap: 0.55rem;
@@ -413,7 +415,7 @@ textarea {
   gap: 0.4rem;
   padding: 0.55rem 1.15rem;
   border: 1px solid var(--dm-border);
-  border-radius: var(--dm-radius-pill);
+  border-radius: var(--dm-radius-sm);
   background: var(--dm-surface);
   color: var(--dm-text);
   font-size: 0.76rem;
@@ -434,7 +436,7 @@ textarea {
 
   &.active {
     background: var(--dm-ink);
-    color: #FFFFFF;
+    color: #ffffff;
     border-color: var(--dm-ink);
     box-shadow: 0 4px 14px rgba(16, 17, 15, 0.16);
   }
@@ -461,7 +463,7 @@ textarea {
   min-height: 1.65rem;
   align-items: center;
   border: 1px solid var(--dm-border);
-  border-radius: var(--dm-radius-pill);
+  border-radius: var(--dm-radius-sm);
   padding: 0.25rem 0.75rem;
   color: var(--dm-text-muted);
   background: var(--dm-surface);
@@ -474,23 +476,23 @@ textarea {
 .status-badge[data-status='PAGADO'],
 .status-badge[data-status='CONFIRMADA'],
 .status-badge[data-status='ENTREGADO'] {
-  border-color: #A3DDB3;
-  color: #1A542D;
+  border-color: #a3ddb3;
+  color: #1a542d;
   background: var(--dm-success-soft);
 }
 
 .status-badge[data-status='PENDIENTE'],
 .status-badge[data-status='PENDIENTE_PAGO'],
 .status-badge[data-status='PREPARANDO'] {
-  border-color: #ECD492;
-  color: #72530E;
+  border-color: #ecd492;
+  color: #72530e;
   background: var(--dm-warning-soft);
 }
 
 .status-badge[data-status='CANCELADO'],
 .status-badge[data-status='CANCELADA'],
 .status-badge[data-status='VENCIDA'] {
-  border-color: #F6ABAB;
+  border-color: #f6abab;
   color: var(--dm-danger);
   background: var(--dm-danger-soft);
 }
@@ -500,7 +502,7 @@ textarea {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  border-radius: var(--dm-radius-pill);
+  border-radius: var(--dm-radius-sm);
   background: var(--dm-lime);
   color: var(--dm-ink);
   font-size: 0.72rem;
@@ -570,12 +572,18 @@ textarea {
 }
 
 @keyframes dm-shimmer {
-  0% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==========================================================================
@@ -599,16 +607,18 @@ textarea {
   align-items: center;
   gap: 0.85rem;
   padding: 0.75rem 1.25rem;
-  border-radius: var(--dm-radius-pill);
+  border-radius: var(--dm-radius-sm);
   background: var(--dm-ink);
-  color: #FFFFFF;
+  color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--dm-shadow-lg);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   animation: dm-pop 240ms var(--dm-ease);
-  transition: transform var(--dm-fast) ease, opacity var(--dm-fast) ease;
+  transition:
+    transform var(--dm-fast) ease,
+    opacity var(--dm-fast) ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -616,14 +626,14 @@ textarea {
 
   &--positive {
     background: #193623;
-    border-color: #2F6944;
-    color: #DFFF9D;
+    border-color: #2f6944;
+    color: #dfff9d;
   }
 
   &--critical {
-    background: #3D1212;
+    background: #3d1212;
     border-color: #792525;
-    color: #FFDFDF;
+    color: #ffdfdf;
   }
 }
 
@@ -690,7 +700,7 @@ textarea {
   z-index: 3000 !important;
 }
 
-[role="dialog"],
+[role='dialog'],
 .product-detail-modal,
 .ai-outfit-dialog,
 .modal-card {
@@ -699,7 +709,7 @@ textarea {
 
 body:has(.modal-scrim),
 body:has(.modal-backdrop),
-body:has([role="dialog"]),
+body:has([role='dialog']),
 body:has(.product-detail-modal) {
   .topbar,
   .dm-topbar {
@@ -708,3 +718,34 @@ body:has(.product-detail-modal) {
   }
 }
 
+/* Selective solid elevation belongs to primary actions, not data rows. */
+.button--primary,
+.button--accent,
+.button--ai,
+.dm-btn-primary,
+.dm-btn-ai {
+  box-shadow: 4px 4px 0 var(--dm-ink);
+}
+.button--primary:not(:disabled):hover,
+.button--accent:not(:disabled):hover,
+.dm-btn-primary:not(:disabled):hover,
+.dm-btn-ai:not(:disabled):hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--dm-ink);
+}
+.button--ghost,
+.dm-btn-secondary,
+.dm-icon-btn {
+  box-shadow: none;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  min-height: initial;
+  padding: 0;
+  accent-color: var(--dm-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .button:not(:disabled):hover {
+    transform: none;
+  }
+}

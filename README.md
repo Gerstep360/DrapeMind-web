@@ -1,7 +1,11 @@
 # DrapeMind Web
 
 Panel Angular standalone para ADMIN y VENDEDOR, con catalogo, inventario, reservas, pedidos,
-metricas y una consola conversacional de Gemma.
+metricas y una consola conversacional Altair conectada al proveedor configurado en FastAPI.
+
+La arquitectura principal usa un solo modelo NVIDIA desde el backend, tarjetas verificadas y hasta tres consultas simultáneas por conexión. El onboarding guarda las respuestas y muestra una inferencia breve real; permite reintentar si la IA falla. No requiere claves en el navegador.
+
+Inicia la API con `python iniciar_backend.py` desde la raíz del proyecto. Configuración y migraciones: [backend/README.md](../backend/README.md). El proxy local usa el puerto 8000; `config.json` funciona con `/api/v1` y el runtime conserva el prefijo de producción `/DrapeMind`.
 
 ## Desarrollo local
 
@@ -40,7 +44,7 @@ se necesita CORS. Si frontend y backend usan dominios distintos, agrega el orige
 
 ## Tiempo real
 
-- `/ws/ai`: autenticacion JWT por primer frame, streaming de tokens, tools y estado del modelo.
+- `/ws/ai`: autenticación JWT por primer frame, actividad real de herramientas y respuesta verificada. El adaptador NVIDIA admite JSON y SSE; el texto se publica después de validar los datos comerciales.
 - `/ws/events`: reservas, pedidos, pagos e inventario con reconexion y heartbeat.
 
 AI Studio soporta respuestas `text`, `cards` y `mixed`. Cada mensaje conserva un desplegable
@@ -48,9 +52,14 @@ de acciones verificadas con sus pasos y tiempos. Las cards de producto usan vari
 pueden agregarse al carrito; pedidos y reservas enlazan a sus pantallas. Los accesos contextuales
 de IA se limitan a catálogo, detalle de producto y carrito, donde aportan una decisión concreta.
 
-Los outfits incluyen explicación, alertas de restricciones, total, presupuesto restante y una
-acción para agregar el conjunto completo. En respuestas largas el chat ancla el inicio de la
-recomendación para que el usuario lea primero la decisión y luego recorra las cards.
+Consultar una prenda no obliga a mostrar su tarjeta. Las preguntas de precio pueden responderse
+solo con texto; al explorar prendas se usan fichas compactas. Abrir un detalle vuelve a consultar
+el catálogo y agregar al carrito valida nuevamente precio y stock en el servidor. El chat sigue
+el último mensaje mientras el usuario permanece al final; permite desplazarse para leer respuestas anteriores.
+
+La identidad Fashion Neubrutalism utiliza hueso, negro, lima y coral, con tipografía editorial,
+bordes definidos y sombras sólidas selectivas. [Auditoría por ruta](docs/FASHION_NEUBRUTALISM_AUDIT.md).
+[Verificación y límites de esta entrega](docs/FASHION_NEUBRUTALISM_VERIFICATION.md).
 
 Los WebSockets usan `ws://` o `wss://` automaticamente segun la URL HTTP. La interfaz conserva
 el JWT en `sessionStorage`, no en almacenamiento permanente.

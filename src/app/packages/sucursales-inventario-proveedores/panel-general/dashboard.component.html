@@ -33,7 +33,7 @@
       [class.tab-pill--active]="activeTab() === 'runtime'"
       (click)="setTab('runtime')"
     >
-      Monitor del Runtime Gemma
+      Conexión NVIDIA
     </button>
   </nav>
 }
@@ -236,9 +236,9 @@
         <small>Tiempo medio de respuesta de inferencia</small>
       </article>
       <article class="metric-strip__accent">
-        <span>04 / Estado de Gemma</span>
-        <strong>{{ runtime()?.running ? 'ACTIVO' : 'REPOSO' }}</strong>
-        <small>{{ runtime()?.platform ?? 'CPU Local' }}</small>
+        <span>04 / Estado de NVIDIA</span>
+        <strong>{{ runtime()?.healthy ? 'DISPONIBLE' : 'PENDIENTE' }}</strong>
+        <small>{{ runtime()?.provider ?? 'NVIDIA' }}</small>
       </article>
     </section>
 
@@ -324,76 +324,21 @@
   @if (activeTab() === 'runtime') {
     <section class="runtime-overview-grid">
       <article class="ai-runtime">
-        <div class="ai-runtime__top">
-          <span class="status-dot" [class.status-dot--live]="runtime()?.healthy"></span>
-          <span>{{ runtime()?.running ? 'MODELO ACTIVO Y EN LINEA' : 'MODO REPOSO (STANDBY)' }}</span>
-        </div>
-        <h2>Gemma 4 E2B Engine</h2>
-        <p>
-          {{
-            runtime()?.running
-              ? 'Atendiendo consultas en tiempo real. Se descargara automaticamente de la memoria GPU/CPU al cumplir el tiempo de inactividad programado.'
-              : 'El modelo se encuentra en reposo para optimizar el consumo de recursos de computo. Se reactivara al recibir la siguiente solicitud.'
-          }}
-        </p>
-
+        <div class="ai-runtime__top"><span class="status-dot" [class.status-dot--live]="runtime()?.healthy"></span>
+          <span>{{ runtime()?.healthy ? 'CONEXIÓN DISPONIBLE' : 'REVISAR CONFIGURACIÓN' }}</span></div>
+        <h2>NVIDIA API</h2>
+        <p>Altair utiliza el modelo configurado en el servidor. La clave se conserva exclusivamente en el backend.</p>
         <dl>
-          <div>
-            <dt>Arquitectura / Plataforma</dt>
-            <dd>{{ runtime()?.platform }}</dd>
-          </div>
-          <div>
-            <dt>Tiempo de inactividad antes de reposo</dt>
-            <dd>{{ ((runtime()?.idle_timeout_seconds ?? 0) / 60) | number:'1.0-0' }} minutos</dd>
-          </div>
-          <div>
-            <dt>Solicitudes concurrentes</dt>
-            <dd>{{ runtime()?.active_requests ?? 0 }}</dd>
-          </div>
-          <div>
-            <dt>Estado de salud de proceso</dt>
-            <dd>{{ runtime()?.healthy ? 'Optimo' : 'Verificando' }}</dd>
-          </div>
+          <div><dt>Modelo</dt><dd>{{ runtime()?.model ?? 'Sin configurar' }}</dd></div>
+          <div><dt>Credencial</dt><dd>{{ runtime()?.configured ? 'Configurada' : 'Pendiente' }}</dd></div>
+          <div><dt>Disponibilidad</dt><dd>{{ runtime()?.healthy ? 'Disponible' : 'No disponible' }}</dd></div>
         </dl>
-
-        <div class="runtime-actions">
-          <button
-            class="button button--inverse"
-            type="button"
-            (click)="toggleRuntime()"
-            [disabled]="runtimeBusy()"
-          >
-            {{ runtime()?.running ? 'Descargar modelo de memoria' : 'Precalentar y encender modelo' }}
-          </button>
-        </div>
+        <button class="button button--inverse" type="button" (click)="toggleRuntime()" [disabled]="runtimeBusy()">
+          {{ runtimeBusy() ? 'Comprobando…' : 'Comprobar conexión' }}</button>
       </article>
-
-      <article class="panel-card">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Arquitectura de inferencia</p>
-            <h2>Parametros y Gobernanza</h2>
-          </div>
-        </div>
-
-        <div class="gov-specs">
-          <div class="spec-row">
-            <strong>Temperatura</strong>
-            <span>0.25 (Optimizada para consistencia y rigor editorial)</span>
-          </div>
-          <div class="spec-row">
-            <strong>Top-P</strong>
-            <span>0.90</span>
-          </div>
-          <div class="spec-row">
-            <strong>Modo Resiliente</strong>
-            <span>Activo (Fallback determinista con catalogo en tiempo real)</span>
-          </div>
-          <div class="spec-row">
-            <strong>Skills Agenticas</strong>
-            <span>Recomendacion, Analisis de Estilo, Reportes Ejecutivos, Estudio de Producto</span>
-          </div>
-        </div>
+      <article class="panel-card"><h2>Asistencia con datos de la tienda</h2>
+        <p>Las búsquedas consultan productos, variantes y existencias reales. Los cambios en carrito y pedidos se validan en la API con los permisos del usuario.</p>
+        <p>Los fallos del proveedor se muestran como errores; no se presentan respuestas inventadas como resultados de IA.</p>
       </article>
     </section>
   }

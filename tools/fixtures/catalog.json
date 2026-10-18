@@ -1,0 +1,466 @@
+[
+  {
+    "id": 18207844,
+    "categoria_id": 18,
+    "nombre": "Women Blue Linen-blend Shirt Dress",
+    "marca": "H&M",
+    "material": "Viscose Rayon",
+    "precio": 260.08,
+    "genero_objetivo": "MUJER",
+    "calidad_nivel": 3,
+    "activo": true,
+    "descripcion": "Knee-length dress in soft jersey made from a linen and viscose blend. Relaxed, straight fit with a collar, pearly buttons down the front and long sleeves.",
+    "imagenes": [
+      "/qa-images/garment-1.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 10,
+        "producto_id": 18207844,
+        "sku": "QA-1-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-1.jpg"
+      },
+      {
+        "id": 11,
+        "producto_id": 18207844,
+        "sku": "QA-1-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-1.jpg"
+      },
+      {
+        "id": 12,
+        "producto_id": 18207844,
+        "sku": "QA-1-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-1.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 21664722,
+    "categoria_id": 18,
+    "nombre": "Colourblocked A-Line Cotton Maxi Dress",
+    "marca": "Curvy Clan",
+    "material": "Cotton",
+    "precio": 390.18,
+    "genero_objetivo": "MUJER",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Colourblocked A-Line dressV-neckLong, Puff sleevesMaxi length in flared hemCotton fabric",
+    "imagenes": [
+      "/qa-images/garment-2.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 20,
+        "producto_id": 21664722,
+        "sku": "QA-2-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-2.jpg"
+      },
+      {
+        "id": 21,
+        "producto_id": 21664722,
+        "sku": "QA-2-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-2.jpg"
+      },
+      {
+        "id": 22,
+        "producto_id": 21664722,
+        "sku": "QA-2-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-2.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 18973692,
+    "categoria_id": 31,
+    "nombre": "Men Blue 65504 Skinny Fit Mid Rise Light Fade Stretchable Jeans",
+    "marca": "Levis",
+    "material": "Cotton",
+    "precio": 533.3,
+    "genero_objetivo": "HOMBRE",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Dark shade, light fade blue jeans65504 Skinny fit, mid-riseClean lookStretchable5 pocketLength: Regular",
+    "imagenes": [
+      "/qa-images/garment-3.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 30,
+        "producto_id": 18973692,
+        "sku": "QA-3-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-3.jpg"
+      },
+      {
+        "id": 31,
+        "producto_id": 18973692,
+        "sku": "QA-3-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-3.jpg"
+      },
+      {
+        "id": 32,
+        "producto_id": 18973692,
+        "sku": "QA-3-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-3.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 18816460,
+    "categoria_id": 18,
+    "nombre": "Women Navy Blue Velvet A-Line Made To Measure Dress with Jacket",
+    "marca": "Ethnovog",
+    "material": "Silk",
+    "precio": 488.8,
+    "genero_objetivo": "MUJER",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Navy blue solid a-line dressShoulder strapsSleeveless, no sleevesKnee length in straight hemVelvet fabricComes with a cream-coloured jacket, has lapel collar, sequin embroidered, three-quarter sleevesWhat is Made to Measure?Customize according to your Bust and Length. So please refer to the Size Chart to pick your perfect size.How to measure bust? Measure under your arms and around your chest to find your bust size in inchesHow to measure Dress length? Measure from shoulder till barefoot to find dress length in inches",
+    "imagenes": [
+      "/qa-images/garment-4.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 40,
+        "producto_id": 18816460,
+        "sku": "QA-4-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-4.jpg"
+      },
+      {
+        "id": 41,
+        "producto_id": 18816460,
+        "sku": "QA-4-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-4.jpg"
+      },
+      {
+        "id": 42,
+        "producto_id": 18816460,
+        "sku": "QA-4-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-4.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 18946592,
+    "categoria_id": 33,
+    "nombre": "Women Peach-Coloured Ethnic Motifs Printed Pure Cotton Kurta with Trousers",
+    "marca": "Indian Virasat",
+    "material": "Pure Cotton",
+    "precio": 109.16,
+    "genero_objetivo": "MUJER",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Peach-coloured printed Kurta with Trousers    Kurta design:     Ethnic motifs printed   Straight shape   Regular style   Round neck,  three-quarter regular sleeves   2 pockets   Calf length with straight hem   Pure cotton machine weave fabric     Trousers design:     Printed Trousers   Partially elasticated waistband   Slip-on closure",
+    "imagenes": [
+      "/qa-images/garment-5.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 50,
+        "producto_id": 18946592,
+        "sku": "QA-5-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-5.jpg"
+      },
+      {
+        "id": 51,
+        "producto_id": 18946592,
+        "sku": "QA-5-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-5.jpg"
+      },
+      {
+        "id": 52,
+        "producto_id": 18946592,
+        "sku": "QA-5-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-5.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 10349091,
+    "categoria_id": 54,
+    "nombre": "Men Mustard Yellow & Off-White Self Design Sweater",
+    "marca": "Monte Carlo",
+    "material": "Acrylic",
+    "precio": 184.75,
+    "genero_objetivo": "HOMBRE",
+    "calidad_nivel": 5,
+    "activo": true,
+    "descripcion": "Mustard Yellow and Off-white self-design sweater, has a round neck, long sleeves, and ribbed hem",
+    "imagenes": [
+      "/qa-images/garment-6.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 60,
+        "producto_id": 10349091,
+        "sku": "QA-6-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-6.jpg"
+      },
+      {
+        "id": 61,
+        "producto_id": 10349091,
+        "sku": "QA-6-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-6.jpg"
+      },
+      {
+        "id": 62,
+        "producto_id": 10349091,
+        "sku": "QA-6-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-6.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 13478370,
+    "categoria_id": 38,
+    "nombre": "Men Navy Blue Solid Polo Collar Lounge T-shirt",
+    "marca": "Jack & Jones",
+    "material": "Cotton",
+    "precio": 156.0,
+    "genero_objetivo": "HOMBRE",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Navy Blue solid lounge t-shirt, has a polo collar and short leeves",
+    "imagenes": [
+      "/qa-images/garment-7.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 70,
+        "producto_id": 13478370,
+        "sku": "QA-7-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-7.jpg"
+      },
+      {
+        "id": 71,
+        "producto_id": 13478370,
+        "sku": "QA-7-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-7.jpg"
+      },
+      {
+        "id": 72,
+        "producto_id": 13478370,
+        "sku": "QA-7-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-7.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  },
+  {
+    "id": 16694464,
+    "categoria_id": 17,
+    "nombre": "Women Stunning Blue Printed Top with Solid Skirt",
+    "marca": "Ahalyaa",
+    "material": "Polyester",
+    "precio": 221.18,
+    "genero_objetivo": "MUJER",
+    "calidad_nivel": 4,
+    "activo": true,
+    "descripcion": "Show off your stylish side with this clothing set. It comes with an amazing V-neck and three-quarter sleeves to complete your look. Stunning blue colourPrinted topV-neckThree-quarter piff sleevesSlip-on closureSolid skirtTrend AlertA DIY trend that's revived almost every decade, tie & dye is an ancient technique that stems back thousands of years. The vivid hues and varied designs add a pop of colour to any outfit, giving contemporary fashion a playful twist. Trendy and cheerful, tie-dye clothing is perfect to welcome a fun summer.",
+    "imagenes": [
+      "/qa-images/garment-8.jpg"
+    ],
+    "stock_disponible": 24,
+    "variantes": [
+      {
+        "id": 80,
+        "producto_id": 16694464,
+        "sku": "QA-8-S",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "S",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-8.jpg"
+      },
+      {
+        "id": 81,
+        "producto_id": 16694464,
+        "sku": "QA-8-M",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "M",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-8.jpg"
+      },
+      {
+        "id": 82,
+        "producto_id": 16694464,
+        "sku": "QA-8-L",
+        "color": "Original",
+        "codigo_color": "#494743",
+        "talla": "L",
+        "stock_total": 8,
+        "stock_reservado": 0,
+        "stock_disponible": 8,
+        "activo": true,
+        "imagen": "/qa-images/garment-8.jpg"
+      }
+    ],
+    "created_at": "2026-09-12T13:13:00-04:00"
+  }
+]

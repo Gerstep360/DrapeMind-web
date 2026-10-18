@@ -1,3 +1,4 @@
+@use '../../../../styles/fashion' as fashion;
 /* ==========================================================================
    DRAPEMIND LUXURY RECEIPT MODAL
    Fixed-format 720px non-responsive voucher for pristine PDF & PNG exports
@@ -26,16 +27,16 @@
   // pueda reducirse dentro del flex container.
   min-height: 0;
 
-  background: #F8F9F2;
-  border: 1px solid var(--dm-border, #E1E3DA);
-  border-radius: 24px;
+  background: var(--dm-canvas);
+  border: 1px solid var(--dm-border);
+  border-radius: 4px;
 
   display: flex;
   flex-direction: column;
 
   overflow: hidden;
 
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+  box-shadow: none;
   animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -51,7 +52,7 @@
   gap: 1rem;
   padding: 1rem 1.75rem;
   background: #FFFFFF;
-  border-bottom: 1px solid var(--dm-border, #E1E3DA);
+  border-bottom: 1px solid var(--dm-border);
   flex-wrap: wrap;
 
   .toolbar-brand {
@@ -62,9 +63,9 @@
     .brand-monogram {
       width: 2.5rem;
       height: 2.5rem;
-      border-radius: 10px;
-      background: var(--dm-ink, #10110F);
-      color: var(--dm-lime, #DFFF3F);
+      border-radius: 4px;
+      background: var(--dm-ink);
+      color: var(--dm-lime);
       display: grid;
       place-items: center;
       font-family: var(--font-display, 'Manrope', sans-serif);
@@ -77,14 +78,14 @@
       margin: 0;
       font-size: 1rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       letter-spacing: -0.02em;
     }
 
     p {
       margin: 0.15rem 0 0;
       font-size: 0.72rem;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
   }
 
@@ -100,7 +101,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.65rem 1.1rem;
-  border-radius: 999px;
+  border-radius: 4px;
   font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
@@ -114,9 +115,9 @@
   }
 
   &.btn-pdf {
-    background: var(--dm-ink, #10110F);
+    background: var(--dm-ink);
     color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(16, 17, 15, 0.2);
+    box-shadow: none;
 
     &:hover:not(:disabled) {
       background: #2A2D25;
@@ -125,20 +126,20 @@
   }
 
   &.btn-png {
-    background: var(--dm-lime, #DFFF3F);
-    color: var(--dm-ink, #10110F);
-    box-shadow: 0 4px 14px var(--dm-lime-glow, rgba(223, 255, 63, 0.35));
+    background: var(--dm-lime);
+    color: var(--dm-ink);
+    box-shadow: none;
 
     &:hover:not(:disabled) {
-      background: var(--dm-lime-hover, #D2F632);
+      background: var(--dm-lime-hover);
       transform: translateY(-1px);
     }
   }
 
   &.btn-print {
     background: #FFFFFF;
-    color: var(--dm-ink, #10110F);
-    border: 1.5px solid var(--dm-border, #E1E3DA);
+    color: var(--dm-ink);
+    border: 1.5px solid var(--dm-border);
 
     &:hover:not(:disabled) {
       background: var(--dm-gray-100, #F0F1EB);
@@ -151,9 +152,9 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   background: #FFFFFF;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
   font-size: 1.35rem;
   display: grid;
   place-items: center;
@@ -220,13 +221,13 @@
   justify-content: center;
   gap: 1rem;
   padding: 4rem 1rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   .loading-spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid var(--dm-border, #E1E3DA);
-    border-top-color: var(--dm-ink, #10110F);
+    border: 3px solid var(--dm-border);
+    border-top-color: var(--dm-ink);
     border-radius: 50%;
     animation: spin 600ms linear infinite;
   }
@@ -254,7 +255,7 @@
   box-sizing: border-box;
 
   background: #FFFFFF;
-  color: #10110F;
+  color: var(--dm-ink);
 
   font-family:
     'Manrope',
@@ -266,10 +267,10 @@
 
   padding: 2.5rem 2.75rem;
 
-  border-radius: 16px;
-  border: 2px solid #10110F;
+  border-radius: 4px;
+  border: 2px solid var(--dm-ink);
 
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
 
   position: relative;
 
@@ -287,8 +288,8 @@
     position: absolute;
     inset: 6px;
 
-    border: 1px solid #E1E3DA;
-    border-radius: 10px;
+    border: 1px solid var(--dm-border);
+    border-radius: 4px;
 
     pointer-events: none;
   }
@@ -311,15 +312,15 @@
     .brand-seal {
       width: 3.4rem;
       height: 3.4rem;
-      border-radius: 12px;
-      background: #10110F;
-      color: #DFFF3F;
+      border-radius: 4px;
+      background: var(--dm-ink);
+      color: var(--dm-lime);
       display: grid;
       place-items: center;
       font-size: 1.35rem;
       font-weight: 900;
       letter-spacing: -0.03em;
-      border: 2px solid #DFFF3F;
+      border: 2px solid var(--dm-lime);
       flex-shrink: 0;
     }
 
@@ -330,7 +331,7 @@
         font-weight: 900;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #10110F;
+        color: var(--dm-ink);
       }
 
       .brand-tagline {
@@ -359,7 +360,7 @@
       font-size: 0.65rem;
       font-weight: 800;
       letter-spacing: 0.08em;
-      color: #7B7F75;
+      color: var(--dm-muted);
       text-transform: uppercase;
     }
 
@@ -367,7 +368,7 @@
       font-size: 1.15rem;
       font-weight: 900;
       font-family: 'Space Mono', monospace, sans-serif;
-      color: #10110F;
+      color: var(--dm-ink);
       letter-spacing: -0.01em;
     }
 
@@ -376,7 +377,7 @@
       align-items: center;
       gap: 0.35rem;
       padding: 0.25rem 0.65rem;
-      border-radius: 999px;
+      border-radius: 4px;
       background: #E8F8EE;
       color: #1E7E34;
       font-size: 0.68rem;
@@ -399,14 +400,14 @@
   justify-content: center;
   position: relative;
   height: 1px;
-  background: #E1E3DA;
+  background: var(--dm-border);
   margin: 0.25rem 0;
 
   .divider-diamond {
     background: #FFFFFF;
     padding: 0 0.5rem;
     font-size: 0.7rem;
-    color: #10110F;
+    color: var(--dm-ink);
   }
 }
 
@@ -415,9 +416,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem 2rem;
-  background: #F8F9F2;
-  border: 1px solid #E1E3DA;
-  border-radius: 12px;
+  background: var(--dm-canvas);
+  border: 1px solid var(--dm-border);
+  border-radius: 4px;
   padding: 1.15rem 1.4rem;
 
   .info-block {
@@ -430,14 +431,14 @@
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #7B7F75;
+      color: var(--dm-muted);
       margin-bottom: 0.1rem;
     }
 
     .info-val {
       font-size: 0.88rem;
       font-weight: 700;
-      color: #10110F;
+      color: var(--dm-ink);
 
       &--primary {
         font-size: 0.95rem;
@@ -472,7 +473,7 @@
 
   thead {
     tr {
-      background: #10110F;
+      background: var(--dm-ink);
       color: #FFFFFF;
 
       th {
@@ -483,11 +484,11 @@
         text-transform: uppercase;
 
         &:first-child {
-          border-radius: 8px 0 0 8px;
+          border-radius: 4px 0 0 4px;
         }
 
         &:last-child {
-          border-radius: 0 8px 8px 0;
+          border-radius: 0 4px 4px 0;
           text-align: right;
         }
       }
@@ -499,7 +500,7 @@
       border-bottom: 1px solid #EAECE2;
 
       &:last-child {
-        border-bottom: 2px solid #10110F;
+        border-bottom: 2px solid var(--dm-ink);
       }
 
       td {
@@ -520,7 +521,7 @@
 
     .item-title {
       font-weight: 700;
-      color: #10110F;
+      color: var(--dm-ink);
       line-height: 1.3;
       display: block;
     }
@@ -563,7 +564,7 @@
 
   .col-subtotal {
     width: 11%;
-    color: #10110F;
+    color: var(--dm-ink);
     font-weight: 800;
   }
 }
@@ -578,7 +579,7 @@
   .voucher-notes {
     background: #FDFCFA;
     border: 1px dashed #D5D8CC;
-    border-radius: 10px;
+    border-radius: 4px;
     padding: 0.85rem 1.1rem;
 
     .notes-title {
@@ -587,7 +588,7 @@
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: #7B7F75;
+      color: var(--dm-muted);
     }
 
     .notes-text {
@@ -612,7 +613,7 @@
       color: #555;
 
       strong {
-        color: #10110F;
+        color: var(--dm-ink);
         font-weight: 700;
       }
 
@@ -628,10 +629,10 @@
         margin-top: 0.45rem;
         padding: 0.75rem 1rem;
 
-        background: #10110F;
+        background: var(--dm-ink);
         color: #FFFFFF;
 
-        border-radius: 10px;
+        border-radius: 4px;
 
         display: flex;
         justify-content: space-between;
@@ -644,7 +645,7 @@
           font-size: 0.78rem;
           font-weight: 800;
           letter-spacing: 0.06em;
-          color: #DFFF3F;
+          color: var(--dm-lime);
 
           line-height: 1.25;
         }
@@ -672,7 +673,7 @@
   align-items: center;
   gap: 1.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid #E1E3DA;
+  border-top: 1px solid var(--dm-border);
 
   .payment-details-box {
     display: flex;
@@ -684,7 +685,7 @@
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #7B7F75;
+      color: var(--dm-muted);
     }
 
     .payment-badge-row {
@@ -701,7 +702,7 @@
         border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #10110F;
+        color: var(--dm-ink);
       }
 
       .pay-state-tag {
@@ -731,8 +732,8 @@
     .qr-stamp {
       width: 68px;
       height: 68px;
-      border: 1.5px solid #10110F;
-      border-radius: 8px;
+      border: 1.5px solid var(--dm-ink);
+      border-radius: 4px;
       padding: 3px;
       background: #FFFFFF;
       display: grid;
@@ -764,12 +765,12 @@
           font-size: 0.72rem;
           font-weight: 800;
           letter-spacing: 0.05em;
-          color: #10110F;
+          color: var(--dm-ink);
         }
 
         small {
           font-size: 0.65rem;
-          color: #7B7F75;
+          color: var(--dm-muted);
         }
       }
 
@@ -789,7 +790,7 @@
         span {
           background: #E8F8EE;
           padding: 0.15rem 0.45rem;
-          border-radius: 999px;
+          border-radius: 4px;
           display: inline-block;
         }
       }
@@ -800,19 +801,19 @@
 /* Legal Policy Disclaimer */
 .voucher-policy-bar {
   background: #FDFCFA;
-  border-top: 1px dashed #E1E3DA;
+  border-top: 1px dashed var(--dm-border);
   padding-top: 0.85rem;
   margin-top: -0.25rem;
 
   p {
     margin: 0;
     font-size: 0.65rem;
-    color: #7B7F75;
+    color: var(--dm-muted);
     line-height: 1.45;
     text-align: justify;
 
     strong {
-      color: #10110F;
+      color: var(--dm-ink);
     }
   }
 }
@@ -867,7 +868,9 @@
 
   #receipt-voucher {
     box-shadow: none;
-    border: 1px solid #10110F;
+    border: 1px solid var(--dm-ink);
     margin: 0 auto;
   }
 }
+
+@include fashion.controls;

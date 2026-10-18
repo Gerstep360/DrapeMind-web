@@ -1,0 +1,157 @@
+@for (block of views; track $index) {
+  <section class="ai-view" [attr.aria-label]="block.title">
+    <header class="ai-view__heading">
+      <span class="ai-view__eyebrow">{{
+        block.type === 'shopping_question' ? 'Define tu búsqueda' : 'Consulta verificada'
+      }}</span>
+      <h3>{{ block.title }}</h3>
+    </header>
+    @switch (block.type) {
+      @case ('shopping_question') {
+        <app-shopping-question
+          [block]="block"
+          [disabled]="disabled"
+          (confirmed)="answerQuestion.emit($event)"
+        />
+      }
+      @case ('shopping_summary') {
+        @if (block.criteria.length) {
+          <ul class="shopping-criteria" aria-label="Criterios aplicados">
+            @for (criterion of block.criteria; track $index) {
+              <li>{{ criterion }}</li>
+            }
+          </ul>
+        }
+        @if (block.metrics.length) {
+          <dl class="ai-view__metrics">
+            @for (metric of block.metrics; track $index) {
+              <div>
+                <dt>{{ metric.label }}</dt>
+                <dd>{{ metric.value }}</dd>
+              </div>
+            }
+          </dl>
+        }
+        <ul class="shopping-decisions">
+          @for (item of block.items; track $index) {
+            <li>
+              <div>
+                <strong>{{ item.label }}</strong>
+                <p>{{ item.detail }}</p>
+              </div>
+              <span class="shopping-badge">{{ item.badge }}</span>
+            </li>
+          }
+        </ul>
+      }
+      @case ('branch_options') {
+        <p class="branch-context">
+          Ciudad de referencia: <strong>{{ block.city }}</strong>
+        </p>
+        <ol class="branch-options">
+          @for (branch of block.items; track branch.id) {
+            <li [class.branch-options__complete]="branch.complete">
+              <div class="branch-options__top">
+                <strong>{{ branch.name }}</strong
+                ><span class="shopping-badge">{{
+                  branch.complete ? 'Selección completa' : 'Stock parcial'
+                }}</span>
+              </div>
+              <p>{{ branch.address }} · {{ branch.city }}</p>
+              <div class="branch-options__coverage">
+                <b>{{ branch.coverage }}</b>
+                @if (branch.same_city) {
+                  <span>En tu ciudad</span>
+                }
+              </div>
+            </li>
+          } @empty {
+            <li>No hay sucursales activas para consultar.</li>
+          }
+        </ol>
+      }
+      @case ('data_table') {
+        @if (block.rows.length) {
+          <div
+            class="ai-view__scroll"
+            tabindex="0"
+            [attr.aria-label]="block.title + ': tabla desplazable'"
+          >
+            <table>
+              <caption class="sr-only">
+                {{
+                  block.title
+                }}
+              </caption>
+              <thead>
+                <tr>
+                  @for (column of block.columns; track column.key) {
+                    <th scope="col">{{ column.label }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of block.rows; track $index) {
+                  <tr>
+                    @for (column of block.columns; track column.key) {
+                      <td>{{ row[column.key] }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="ai-view__empty">{{ block.empty_message }}</p>
+        }
+      }
+      @case ('metrics') {
+        <dl class="ai-view__metrics">
+          @for (metric of block.metrics; track $index) {
+            <div>
+              <dt>{{ metric.label }}</dt>
+              <dd>{{ metric.value }}</dd>
+            </div>
+          }
+        </dl>
+        @if (block.lines.length) {
+          <dl class="ai-view__lines">
+            @for (line of block.lines; track $index) {
+              <div>
+                <dt>{{ line.label }}</dt>
+                <dd>{{ line.value }}</dd>
+              </div>
+            }
+          </dl>
+        }
+      }
+      @case ('status_list') {
+        <ol class="ai-view__statuses">
+          @for (item of block.items; track $index) {
+            <li>
+              <div>
+                <strong>{{ item.label }}</strong
+                ><span>{{ item.detail }}</span>
+              </div>
+              <b>{{ item.status }}</b>
+            </li>
+          } @empty {
+            <li>{{ block.empty_message }}</li>
+          }
+        </ol>
+        <a class="ai-view__link" [routerLink]="block.route"
+          >{{ block.route === '/orders' ? 'Ir a mis pedidos' : 'Ir a mis reservas' }}
+          <span aria-hidden="true">↗</span></a
+        >
+      }
+      @case ('information') {
+        <p class="ai-view__information" [class.is-notice]="block.tone === 'notice'">
+          {{ block.body }}
+        </p>
+      }
+    }
+    @if (block.note) {
+      <p class="ai-view__note">{{ block.note }}</p>
+    }
+  </section>
+}

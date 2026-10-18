@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -11,7 +12,7 @@ import { marked } from 'marked';
 @Component({
   selector: 'app-cart-optimizer',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [ProductMediaComponent, CommonModule, RouterLink],
   templateUrl: './cart-optimizer.component.html',
   styleUrl: './cart-optimizer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

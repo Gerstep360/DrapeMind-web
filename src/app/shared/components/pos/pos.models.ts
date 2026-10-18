@@ -13,7 +13,7 @@ export interface PosTicketItem {
   image?: string | null;
 }
 
-export type AiModelChoice = 'mini' | 'dinamico' | 'altair';
+export type AiModelChoice = 'nvidia';
 
 export interface OutfitPiece {
   productId: number;

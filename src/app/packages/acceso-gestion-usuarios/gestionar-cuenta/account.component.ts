@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,7 +14,7 @@ import { ToastService } from '@core/toast.service';
 
 @Component({
   selector: 'app-account',
-  imports: [ReactiveFormsModule, DecimalPipe, UpperCasePipe, RouterLink],
+  imports: [ProductMediaComponent, ReactiveFormsModule, DecimalPipe, UpperCasePipe, RouterLink],
   templateUrl: './account.component.html',
   styleUrl: './account.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,10 +76,12 @@ export class AccountComponent {
         error: () => this.toast.show('No pudimos sincronizar toda la información de tu cuenta', 'error'),
       });
 
+    if (this.auth.user()?.has_style_profile) {
     this.auth.getStyleProfile().subscribe({
       next: (profile) => this.styleProfile.set(profile),
       error: () => this.styleProfile.set(null),
     });
+    }
   }
 
   openOnboarding(): void {

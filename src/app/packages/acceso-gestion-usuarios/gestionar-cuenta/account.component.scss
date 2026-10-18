@@ -1,9 +1,10 @@
+@use '../../../../styles/fashion' as fashion;
 .account-stamp {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.4rem;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-lg, 26px);
   background: var(--dm-surface, #FFFFFF);
   box-shadow: var(--dm-shadow-xs);
@@ -14,10 +15,10 @@
     height: 3rem;
     place-items: center;
     border-radius: 50%;
-    color: var(--dm-lime, #DFFF3F);
-    background: var(--dm-ink, #10110F);
+    color: var(--dm-lime);
+    background: var(--dm-ink);
     font: 800 1.3rem var(--font-display, 'Manrope', sans-serif);
-    box-shadow: 0 4px 12px rgba(16, 17, 15, 0.12);
+    box-shadow: none;
   }
 
   div {
@@ -27,12 +28,12 @@
     strong {
       font-size: 0.95rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
     }
   }
 
   small {
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     font-size: 0.74rem;
   }
 }
@@ -49,7 +50,7 @@
 .style-section,
 .collection-section,
 .showroom-section {
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-lg, 26px);
   padding: 1.75rem;
   background: var(--dm-surface, #FFFFFF);
@@ -62,7 +63,7 @@ h2 {
   font-size: 1.65rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
 }
 
 .profile-panel form,
@@ -74,7 +75,7 @@ h2 {
 label {
   display: grid;
   gap: 0.45rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   font-size: 0.76rem;
   font-weight: 800;
 }
@@ -98,13 +99,13 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-md, 20px);
   padding: 1.1rem 1.25rem;
-  background: var(--dm-surface-soft, #F8F9F2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
   &--primary {
-    border-color: var(--dm-ink, #10110F);
+    border-color: var(--dm-ink);
     background: #FFFFFF;
     box-shadow: var(--dm-shadow-xs);
   }
@@ -112,14 +113,14 @@ label {
   strong {
     margin-right: 0.5rem;
     font-size: 0.88rem;
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
   }
 
   span {
     padding: 0.15rem 0.55rem;
-    color: var(--dm-ink, #10110F);
-    background: var(--dm-lime, #DFFF3F);
-    border-radius: var(--dm-radius-pill, 999px);
+    color: var(--dm-ink);
+    background: var(--dm-lime);
+    border-radius: var(--dm-radius-sm, 999px);
     font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -127,7 +128,7 @@ label {
 
   p {
     margin: 0.35rem 0 0;
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     font-size: 0.78rem;
   }
 }
@@ -139,7 +140,7 @@ label {
   button,
   .remove-favorite {
     border: 0;
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
     background: transparent;
     font-size: 0.74rem;
     font-weight: 800;
@@ -169,7 +170,7 @@ label {
 
 .favorite-card {
   position: relative;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-md, 20px);
   background: var(--dm-surface, #FFFFFF);
   overflow: hidden;
@@ -217,7 +218,7 @@ label {
   min-width: 0;
 
   small {
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     text-transform: uppercase;
     font-size: 0.64rem;
     font-weight: 800;
@@ -226,13 +227,13 @@ label {
   strong {
     font-size: 0.84rem;
     font-weight: 700;
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
   }
 
   span {
     font-size: 0.78rem;
     font-weight: 800;
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
   }
 }
 
@@ -244,7 +245,7 @@ label {
   width: 1.85rem;
   height: 1.85rem;
   place-items: center;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
@@ -266,13 +267,13 @@ label {
 .branch-line article {
   display: grid;
   gap: 0.35rem;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-md, 20px);
   padding: 1.15rem;
-  background: var(--dm-surface-soft, #F8F9F2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
   span {
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     font: 700 0.68rem var(--font-mono, monospace);
   }
 }
@@ -282,11 +283,11 @@ label {
   min-height: 6rem;
   align-content: center;
   gap: 0.35rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   font-size: 0.84rem;
 
   strong {
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
   }
 }
 
@@ -308,7 +309,7 @@ label {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.75rem;
-    border-bottom: 1px solid var(--dm-border, #E1E3DA);
+    border-bottom: 1px solid var(--dm-border);
     padding-bottom: 1rem;
 
     button {
@@ -386,8 +387,8 @@ label {
 
   .style-detail-card {
     padding: 1.25rem;
-    background: var(--dm-bg, #F4F5EA);
-    border: 1px solid var(--dm-border, #E1E3DA);
+    background: var(--dm-bg, var(--dm-canvas));
+    border: 1px solid var(--dm-border);
     border-radius: var(--dm-radius-md, 20px);
     display: flex;
     flex-direction: column;
@@ -398,18 +399,18 @@ label {
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
 
     .detail-value {
       font-size: 1.35rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
     }
 
     .detail-sub {
       font-size: 0.75rem;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
       font-weight: 600;
     }
 
@@ -423,11 +424,11 @@ label {
         font-size: 0.82rem;
         background: var(--dm-surface, #FFFFFF);
         padding: 0.3rem 0.65rem;
-        border-radius: var(--dm-radius-pill, 999px);
-        border: 1px solid var(--dm-border, #E1E3DA);
+        border-radius: var(--dm-radius-sm, 999px);
+        border: 1px solid var(--dm-border);
 
         strong {
-          color: var(--dm-ink, #10110F);
+          color: var(--dm-ink);
           font-weight: 800;
         }
       }
@@ -445,7 +446,7 @@ label {
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
 
     .tags-container {
@@ -454,23 +455,26 @@ label {
       gap: 0.5rem;
 
       .style-tag {
-        background: var(--dm-lime, #DFFF3F);
-        color: var(--dm-ink, #10110F);
+        background: var(--dm-lime);
+        color: var(--dm-ink);
         font-size: 0.78rem;
         font-weight: 800;
         padding: 0.35rem 0.85rem;
-        border-radius: var(--dm-radius-pill, 999px);
+        border-radius: var(--dm-radius-sm, 999px);
       }
 
       .palette-tag {
         background: var(--dm-surface, #FFFFFF);
-        border: 1px solid var(--dm-border, #E1E3DA);
-        color: var(--dm-ink, #10110F);
+        border: 1px solid var(--dm-border);
+        color: var(--dm-ink);
         font-size: 0.78rem;
         font-weight: 700;
         padding: 0.35rem 0.85rem;
-        border-radius: var(--dm-radius-pill, 999px);
+        border-radius: var(--dm-radius-sm, 999px);
       }
     }
   }
 }
+
+// Shared primitives own visual identity; this component owns layout.
+@include fashion.page;

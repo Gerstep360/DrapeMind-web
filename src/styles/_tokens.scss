@@ -1,61 +1,67 @@
 /* ==========================================================================
-   DRAPEMIND FLOW UI — DESIGN SYSTEM TOKENS
-   Direction: AI Fashion Commerce + Soft Futurism + Editorial Minimal
+   DRAPEMIND FASHION NEUBRUTALISM — DESIGN SYSTEM TOKENS
+   Direction: Fashion commerce / bone, ink, lime and coral
    ========================================================================== */
 
 :root {
+  --dm-line: #111111;
+  --dm-muted: #666666;
+  --dm-lavender: #e3dcef;
+  --dm-coral: #ef754e;
+  --dm-paper: #fffdf7;
+  --dm-canvas: #f8f7f2;
   /* --- Brand & Accents --- */
-  --dm-lime: #DFFF3F;
-  --dm-lime-hover: #D2F632;
-  --dm-lime-soft: #EEFF9D;
-  --dm-lime-glow: rgba(223, 255, 63, 0.35);
+  --dm-lime: #c6fc4a;
+  --dm-lime-hover: #b6ec3b;
+  --dm-lime-soft: #edfbcf;
+  --dm-lime-glow: rgba(198, 252, 74, 0.25);
 
-  --dm-cyan: #C9EEF0;
-  --dm-cyan-soft: #E7F7F7;
-  --dm-cyan-border: #BCE2E4;
+  --dm-cyan: var(--dm-lavender);
+  --dm-cyan-soft: #f2eef8;
+  --dm-cyan-border: #d0c4df;
 
   /* --- Backgrounds & Surfaces --- */
-  --dm-bg: #F4F5EA;
-  --dm-surface: #FFFFFF;
-  --dm-surface-soft: #F8F9F2;
-  --dm-surface-glass: rgba(255, 255, 255, 0.84);
+  --dm-bg: var(--dm-canvas);
+  --dm-surface: var(--dm-paper);
+  --dm-surface-soft: #f0eee6;
+  --dm-surface-glass: var(--dm-paper);
 
   /* --- Typography & Inks --- */
-  --dm-ink: #10110F;
-  --dm-text: #22231F;
-  --dm-text-muted: #7B7F75;
-  --dm-gray-100: #F0F1EB;
-  --dm-gray-200: #E1E3DA;
-  --dm-gray-500: #7B7F75;
-  --dm-gray-700: #40433D;
+  --dm-ink: #111111;
+  --dm-text: #262626;
+  --dm-text-muted: var(--dm-muted);
+  --dm-gray-100: #f0eee6;
+  --dm-gray-200: #d7d4c9;
+  --dm-gray-500: #666666;
+  --dm-gray-700: #414141;
 
   /* --- Borders --- */
-  --dm-border: #E1E3DA;
-  --dm-border-strong: #CDD0C5;
-  --dm-border-subtle: rgba(16, 17, 15, 0.08);
+  --dm-border: #ccc9be;
+  --dm-border-strong: var(--dm-ink);
+  --dm-border-subtle: #e3e0d6;
 
   /* --- Semantic States --- */
-  --dm-success: #57A773;
-  --dm-success-soft: #E4F4EA;
-  --dm-danger: #E85D5D;
-  --dm-danger-soft: #FDE8E8;
-  --dm-warning: #E4B84D;
-  --dm-warning-soft: #FCF4DF;
+  --dm-success: #246441;
+  --dm-success-soft: #e5f1e8;
+  --dm-danger: #ba3030;
+  --dm-danger-soft: #fbeaea;
+  --dm-warning: #806014;
+  --dm-warning-soft: #fcf4df;
 
   /* --- Radii --- */
-  --dm-radius-xs: 10px;
-  --dm-radius-sm: 14px;
-  --dm-radius-md: 20px;
-  --dm-radius-lg: 26px;
-  --dm-radius-xl: 34px;
+  --dm-radius-xs: 2px;
+  --dm-radius-sm: 4px;
+  --dm-radius-md: 4px;
+  --dm-radius-lg: 6px;
+  --dm-radius-xl: 6px;
   --dm-radius-pill: 999px;
 
   /* --- Elevation & Shadows --- */
-  --dm-shadow-xs: 0 2px 8px rgba(16, 17, 15, 0.04);
-  --dm-shadow-sm: 0 6px 18px rgba(16, 17, 15, 0.06);
-  --dm-shadow-md: 0 14px 36px rgba(16, 17, 15, 0.08);
-  --dm-shadow-lg: 0 24px 64px rgba(16, 17, 15, 0.12);
-  --dm-shadow-float: 0 20px 48px -12px rgba(16, 17, 15, 0.14);
+  --dm-shadow-xs: none;
+  --dm-shadow-sm: none;
+  --dm-shadow-md: none;
+  --dm-shadow-lg: 4px 4px 0 var(--dm-ink);
+  --dm-shadow-float: 6px 6px 0 var(--dm-ink);
 
   /* --- Layout & Grid --- */
   --dm-page-max: 1440px;
@@ -63,8 +69,10 @@
   --sidebar-width: 14.5rem;
 
   /* --- Typography Families --- */
-  --font-display: 'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display:
+    'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body:
+    'Manrope', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Cascadia Mono', Consolas, ui-monospace, monospace;
 
   /* --- Transitions & Motion --- */
@@ -81,11 +89,11 @@
   --paper: var(--dm-bg);
   --paper-strong: var(--dm-surface);
   --acid: var(--dm-lime);
-  --sand: #E6E8DB;
-  --sage: #D5DFD0;
-  --clay-soft: #E2D7CF;
+  --sand: #e6e8db;
+  --sage: #d5dfd0;
+  --clay-soft: #e2d7cf;
   --blue-soft: var(--dm-cyan);
-  --rust: #BD5338;
+  --rust: #bd5338;
   --danger: var(--dm-danger);
   --danger-soft: var(--dm-danger-soft);
   --muted: var(--dm-text-muted);

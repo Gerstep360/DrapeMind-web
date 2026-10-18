@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,7 +9,6 @@ import { AdminApiService } from '@core/api/admin-api.service';
 import { Category, ProductAiAssistStudioRequest, ProductAiAssistStudioResponse, ProductVariantPayload } from '@core/models';
 import { RuntimeConfigService } from '@core/runtime-config.service';
 import { ToastService } from '@core/toast.service';
-import { AltairModelSelectorComponent } from '@shared/components/altair/altair-model-selector/altair-model-selector.component';
 
 export interface ProductColorChoice {
   nombre: string;
@@ -18,7 +18,7 @@ export interface ProductColorChoice {
 @Component({
   selector: 'app-ai-product-assist',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AltairModelSelectorComponent],
+  imports: [ProductMediaComponent, CommonModule, ReactiveFormsModule],
   templateUrl: './ai-product-assist.component.html',
   styleUrl: './ai-product-assist.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,7 +34,7 @@ export class AiProductAssistComponent implements OnInit {
   readonly publishing = signal(false);
   readonly categories = signal<Category[]>([]);
   readonly generatedDraft = signal<ProductAiAssistStudioResponse | null>(null);
-  readonly selectedModel = signal<'ALTAIR_MINI' | 'ALTAIR_VARIABLE' | 'ALTAIR'>('ALTAIR_MINI');
+  readonly selectedModel = signal<'NVIDIA'>('NVIDIA');
 
   // Galeria de imagenes
   readonly imagesList = signal<string[]>([]);
@@ -68,11 +68,6 @@ export class AiProductAssistComponent implements OnInit {
   readonly defaultStockPerVariant = signal<number>(5);
   readonly variantStockMap = signal<Record<string, number>>({});
 
-  readonly aiModels = [
-    { id: 'ALTAIR_MINI' as const, label: 'Altair Mini (0.6B)', badge: 'Predeterminado / Rápido' },
-    { id: 'ALTAIR_VARIABLE' as const, label: 'Altair Variable', badge: 'Híbrido' },
-    { id: 'ALTAIR' as const, label: 'Altair Principal (Gemma 4)', badge: 'Profundo' },
-  ];
 
   inputForm!: FormGroup;
   resultForm!: FormGroup;

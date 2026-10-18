@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -21,7 +22,7 @@ import { ProductDetailAction, ProductDetailState } from './product-detail-modal.
 @Component({
   selector: 'app-product-detail-modal',
   standalone: true,
-  imports: [DecimalPipe, RouterLink],
+  imports: [ProductMediaComponent, DecimalPipe, RouterLink],
   templateUrl: './product-detail-modal.component.html',
   styleUrl: './product-detail-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,6 +1,6 @@
 /* ==========================================================================
    DRAPEMIND — APPLICATION SHELL
-   DrapeMind Flow UI
+   DrapeMind Fashion Commerce
 
    Dirección:
    - AI Fashion Commerce
@@ -9,7 +9,6 @@
    - Floating surfaces
    - No dashboard genérico
    ========================================================================== */
-
 
 /* ==========================================================================
    HOST
@@ -22,22 +21,16 @@
   --shell-sidebar-width: 17rem;
   --shell-sidebar-gap: 1rem;
 
-  --shell-glass:
-    #ffffff;
+  --shell-glass: #ffffff;
 
-  --shell-glass-strong:
-    #ffffff;
+  --shell-glass-strong: #ffffff;
 
-  --shell-focus-ring:
-    rgba(223, 255, 63, 0.28);
+  --shell-focus-ring: rgba(223, 255, 63, 0.28);
 
-  --shell-lime-glow:
-    rgba(223, 255, 63, 0.18);
+  --shell-lime-glow: rgba(223, 255, 63, 0.18);
 
-  --shell-cyan-glow:
-    rgba(201, 238, 240, 0.34);
+  --shell-cyan-glow: rgba(201, 238, 240, 0.34);
 }
-
 
 /* ==========================================================================
    LOCAL RESET
@@ -58,7 +51,6 @@ button {
   color: inherit;
 }
 
-
 /* ==========================================================================
    APP SHELL
    ========================================================================== */
@@ -67,18 +59,14 @@ button {
 .dm-shell {
   min-height: 100dvh;
 
-  background:
-    var(--dm-bg, #f4f5ea);
+  background: var(--dm-bg, var(--dm-canvas));
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
-  font-family:
-    var(--font-display, 'Manrope', sans-serif);
+  font-family: var(--font-display, 'Manrope', sans-serif);
 
   position: relative;
 }
-
 
 /* ==========================================================================
    GLOBAL INTERACTION
@@ -92,18 +80,13 @@ button {
 
   button:focus-visible,
   a:focus-visible {
-    outline:
-      2px solid
-      var(--dm-ink, #10110f);
+    outline: 2px solid var(--dm-ink);
 
     outline-offset: 3px;
 
-    box-shadow:
-      0 0 0 5px
-      var(--shell-focus-ring);
+    box-shadow: 0 0 0 5px var(--shell-focus-ring);
   }
 }
-
 
 /* ==========================================================================
    SIDEBAR — FLOATING ATELIER NAVIGATION
@@ -119,46 +102,29 @@ button {
   bottom: var(--shell-sidebar-gap);
   left: var(--shell-sidebar-gap);
 
-  width:
-    var(--shell-sidebar-width);
+  width: var(--shell-sidebar-width);
 
   display: flex;
   flex-direction: column;
 
   min-height: 0;
 
-  padding:
-    1.15rem
-    0.9rem
-    0.9rem;
+  padding: 1.15rem 0.9rem 0.9rem;
 
-  background:
-    #ffffff;
+  background: #ffffff;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-lg, 24px);
+  border-radius: var(--dm-radius-lg, 24px);
 
-  box-shadow:
-    0 12px 36px rgba(16, 17, 15, 0.05);
+  box-shadow: none;
 
   overflow: hidden;
 
   transition:
-    transform
-      var(--dm-normal, 280ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      ),
-    box-shadow
-      var(--dm-normal, 280ms)
-      ease;
+    transform var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--dm-normal, 280ms) ease;
 }
-
 
 /* ==========================================================================
    SIDEBAR HEADER / BRAND
@@ -167,18 +133,12 @@ button {
 .sidebar-header {
   flex-shrink: 0;
 
-  padding:
-    0.45rem
-    0.45rem
-    1rem;
+  padding: 0.45rem 0.45rem 1rem;
 
-  border-bottom:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border-bottom: 1.5px solid var(--dm-border);
 
   margin-bottom: 0.8rem;
 }
-
 
 /* ==========================================================================
    BRAND
@@ -193,32 +153,21 @@ button {
 
   min-height: 48px;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   text-decoration: none;
 
-  border-radius:
-    var(--dm-radius-md, 20px);
+  border-radius: var(--dm-radius-md, 20px);
 
-  transition:
-    transform
-      var(--dm-fast, 150ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      );
+  transition: transform var(--dm-fast, 150ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 
   &:hover {
-    transform:
-      translateY(-1px);
+    transform: translateY(-1px);
   }
 
   &:active {
-    transform:
-      scale(0.985);
+    transform: scale(0.985);
   }
-
 
   /* ------------------------------------------------------------------------
      BRAND MARK
@@ -235,20 +184,14 @@ button {
     display: grid;
     place-items: center;
 
-    border-radius:
-      50%;
+    border-radius: 50%;
 
-    background:
-      var(--dm-ink, #10110f);
+    background: var(--dm-ink);
 
-    color:
-      var(--dm-lime, #dfff3f);
+    color: var(--dm-lime);
 
-    box-shadow:
-      0 8px 24px
-      rgba(16, 17, 15, 0.15);
+    box-shadow: none;
   }
-
 
   &__mark-letter {
     font-size: 1.2rem;
@@ -256,10 +199,8 @@ button {
 
     line-height: 1;
 
-    letter-spacing:
-      -0.055em;
+    letter-spacing: -0.055em;
   }
-
 
   &__mark-spark {
     position: absolute;
@@ -275,22 +216,17 @@ button {
 
     border-radius: 50%;
 
-    background:
-      var(--dm-lime, #dfff3f);
+    background: var(--dm-lime);
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
 
-    border:
-      2px solid
-      var(--dm-surface, #ffffff);
+    border: 2px solid var(--dm-surface, #ffffff);
 
     svg {
       width: 10px;
       height: 10px;
     }
   }
-
 
   /* ------------------------------------------------------------------------
      BRAND TEXT
@@ -305,10 +241,8 @@ button {
     gap: 0.12rem;
   }
 
-
   &__title {
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
 
     font-size: 1.15rem;
 
@@ -316,31 +250,25 @@ button {
 
     line-height: 1;
 
-    letter-spacing:
-      -0.04em;
+    letter-spacing: -0.04em;
   }
 
-
   &__sub {
-    color:
-      var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     font-size: 0.56rem;
 
     font-weight: 700;
 
-    letter-spacing:
-      0.13em;
+    letter-spacing: 0.13em;
 
     line-height: 1.3;
 
-    text-transform:
-      uppercase;
+    text-transform: uppercase;
 
     white-space: nowrap;
   }
 }
-
 
 /* ==========================================================================
    SIDEBAR STATUS
@@ -349,12 +277,8 @@ button {
 .sidebar-header__meta {
   display: flex;
 
-  padding:
-    0.8rem
-    0.1rem
-    0;
+  padding: 0.8rem 0.1rem 0;
 }
-
 
 .sidebar-header__status {
   min-height: 28px;
@@ -364,31 +288,22 @@ button {
 
   gap: 0.45rem;
 
-  padding:
-    0.35rem
-    0.7rem;
+  padding: 0.35rem 0.7rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
   font-size: 0.62rem;
 
   font-weight: 700;
 
-  letter-spacing:
-    0.035em;
+  letter-spacing: 0.035em;
 }
-
 
 .sidebar-header__status-dot {
   width: 7px;
@@ -398,14 +313,10 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-success, #57a773);
+  background: var(--dm-success, #57a773);
 
-  box-shadow:
-    0 0 0 3px
-    rgba(87, 167, 115, 0.12);
+  box-shadow: 0 0 0 3px rgba(87, 167, 115, 0.12);
 }
-
 
 /* ==========================================================================
    SIDEBAR NAV
@@ -424,37 +335,26 @@ button {
   overflow-y: auto;
   overflow-x: hidden;
 
-  padding:
-    0.25rem
-    0.15rem
-    0.8rem;
+  padding: 0.25rem 0.15rem 0.8rem;
 
   scrollbar-width: thin;
 
-  scrollbar-color:
-    var(--dm-border-strong, #cdd0c5)
-    transparent;
+  scrollbar-color: var(--dm-border-strong, #cdd0c5) transparent;
 }
-
 
 .sidebar-nav::-webkit-scrollbar {
   width: 5px;
 }
 
-
 .sidebar-nav::-webkit-scrollbar-track {
   background: transparent;
 }
 
-
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background:
-    var(--dm-border-strong, #cdd0c5);
+  background: var(--dm-border-strong, #cdd0c5);
 
-  border-radius:
-    999px;
+  border-radius: 4px;
 }
-
 
 /* ==========================================================================
    NAV INTRO
@@ -466,39 +366,29 @@ button {
 
   gap: 0.6rem;
 
-  padding:
-    0.3rem
-    0.55rem
-    0.45rem;
+  padding: 0.3rem 0.55rem 0.45rem;
 }
-
 
 .nav-caption {
   flex-shrink: 0;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.62rem;
 
   font-weight: 700;
 
-  letter-spacing:
-    0.1em;
+  letter-spacing: 0.1em;
 
-  text-transform:
-    uppercase;
+  text-transform: uppercase;
 }
-
 
 .nav-intro__line {
   height: 1px;
   flex: 1;
 
-  background:
-    var(--dm-border, #e1e3da);
+  background: var(--dm-border);
 }
-
 
 /* ==========================================================================
    NAV PACKAGE
@@ -512,28 +402,20 @@ button {
 
   gap: 0.2rem;
 
-  border-radius:
-    var(--dm-radius-md, 20px);
+  border-radius: var(--dm-radius-md, 20px);
 
-  transition:
-    background
-      var(--dm-fast, 150ms)
-      ease;
+  transition: background var(--dm-fast, 150ms) ease;
 
   &:has(.nav-link--active) {
     .nav-package__number {
-      background:
-        var(--dm-lime, #dfff3f);
+      background: var(--dm-lime);
 
-      color:
-        var(--dm-ink, #10110f);
+      color: var(--dm-ink);
 
-      border-color:
-        transparent;
+      border-color: transparent;
     }
   }
 }
-
 
 /* ==========================================================================
    PACKAGE TOGGLE
@@ -550,52 +432,35 @@ button {
 
   gap: 0.55rem;
 
-  padding:
-    0.45rem
-    0.55rem;
+  padding: 0.45rem 0.55rem;
 
-  background:
-    transparent;
+  background: transparent;
 
-  border:
-    1.5px solid
-    transparent;
+  border: 1.5px solid transparent;
 
-  border-radius:
-    var(--dm-radius-md, 18px);
+  border-radius: var(--dm-radius-md, 18px);
 
   cursor: pointer;
 
   text-align: left;
 
   transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    transform
-      var(--dm-fast, 150ms)
-      ease;
+    background-color var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    transform var(--dm-fast, 150ms) ease;
 
   &:hover {
-    background:
-      var(--dm-surface-soft, #f8f9f2);
+    background: var(--dm-surface-soft, var(--dm-canvas));
 
-    border-color:
-      var(--dm-border, #e1e3da);
+    border-color: var(--dm-border);
 
-    transform:
-      translateX(2px);
+    transform: translateX(2px);
   }
 
   &:active {
-    transform:
-      scale(0.985);
+    transform: scale(0.985);
   }
 }
-
 
 .nav-package__identity {
   min-width: 0;
@@ -606,7 +471,6 @@ button {
   gap: 0.65rem;
 }
 
-
 .nav-package__number {
   width: 31px;
   height: 31px;
@@ -616,38 +480,25 @@ button {
   display: grid;
   place-items: center;
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
-  background:
-    rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.66);
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.6rem;
 
   font-weight: 800;
 
-  letter-spacing:
-    0.06em;
+  letter-spacing: 0.06em;
 
   transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    color
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease;
+    background-color var(--dm-fast, 150ms) ease,
+    color var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease;
 }
-
 
 .nav-package__heading {
   min-width: 0;
@@ -660,8 +511,7 @@ button {
   strong {
     overflow: hidden;
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
 
     font-size: 0.73rem;
 
@@ -669,20 +519,17 @@ button {
 
     line-height: 1.2;
 
-    letter-spacing:
-      -0.015em;
+    letter-spacing: -0.015em;
 
     white-space: nowrap;
 
     text-overflow: ellipsis;
   }
 
-
   span {
     overflow: hidden;
 
-    color:
-      var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     font-size: 0.61rem;
 
@@ -696,7 +543,6 @@ button {
   }
 }
 
-
 .nav-package__action {
   width: 30px;
   height: 30px;
@@ -708,45 +554,29 @@ button {
 
   border-radius: 50%;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    color
-      var(--dm-fast, 150ms)
-      ease;
+    background-color var(--dm-fast, 150ms) ease,
+    color var(--dm-fast, 150ms) ease;
 }
-
 
 .nav-package__toggle:hover {
   .nav-package__action {
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
   }
 }
 
-
 .nav-package__chevron {
-  transition:
-    transform
-      0.32s
-      cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 
 .nav-package__chevron--open,
-.nav-package--expanded
-.nav-package__chevron {
-  transform:
-    rotate(180deg);
+.nav-package--expanded .nav-package__chevron {
+  transform: rotate(180deg);
 }
-
 
 /* ==========================================================================
    PACKAGE ITEMS
@@ -757,21 +587,12 @@ button {
 
   gap: 0.25rem;
 
-  padding:
-    0.2rem
-    0
-    0.45rem;
+  padding: 0.2rem 0 0.45rem;
 
-  animation:
-    dm-nav-reveal
-    0.26s
-    cubic-bezier(0.22, 1, 0.36, 1)
-    forwards;
+  animation: dm-nav-reveal 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 
-  transform-origin:
-    top center;
+  transform-origin: top center;
 }
-
 
 /* ==========================================================================
    NAV LINK
@@ -787,43 +608,23 @@ button {
 
   gap: 0.7rem;
 
-  padding:
-    0.5rem
-    0.55rem
-    0.5rem
-    0.65rem;
+  padding: 0.5rem 0.55rem 0.5rem 0.65rem;
 
-  border:
-    1px solid
-    transparent;
+  border: 1px solid transparent;
 
-  border-radius:
-    var(--dm-radius-md, 20px);
+  border-radius: var(--dm-radius-md, 20px);
 
-  color:
-    var(--dm-text, #22231f);
+  color: var(--dm-text, #22231f);
 
   text-decoration: none;
 
   overflow: hidden;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      ),
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    box-shadow
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    box-shadow var(--dm-fast, 150ms) ease;
 
   /* ------------------------------------------------------------------------
      ACCENT
@@ -837,29 +638,18 @@ button {
     width: 3px;
     height: 22px;
 
-    border-radius:
-      0
-      999px
-      999px
-      0;
+    border-radius: 0 4px 4px 0;
 
-    background:
-      var(--dm-lime, #dfff3f);
+    background: var(--dm-lime);
 
     opacity: 0;
 
-    transform:
-      scaleY(0.45);
+    transform: scaleY(0.45);
 
     transition:
-      opacity
-        var(--dm-fast, 150ms)
-        ease,
-      transform
-        var(--dm-fast, 150ms)
-        ease;
+      opacity var(--dm-fast, 150ms) ease,
+      transform var(--dm-fast, 150ms) ease;
   }
-
 
   /* ------------------------------------------------------------------------
      ICON
@@ -874,27 +664,17 @@ button {
     display: grid;
     place-items: center;
 
-    border-radius:
-      50%;
+    border-radius: 50%;
 
-    background:
-      rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.72);
 
-    color:
-      var(--dm-gray-700, #40433d);
+    color: var(--dm-gray-700, #40433d);
 
     transition:
-      transform
-        var(--dm-fast, 150ms)
-        ease,
-      background-color
-        var(--dm-fast, 150ms)
-        ease,
-      color
-        var(--dm-fast, 150ms)
-        ease;
+      transform var(--dm-fast, 150ms) ease,
+      background-color var(--dm-fast, 150ms) ease,
+      color var(--dm-fast, 150ms) ease;
   }
-
 
   /* ------------------------------------------------------------------------
      COPY
@@ -919,20 +699,17 @@ button {
 
       line-height: 1.22;
 
-      letter-spacing:
-        -0.01em;
+      letter-spacing: -0.01em;
 
       white-space: nowrap;
 
       text-overflow: ellipsis;
     }
 
-
     small {
       overflow: hidden;
 
-      color:
-        var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
 
       font-size: 0.59rem;
 
@@ -944,13 +721,9 @@ button {
 
       text-overflow: ellipsis;
 
-      transition:
-        color
-          var(--dm-fast, 150ms)
-          ease;
+      transition: color var(--dm-fast, 150ms) ease;
     }
   }
-
 
   /* ------------------------------------------------------------------------
      ARROW
@@ -967,127 +740,95 @@ button {
 
     opacity: 0;
 
-    transform:
-      translateX(-5px);
+    transform: translateX(-5px);
 
-    color:
-      var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     transition:
-      opacity
-        var(--dm-fast, 150ms)
-        ease,
-      transform
-        var(--dm-fast, 150ms)
-        ease;
+      opacity var(--dm-fast, 150ms) ease,
+      transform var(--dm-fast, 150ms) ease;
   }
-
 
   /* ------------------------------------------------------------------------
      HOVER
      ------------------------------------------------------------------------ */
 
   &:hover {
-    background:
-      var(--dm-surface-soft, #f8f9f2);
+    background: var(--dm-surface-soft, var(--dm-canvas));
 
-    border-color:
-      var(--dm-border, #e1e3da);
+    border-color: var(--dm-border);
 
-    transform:
-      translateX(4px);
+    transform: translateX(4px);
 
     .nav-link__icon {
-      background:
-        var(--dm-surface, #ffffff);
+      background: var(--dm-surface, #ffffff);
 
-      color:
-        var(--dm-ink, #10110f);
+      color: var(--dm-ink);
 
-      transform:
-        scale(1.06);
+      transform: scale(1.06);
 
-      box-shadow:
-        0 2px 8px rgba(16, 17, 15, 0.06);
+      box-shadow: none;
     }
 
     .nav-link__arrow {
       opacity: 1;
 
-      transform:
-        translateX(0);
+      transform: translateX(0);
     }
   }
-
 
   /* ------------------------------------------------------------------------
      ACTIVE
      ------------------------------------------------------------------------ */
 
   &--active {
-    background:
-      var(--dm-ink, #10110f);
+    background: var(--dm-ink);
 
-    border-color:
-      var(--dm-ink, #10110f);
+    border-color: var(--dm-ink);
 
-    color:
-      #ffffff;
+    color: #ffffff;
 
-    box-shadow:
-      0 8px 22px
-      rgba(16, 17, 15, 0.13);
+    box-shadow: none;
 
     .nav-link__accent {
       opacity: 1;
 
-      transform:
-        scaleY(1);
+      transform: scaleY(1);
     }
 
     .nav-link__icon {
-      background:
-        rgba(223, 255, 63, 0.12);
+      background: rgba(223, 255, 63, 0.12);
 
-      color:
-        var(--dm-lime, #dfff3f);
+      color: var(--dm-lime);
     }
 
     .nav-link__copy {
       small {
-        color:
-          rgba(255, 255, 255, 0.58);
+        color: rgba(255, 255, 255, 0.58);
       }
     }
 
     .nav-link__arrow {
       opacity: 1;
 
-      color:
-        var(--dm-lime, #dfff3f);
+      color: var(--dm-lime);
 
-      transform:
-        translateX(0);
+      transform: translateX(0);
     }
 
     &:hover {
-      background:
-        var(--dm-ink, #10110f);
+      background: var(--dm-ink);
 
-      color:
-        #ffffff;
+      color: #ffffff;
 
-      transform:
-        translateX(0);
+      transform: translateX(0);
 
       .nav-link__icon {
-        color:
-          var(--dm-lime, #dfff3f);
+        color: var(--dm-lime);
       }
     }
   }
 }
-
 
 /* ==========================================================================
    SIDEBAR FOOT
@@ -1100,11 +841,8 @@ button {
 
   padding-top: 0.7rem;
 
-  border-top:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border-top: 1px solid var(--dm-border);
 }
-
 
 /* ==========================================================================
    USER CARD
@@ -1119,23 +857,17 @@ button {
 
   padding: 0.85rem;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-md, 20px);
+  border-radius: var(--dm-radius-md, 20px);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
   box-shadow: none;
 }
 
-
 .sidebar-user-card__eyebrow {
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.57rem;
 
@@ -1143,13 +875,10 @@ button {
 
   line-height: 1;
 
-  letter-spacing:
-    0.11em;
+  letter-spacing: 0.11em;
 
-  text-transform:
-    uppercase;
+  text-transform: uppercase;
 }
-
 
 .sidebar-user-info {
   display: flex;
@@ -1157,7 +886,6 @@ button {
 
   gap: 0.65rem;
 }
-
 
 .avatar {
   width: 42px;
@@ -1168,36 +896,26 @@ button {
   display: grid;
   place-items: center;
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
-  background:
-    var(--dm-ink, #10110f);
+  background: var(--dm-ink);
 
-  color:
-    #ffffff;
+  color: #ffffff;
 
   font-size: 0.9rem;
 
   font-weight: 750;
 
-  letter-spacing:
-    -0.03em;
+  letter-spacing: -0.03em;
 
-  box-shadow:
-    0 6px 16px
-    rgba(16, 17, 15, 0.13);
+  box-shadow: none;
 }
-
 
 .avatar--sidebar {
-  background:
-    var(--dm-ink, #10110f);
+  background: var(--dm-ink);
 
-  color:
-    var(--dm-lime, #dfff3f);
+  color: var(--dm-lime);
 }
-
 
 .sidebar-user-copy {
   min-width: 0;
@@ -1212,14 +930,12 @@ button {
   gap: 0.18rem;
 }
 
-
 .sidebar-user-name {
   max-width: 100%;
 
   overflow: hidden;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.8rem;
 
@@ -1227,14 +943,12 @@ button {
 
   line-height: 1.2;
 
-  letter-spacing:
-    -0.015em;
+  letter-spacing: -0.015em;
 
   white-space: nowrap;
 
   text-overflow: ellipsis;
 }
-
 
 /* ==========================================================================
    ROLE BADGE
@@ -1247,22 +961,15 @@ button {
   align-items: center;
   justify-content: center;
 
-  padding:
-    0.16rem
-    0.5rem;
+  padding: 0.16rem 0.5rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.55rem;
 
@@ -1270,73 +977,51 @@ button {
 
   line-height: 1;
 
-  letter-spacing:
-    0.055em;
+  letter-spacing: 0.055em;
 
-  text-transform:
-    uppercase;
-
+  text-transform: uppercase;
 
   &[data-role='ADMIN'],
   &[data-role='ADMINISTRADOR'] {
-    background:
-      var(--dm-ink, #10110f);
+    background: var(--dm-ink);
 
-    border-color:
-      var(--dm-ink, #10110f);
+    border-color: var(--dm-ink);
 
-    color:
-      #ffffff;
+    color: #ffffff;
   }
-
 
   &[data-role='CLIENTE'] {
-    background:
-      var(--dm-lime-soft, #eeff9d);
+    background: var(--dm-lime-soft);
 
-    border-color:
-      var(--dm-lime, #dfff3f);
+    border-color: var(--dm-lime);
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
   }
-
 
   &[data-role='ENCARGADO'],
   &[data-role='ENCARGADO_SUCURSAL'] {
-    background:
-      var(--dm-cyan-soft, #e7f7f7);
+    background: var(--dm-cyan-soft, #f2eef8);
 
-    border-color:
-      var(--dm-cyan, #c9eef0);
+    border-color: var(--dm-cyan, var(--dm-lavender));
 
-    color:
-      var(--dm-gray-700, #40433d);
+    color: var(--dm-gray-700, #40433d);
   }
-
 
   &[data-role='CAJERO'],
   &[data-role='VENDEDOR'] {
-    background:
-      var(--dm-gray-100, #f0f1eb);
+    background: var(--dm-gray-100, #f0f1eb);
 
-    color:
-      var(--dm-gray-700, #40433d);
+    color: var(--dm-gray-700, #40433d);
   }
-
 
   &[data-role='PROVEEDOR'] {
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
-    border-color:
-      var(--dm-border-strong, #cdd0c5);
+    border-color: var(--dm-border-strong, #cdd0c5);
 
-    color:
-      var(--dm-gray-700, #40433d);
+    color: var(--dm-gray-700, #40433d);
   }
 }
-
 
 /* ==========================================================================
    SIDEBAR LOGOUT
@@ -1353,22 +1038,15 @@ button {
 
   gap: 0.48rem;
 
-  padding:
-    0.65rem
-    0.9rem;
+  padding: 0.65rem 0.9rem;
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-surface, #ffffff);
+  background: var(--dm-surface, #ffffff);
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.72rem;
 
@@ -1377,53 +1055,33 @@ button {
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    color
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    color var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease;
 
   svg {
     flex-shrink: 0;
 
-    transition:
-      transform
-        var(--dm-fast, 150ms)
-        ease;
+    transition: transform var(--dm-fast, 150ms) ease;
   }
 
-
   &:hover {
-    border-color:
-      var(--dm-danger, #e85d5d);
+    border-color: var(--dm-danger, #e85d5d);
 
-    background:
-      rgba(232, 93, 93, 0.07);
+    background: rgba(232, 93, 93, 0.07);
 
-    color:
-      var(--dm-danger, #e85d5d);
+    color: var(--dm-danger, #e85d5d);
 
     svg {
-      transform:
-        translateX(2px);
+      transform: translateX(2px);
     }
   }
 
-
   &:active {
-    transform:
-      scale(0.98);
+    transform: scale(0.98);
   }
 }
-
 
 /* ==========================================================================
    WORKSPACE
@@ -1433,15 +1091,10 @@ button {
 .dm-workspace {
   min-height: 100dvh;
 
-  margin-left:
-    calc(
-      var(--shell-sidebar-width) +
-      var(--shell-sidebar-gap) * 2
-    );
+  margin-left: calc(var(--shell-sidebar-width) + var(--shell-sidebar-gap) * 2);
 
   padding-top: 0.01px;
 }
-
 
 /* ==========================================================================
    FLOATING TOPBAR
@@ -1455,25 +1108,13 @@ button {
 
   top: 1rem;
 
-  width:
-    calc(
-      100% -
-      var(--dm-page-padding, clamp(16px, 3vw, 48px)) *
-      2
-    );
+  width: calc(100% - var(--dm-page-padding, clamp(16px, 3vw, 48px)) * 2);
 
   min-height: 66px;
 
-  margin:
-    1rem
-    auto
-    0;
+  margin: 1rem auto 0;
 
-  padding:
-    0.55rem
-    0.7rem
-    0.55rem
-    1rem;
+  padding: 0.55rem 0.7rem 0.55rem 1rem;
 
   display: flex;
   align-items: center;
@@ -1481,20 +1122,14 @@ button {
 
   gap: 1rem;
 
-  background:
-    #ffffff;
+  background: #ffffff;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  box-shadow:
-    0 10px 30px rgba(16, 17, 15, 0.05);
+  box-shadow: none;
 }
-
 
 /* ==========================================================================
    TOPBAR LEFT
@@ -1509,7 +1144,6 @@ button {
   gap: 1rem;
 }
 
-
 /* ==========================================================================
    TOPBAR CONTEXT
    ========================================================================== */
@@ -1522,15 +1156,11 @@ button {
 
   padding-right: 0.9rem;
 
-  border-right:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border-right: 1.5px solid var(--dm-border);
 }
 
-
 .topbar-context__eyebrow {
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.55rem;
 
@@ -1538,14 +1168,11 @@ button {
 
   line-height: 1;
 
-  letter-spacing:
-    0.12em;
+  letter-spacing: 0.12em;
 }
 
-
 .topbar-context__title {
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.78rem;
 
@@ -1553,10 +1180,8 @@ button {
 
   line-height: 1.25;
 
-  letter-spacing:
-    -0.015em;
+  letter-spacing: -0.015em;
 }
-
 
 /* ==========================================================================
    MOBILE MENU TOGGLE
@@ -1574,50 +1199,34 @@ button {
 
   gap: 5px;
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
-  background:
-    var(--dm-surface, #ffffff);
+  background: var(--dm-surface, #ffffff);
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease;
 
   span {
     display: block;
 
     width: 16px;
 
-    border-top:
-      1.8px solid
-      var(--dm-ink, #10110f);
+    border-top: 1.8px solid var(--dm-ink);
   }
-
 
   &:hover {
-    background:
-      var(--dm-gray-100, #f0f1eb);
+    background: var(--dm-gray-100, #f0f1eb);
   }
-
 
   &:active {
-    transform:
-      scale(0.96);
+    transform: scale(0.96);
   }
 }
-
 
 /* ==========================================================================
    BRANCH SELECTOR
@@ -1626,7 +1235,6 @@ button {
 .branch-selector-wrapper {
   position: relative;
 }
-
 
 /* ==========================================================================
    BRANCH SELECTOR TRIGGER
@@ -1642,63 +1250,38 @@ button {
 
   gap: 0.65rem;
 
-  padding:
-    0.38rem
-    0.55rem
-    0.38rem
-    0.42rem;
+  padding: 0.38rem 0.55rem 0.38rem 0.42rem;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    box-shadow
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease,
+    box-shadow var(--dm-fast, 150ms) ease;
 
   &:hover {
-    border-color:
-      var(--dm-border-strong, #cdd0c5);
+    border-color: var(--dm-border-strong, #cdd0c5);
 
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
-    transform:
-      translateY(-1px);
+    transform: translateY(-1px);
 
-    box-shadow:
-      0 4px 14px rgba(16, 17, 15, 0.06);
+    box-shadow: none;
   }
-
 
   &:active {
-    transform:
-      scale(0.985);
+    transform: scale(0.985);
   }
 }
-
 
 .branch-selector-trigger__visual {
   width: 38px;
@@ -1711,17 +1294,12 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-lime, #dfff3f);
+  background: var(--dm-lime);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
-  box-shadow:
-    0 4px 12px
-    var(--shell-lime-glow);
+  box-shadow: none;
 }
-
 
 .branch-trigger-texts {
   min-width: 0;
@@ -1733,10 +1311,8 @@ button {
   gap: 0.05rem;
 }
 
-
 .branch-tiny-label {
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.53rem;
 
@@ -1744,18 +1320,15 @@ button {
 
   line-height: 1.1;
 
-  letter-spacing:
-    0.1em;
+  letter-spacing: 0.1em;
 }
-
 
 .branch-current-name {
   max-width: 170px;
 
   overflow: hidden;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.76rem;
 
@@ -1763,40 +1336,26 @@ button {
 
   line-height: 1.2;
 
-  letter-spacing:
-    -0.015em;
+  letter-spacing: -0.015em;
 
   white-space: nowrap;
 
   text-overflow: ellipsis;
 }
 
-
 .branch-chevron-icon {
-  margin:
-    0
-    0.2rem;
+  margin: 0 0.2rem;
 
   flex-shrink: 0;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
-  transition:
-    transform
-      var(--dm-normal, 280ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      );
-
+  transition: transform var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 
   &--open {
-    transform:
-      rotate(180deg);
+    transform: rotate(180deg);
   }
 }
-
 
 /* ==========================================================================
    BRANCH DROPDOWN SCRIM
@@ -1809,10 +1368,8 @@ button {
 
   inset: 0;
 
-  background:
-    transparent;
+  background: transparent;
 }
-
 
 /* ==========================================================================
    BRANCH DROPDOWN
@@ -1823,13 +1380,11 @@ button {
 
   z-index: 40;
 
-  top:
-    calc(100% + 0.7rem);
+  top: calc(100% + 0.7rem);
 
   left: 0;
 
-  width:
-    min(360px, calc(100vw - 32px));
+  width: min(360px, calc(100vw - 32px));
 
   display: flex;
   flex-direction: column;
@@ -1838,26 +1393,16 @@ button {
 
   padding: 0.75rem;
 
-  background:
-    #ffffff;
+  background: #ffffff;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-lg, 24px);
+  border-radius: var(--dm-radius-lg, 24px);
 
-  box-shadow:
-    0 20px 50px rgba(16, 17, 15, 0.12);
+  box-shadow: none;
 
-  animation:
-    dm-dropdown-in
-    0.24s
-    cubic-bezier(0.22, 1, 0.36, 1)
-    forwards;
+  animation: dm-dropdown-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-
 
 /* ==========================================================================
    BRANCH DROPDOWN HEADER
@@ -1869,16 +1414,10 @@ button {
 
   gap: 0.7rem;
 
-  padding:
-    0.4rem
-    0.45rem
-    0.7rem;
+  padding: 0.4rem 0.45rem 0.7rem;
 
-  border-bottom:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border-bottom: 1px solid var(--dm-border);
 }
-
 
 .branch-card-header__icon {
   width: 38px;
@@ -1891,13 +1430,10 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-cyan-soft, #e7f7f7);
+  background: var(--dm-cyan-soft, #f2eef8);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 }
-
 
 .branch-card-header__copy {
   min-width: 0;
@@ -1908,29 +1444,23 @@ button {
   gap: 0.15rem;
 }
 
-
 .branch-card-title {
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.78rem;
 
   font-weight: 700;
 
-  letter-spacing:
-    -0.015em;
+  letter-spacing: -0.015em;
 }
 
-
 .branch-card-caption {
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.63rem;
 
   line-height: 1.3;
 }
-
 
 /* ==========================================================================
    BRANCH ITEMS LIST
@@ -1950,11 +1480,8 @@ button {
 
   scrollbar-width: thin;
 
-  scrollbar-color:
-    var(--dm-border-strong, #cdd0c5)
-    transparent;
+  scrollbar-color: var(--dm-border-strong, #cdd0c5) transparent;
 }
-
 
 /* ==========================================================================
    BRANCH ITEM
@@ -1970,65 +1497,43 @@ button {
 
   gap: 0.65rem;
 
-  padding:
-    0.55rem
-    0.6rem;
+  padding: 0.55rem 0.6rem;
 
-  border:
-    1.5px solid
-    transparent;
+  border: 1.5px solid transparent;
 
-  border-radius:
-    var(--dm-radius-sm, 14px);
+  border-radius: var(--dm-radius-sm, 14px);
 
-  background:
-    transparent;
+  background: transparent;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   text-align: left;
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease;
 
   &:hover {
-    background:
-      var(--dm-surface-soft, #f8f9f2);
+    background: var(--dm-surface-soft, var(--dm-canvas));
 
-    border-color:
-      var(--dm-border, #e1e3da);
+    border-color: var(--dm-border);
 
-    transform:
-      translateX(3px);
+    transform: translateX(3px);
   }
 
-
   &--active {
-    background:
-      var(--dm-lime-soft, #eeff9d);
+    background: var(--dm-lime-soft);
 
-    border-color:
-      rgba(223, 255, 63, 0.85);
+    border-color: rgba(223, 255, 63, 0.85);
 
     &:hover {
-      background:
-        var(--dm-lime-soft, #eeff9d);
+      background: var(--dm-lime-soft);
     }
   }
 }
-
 
 .branch-menu-item__marker {
   width: 38px;
@@ -2039,34 +1544,26 @@ button {
   display: grid;
   place-items: center;
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 
   font-size: 0.55rem;
 
   font-weight: 800;
 
-  letter-spacing:
-    0.05em;
+  letter-spacing: 0.05em;
 }
-
 
 .branch-menu-item--active {
   .branch-menu-item__marker {
-    background:
-      var(--dm-ink, #10110f);
+    background: var(--dm-ink);
 
-    color:
-      var(--dm-lime, #dfff3f);
+    color: var(--dm-lime);
   }
 }
-
 
 .branch-item-text {
   min-width: 0;
@@ -2079,12 +1576,10 @@ button {
   gap: 0.12rem;
 }
 
-
 .branch-name {
   overflow: hidden;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.77rem;
 
@@ -2095,12 +1590,10 @@ button {
   text-overflow: ellipsis;
 }
 
-
 .branch-address {
   overflow: hidden;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.62rem;
 
@@ -2110,7 +1603,6 @@ button {
 
   text-overflow: ellipsis;
 }
-
 
 .branch-active-check {
   width: 30px;
@@ -2123,13 +1615,10 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-ink, #10110f);
+  background: var(--dm-ink);
 
-  color:
-    var(--dm-lime, #dfff3f);
+  color: var(--dm-lime);
 }
-
 
 /* ==========================================================================
    BRANCH EMPTY
@@ -2146,25 +1635,19 @@ button {
 
   gap: 0.5rem;
 
-  padding:
-    1.5rem
-    1rem;
+  padding: 1.5rem 1rem;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   text-align: center;
 
-
   strong {
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
 
     font-size: 0.82rem;
 
     font-weight: 700;
   }
-
 
   > span:not(.branch-empty__icon):not(.branch-modal-empty__icon) {
     max-width: 240px;
@@ -2174,7 +1657,6 @@ button {
     line-height: 1.4;
   }
 }
-
 
 .branch-empty__icon,
 .branch-modal-empty__icon {
@@ -2188,13 +1670,10 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 }
-
 
 /* ==========================================================================
    TOPBAR ACTIONS
@@ -2209,7 +1688,6 @@ button {
   gap: 0.55rem;
 }
 
-
 /* ==========================================================================
    CART BUTTON
    ========================================================================== */
@@ -2223,68 +1701,42 @@ button {
 
   gap: 0.55rem;
 
-  padding:
-    0.35rem
-    0.65rem
-    0.35rem
-    0.38rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.38rem;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    box-shadow
-      var(--dm-fast, 150ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    box-shadow var(--dm-fast, 150ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease;
 
   &:hover {
-    border-color:
-      var(--dm-border-strong, #cdd0c5);
+    border-color: var(--dm-border-strong, #cdd0c5);
 
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
-    transform:
-      translateY(-1px);
+    transform: translateY(-1px);
 
-    box-shadow:
-      0 4px 14px rgba(16, 17, 15, 0.06);
+    box-shadow: none;
 
     .cart-trigger-btn__icon {
-      background:
-        var(--dm-lime, #dfff3f);
+      background: var(--dm-lime);
     }
   }
 
-
   &:active {
-    transform:
-      scale(0.98);
+    transform: scale(0.98);
   }
 }
-
 
 .cart-trigger-btn__icon {
   width: 38px;
@@ -2297,28 +1749,20 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
-  transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
+  transition: background-color var(--dm-fast, 150ms) ease;
 }
-
 
 .cart-label {
   font-size: 0.74rem;
 
   font-weight: 700;
 
-  letter-spacing:
-    -0.01em;
+  letter-spacing: -0.01em;
 }
-
 
 .cart-badge {
   min-width: 24px;
@@ -2327,32 +1771,20 @@ button {
   display: grid;
   place-items: center;
 
-  padding:
-    0
-    0.3rem;
+  padding: 0 0.3rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-lime, #dfff3f);
+  background: var(--dm-lime);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.65rem;
 
   font-weight: 800;
 
-  animation:
-    dm-badge-pop
-    280ms
-    var(
-      --dm-ease,
-      cubic-bezier(0.22, 1, 0.36, 1)
-    );
+  animation: dm-badge-pop 280ms var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
-
 
 /* ==========================================================================
    ACCOUNT PILL
@@ -2367,23 +1799,14 @@ button {
 
   gap: 0.55rem;
 
-  padding:
-    0.35rem
-    0.4rem
-    0.35rem
-    0.38rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.38rem;
 
-  border:
-    1.5px solid
-    var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 }
-
 
 .avatar--topbar {
   width: 38px;
@@ -2393,7 +1816,6 @@ button {
 
   box-shadow: none;
 }
-
 
 .account__copy {
   min-width: 0;
@@ -2409,8 +1831,7 @@ button {
 
     overflow: hidden;
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
 
     font-size: 0.72rem;
 
@@ -2423,33 +1844,25 @@ button {
     text-overflow: ellipsis;
   }
 
-
   .role-badge {
     min-height: 18px;
 
     margin: 0;
 
-    padding:
-      0.11rem
-      0.42rem;
+    padding: 0.11rem 0.42rem;
 
     font-size: 0.5rem;
   }
 }
 
-
 .account__divider {
   width: 1px;
   height: 24px;
 
-  margin:
-    0
-    0.05rem;
+  margin: 0 0.05rem;
 
-  background:
-    var(--dm-border, #e1e3da);
+  background: var(--dm-border);
 }
-
 
 .account__logout {
   width: 38px;
@@ -2464,41 +1877,27 @@ button {
 
   border-radius: 50%;
 
-  background:
-    transparent;
+  background: transparent;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   cursor: pointer;
 
   transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    color
-      var(--dm-fast, 150ms)
-      ease,
-    transform
-      var(--dm-fast, 150ms)
-      ease;
-
+    background-color var(--dm-fast, 150ms) ease,
+    color var(--dm-fast, 150ms) ease,
+    transform var(--dm-fast, 150ms) ease;
 
   &:hover {
-    background:
-      rgba(232, 93, 93, 0.08);
+    background: rgba(232, 93, 93, 0.08);
 
-    color:
-      var(--dm-danger, #e85d5d);
+    color: var(--dm-danger, #e85d5d);
   }
-
 
   &:active {
-    transform:
-      scale(0.94);
+    transform: scale(0.94);
   }
 }
-
 
 /* ==========================================================================
    PAGE FRAME
@@ -2508,28 +1907,18 @@ button {
 .dm-page-frame {
   position: relative;
 
-  width:
-    min(
-      calc(
-        100% -
-        var(--dm-page-padding, clamp(16px, 3vw, 48px)) *
-        2
-      ),
-      var(--dm-page-max, 1440px)
-    );
+  width: min(
+    calc(100% - var(--dm-page-padding, clamp(16px, 3vw, 48px)) * 2),
+    var(--dm-page-max, 1440px)
+  );
 
-  min-height:
-    calc(100dvh - 100px);
+  min-height: calc(100dvh - 100px);
 
   margin-inline: auto;
 
-  padding:
-    clamp(1.5rem, 3vw, 3rem)
-    0
-    4rem;
+  padding: clamp(1.5rem, 3vw, 3rem) 0 4rem;
 
   overflow: hidden;
-
 
   &:has(.ai-page) {
     width: 100%;
@@ -2545,13 +1934,11 @@ button {
   }
 }
 
-
 .page-frame__content {
   position: relative;
 
   z-index: 2;
 }
-
 
 /* ==========================================================================
    SUBTLE BACKGROUND GLOWS
@@ -2569,30 +1956,24 @@ button {
 
   pointer-events: none;
 
-  filter:
-    blur(90px);
+  filter: blur(90px);
 
   opacity: 0.55;
 }
-
 
 .page-frame__glow--lime {
   top: -140px;
   right: 4%;
 
-  background:
-    var(--shell-lime-glow);
+  background: var(--shell-lime-glow);
 }
-
 
 .page-frame__glow--cyan {
   top: 32%;
   left: -180px;
 
-  background:
-    var(--shell-cyan-glow);
+  background: var(--shell-cyan-glow);
 }
-
 
 /* ==========================================================================
    BRANCH MODAL SCRIM
@@ -2605,21 +1986,14 @@ button {
 
   inset: 0;
 
-  background:
-    rgba(16, 17, 15, 0.38);
+  background: rgba(16, 17, 15, 0.38);
 
-  backdrop-filter:
-    blur(8px);
+  backdrop-filter: blur(8px);
 
-  -webkit-backdrop-filter:
-    blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
-  animation:
-    dm-fade-in
-    var(--dm-fast, 150ms)
-    ease;
+  animation: dm-fade-in var(--dm-fast, 150ms) ease;
 }
-
 
 /* ==========================================================================
    BRANCH MODAL
@@ -2634,56 +2008,31 @@ button {
   top: 50%;
   left: 50%;
 
-  width:
-    min(
-      720px,
-      calc(100vw - 32px)
-    );
+  width: min(720px, calc(100vw - 32px));
 
-  max-height:
-    min(
-      760px,
-      calc(100dvh - 32px)
-    );
+  max-height: min(760px, calc(100dvh - 32px));
 
   display: flex;
   flex-direction: column;
 
   gap: 1.25rem;
 
-  padding:
-    clamp(1.4rem, 3vw, 2rem);
+  padding: clamp(1.4rem, 3vw, 2rem);
 
   overflow: hidden;
 
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 
-  border-radius:
-    var(--dm-radius-xl, 36px);
+  border-radius: var(--dm-radius-xl, 36px);
 
-  background:
-    var(--dm-surface, #ffffff);
+  background: var(--dm-surface, #ffffff);
 
-  box-shadow:
-    var(
-      --dm-shadow-lg,
-      0 24px 64px rgba(16, 17, 15, 0.12)
-    );
+  box-shadow: var(--dm-shadow-lg, 0 24px 64px rgba(16, 17, 15, 0.12));
 
-  transform:
-    translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 
-  animation:
-    dm-modal-in
-    var(--dm-normal, 280ms)
-    var(
-      --dm-ease,
-      cubic-bezier(0.22, 1, 0.36, 1)
-    );
+  animation: dm-modal-in var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
-
 
 /* ==========================================================================
    MODAL HEADER
@@ -2697,7 +2046,6 @@ button {
   gap: 1rem;
 }
 
-
 .branch-modal-title-group {
   min-width: 0;
 
@@ -2706,7 +2054,6 @@ button {
 
   gap: 0.45rem;
 }
-
 
 .branch-modal-eyebrow {
   width: fit-content;
@@ -2718,29 +2065,20 @@ button {
 
   gap: 0.45rem;
 
-  padding:
-    0.28rem
-    0.65rem
-    0.28rem
-    0.35rem;
+  padding: 0.28rem 0.65rem 0.28rem 0.35rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-lime-soft, #eeff9d);
+  background: var(--dm-lime-soft);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.57rem;
 
   font-weight: 750;
 
-  letter-spacing:
-    0.09em;
+  letter-spacing: 0.09em;
 }
-
 
 .branch-modal-eyebrow__spark {
   width: 22px;
@@ -2751,37 +2089,26 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-ink, #10110f);
+  background: var(--dm-ink);
 
-  color:
-    var(--dm-lime, #dfff3f);
+  color: var(--dm-lime);
 }
-
 
 .branch-modal-title {
   margin: 0;
 
   max-width: 540px;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
-  font-size:
-    clamp(
-      1.65rem,
-      3vw,
-      2.3rem
-    );
+  font-size: clamp(1.65rem, 3vw, 2.3rem);
 
   font-weight: 500;
 
   line-height: 1.04;
 
-  letter-spacing:
-    -0.04em;
+  letter-spacing: -0.04em;
 }
-
 
 .branch-modal-close {
   width: 44px;
@@ -2796,41 +2123,28 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease;
 
   &:hover {
-    background:
-      var(--dm-ink, #10110f);
+    background: var(--dm-ink);
 
-    color:
-      #ffffff;
+    color: #ffffff;
 
-    transform:
-      rotate(4deg);
+    transform: rotate(4deg);
   }
-
 
   &:active {
-    transform:
-      scale(0.95);
+    transform: scale(0.95);
   }
 }
-
 
 /* ==========================================================================
    MODAL INTRO
@@ -2845,25 +2159,20 @@ button {
 
   padding-bottom: 1rem;
 
-  border-bottom:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border-bottom: 1px solid var(--dm-border);
 }
-
 
 .branch-modal-desc {
   max-width: 480px;
 
   margin: 0;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.84rem;
 
   line-height: 1.55;
 }
-
 
 .branch-modal-live {
   flex-shrink: 0;
@@ -2875,18 +2184,13 @@ button {
 
   gap: 0.4rem;
 
-  padding:
-    0.3rem
-    0.7rem;
+  padding: 0.3rem 0.7rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-cyan-soft, #e7f7f7);
+  background: var(--dm-cyan-soft, #f2eef8);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 
   font-size: 0.59rem;
 
@@ -2894,7 +2198,6 @@ button {
 
   white-space: nowrap;
 }
-
 
 .branch-modal-live__icon {
   width: 21px;
@@ -2905,13 +2208,10 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-success, #57a773);
+  background: var(--dm-success, #57a773);
 
-  color:
-    #ffffff;
+  color: #ffffff;
 }
-
 
 /* ==========================================================================
    MODAL BRANCH GRID
@@ -2922,28 +2222,18 @@ button {
 
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
   gap: 0.9rem;
 
   overflow-y: auto;
 
-  padding:
-    0.15rem
-    0.15rem
-    0.35rem;
+  padding: 0.15rem 0.15rem 0.35rem;
 
   scrollbar-width: thin;
 
-  scrollbar-color:
-    var(--dm-border-strong, #cdd0c5)
-    transparent;
+  scrollbar-color: var(--dm-border-strong, #cdd0c5) transparent;
 }
-
 
 /* ==========================================================================
    BRANCH CHOICE CARD
@@ -2963,93 +2253,58 @@ button {
 
   overflow: hidden;
 
-  border:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border: 1px solid var(--dm-border);
 
-  border-radius:
-    24px;
+  border-radius: 4px;
 
-  background:
-    var(--dm-surface-soft, #f8f9f2);
+  background: var(--dm-surface-soft, var(--dm-canvas));
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   text-align: left;
 
   cursor: pointer;
 
   transition:
-    transform
-      var(--dm-normal, 280ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      ),
-    box-shadow
-      var(--dm-normal, 280ms)
-      ease,
-    border-color
-      var(--dm-fast, 150ms)
-      ease,
-    background-color
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--dm-normal, 280ms) ease,
+    border-color var(--dm-fast, 150ms) ease,
+    background-color var(--dm-fast, 150ms) ease;
 
   &:hover {
-    transform:
-      translateY(-4px);
+    transform: translateY(-4px);
 
-    border-color:
-      var(--dm-border-strong, #cdd0c5);
+    border-color: var(--dm-border-strong, #cdd0c5);
 
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
-    box-shadow:
-      var(
-        --dm-shadow-md,
-        0 14px 36px rgba(16, 17, 15, 0.08)
-      );
+    box-shadow: var(--dm-shadow-md, 0 14px 36px rgba(16, 17, 15, 0.08));
 
     .branch-choice-footer {
       svg {
-        transform:
-          translateX(4px);
+        transform: translateX(4px);
       }
     }
   }
 
-
   &:active {
-    transform:
-      scale(0.985);
+    transform: scale(0.985);
   }
 
-
   &--selected {
-    border-color:
-      var(--dm-ink, #10110f);
+    border-color: var(--dm-ink);
 
-    background:
-      var(--dm-surface, #ffffff);
+    background: var(--dm-surface, #ffffff);
 
     box-shadow:
-      0 0 0 3px
-        var(--dm-lime, #dfff3f),
-      var(
-        --dm-shadow-md,
-        0 14px 36px rgba(16, 17, 15, 0.08)
-      );
+      0 0 0 3px var(--dm-lime),
+      var(--dm-shadow-md, 0 14px 36px rgba(16, 17, 15, 0.08));
 
     .branch-choice-card__accent {
       opacity: 1;
     }
   }
 }
-
 
 .branch-choice-card__accent {
   position: absolute;
@@ -3060,25 +2315,16 @@ button {
   width: 95px;
   height: 95px;
 
-  border-radius:
-    0
-    0
-    0
-    100%;
+  border-radius: 0 0 0 100%;
 
-  background:
-    var(--dm-lime-soft, #eeff9d);
+  background: var(--dm-lime-soft);
 
   opacity: 0;
 
   pointer-events: none;
 
-  transition:
-    opacity
-      var(--dm-normal, 280ms)
-      ease;
+  transition: opacity var(--dm-normal, 280ms) ease;
 }
-
 
 /* ==========================================================================
    BRANCH CHOICE HEAD
@@ -3096,34 +2342,26 @@ button {
   gap: 0.6rem;
 }
 
-
 .branch-choice-code {
   min-height: 26px;
 
   display: inline-flex;
   align-items: center;
 
-  padding:
-    0.2rem
-    0.55rem;
+  padding: 0.2rem 0.55rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 
   font-size: 0.54rem;
 
   font-weight: 800;
 
-  letter-spacing:
-    0.09em;
+  letter-spacing: 0.09em;
 }
-
 
 .branch-choice-active-pill {
   min-height: 28px;
@@ -3133,27 +2371,20 @@ button {
 
   gap: 0.3rem;
 
-  padding:
-    0.2rem
-    0.6rem;
+  padding: 0.2rem 0.6rem;
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    var(--dm-ink, #10110f);
+  background: var(--dm-ink);
 
-  color:
-    var(--dm-lime, #dfff3f);
+  color: var(--dm-lime);
 
   font-size: 0.51rem;
 
   font-weight: 800;
 
-  letter-spacing:
-    0.07em;
+  letter-spacing: 0.07em;
 }
-
 
 /* ==========================================================================
    BRANCH CHOICE BODY
@@ -3174,7 +2405,6 @@ button {
   gap: 0.18rem;
 }
 
-
 .branch-choice-location-icon {
   width: 42px;
   height: 42px;
@@ -3186,17 +2416,13 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-cyan-soft, #e7f7f7);
+  background: var(--dm-cyan-soft, #f2eef8);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 }
 
-
 .branch-choice-name {
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 1rem;
 
@@ -3204,35 +2430,26 @@ button {
 
   line-height: 1.2;
 
-  letter-spacing:
-    -0.025em;
+  letter-spacing: -0.025em;
 }
 
-
 .branch-choice-city {
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 
   font-size: 0.68rem;
 
   font-weight: 650;
 }
 
-
 .branch-choice-address {
-  margin:
-    0.28rem
-    0
-    0;
+  margin: 0.28rem 0 0;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   font-size: 0.68rem;
 
   line-height: 1.4;
 }
-
 
 /* ==========================================================================
    BRANCH CHOICE FOOTER
@@ -3251,28 +2468,20 @@ button {
 
   padding-top: 0.75rem;
 
-  border-top:
-    1px solid
-    var(--dm-border, #e1e3da);
+  border-top: 1px solid var(--dm-border);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 
   font-size: 0.64rem;
 
   font-weight: 650;
 
-
   svg {
     flex-shrink: 0;
 
-    transition:
-      transform
-        var(--dm-fast, 150ms)
-        ease;
+    transition: transform var(--dm-fast, 150ms) ease;
   }
 }
-
 
 /* ==========================================================================
    TOAST STACK
@@ -3286,11 +2495,7 @@ button {
   top: 1.25rem;
   right: 1.25rem;
 
-  width:
-    min(
-      390px,
-      calc(100vw - 32px)
-    );
+  width: min(390px, calc(100vw - 32px));
 
   display: flex;
   flex-direction: column;
@@ -3301,7 +2506,6 @@ button {
 
   pointer-events: none;
 }
-
 
 /* ==========================================================================
    TOAST
@@ -3317,36 +2521,21 @@ button {
 
   gap: 0.65rem;
 
-  padding:
-    0.45rem
-    0.45rem
-    0.45rem
-    0.55rem;
+  padding: 0.45rem 0.45rem 0.45rem 0.55rem;
 
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.86);
 
-  border-radius:
-    var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 
-  background:
-    rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.94);
 
-  backdrop-filter:
-    blur(18px);
+  backdrop-filter: blur(18px);
 
-  -webkit-backdrop-filter:
-    blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
-  box-shadow:
-    var(
-      --dm-shadow-md,
-      0 14px 36px rgba(16, 17, 15, 0.08)
-    );
+  box-shadow: var(--dm-shadow-md, 0 14px 36px rgba(16, 17, 15, 0.08));
 
   cursor: pointer;
 
@@ -3354,41 +2543,22 @@ button {
 
   text-align: left;
 
-  animation:
-    dm-toast-in
-    var(--dm-normal, 280ms)
-    var(
-      --dm-ease,
-      cubic-bezier(0.22, 1, 0.36, 1)
-    );
+  animation: dm-toast-in var(--dm-normal, 280ms) var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
 
   transition:
-    transform
-      var(--dm-fast, 150ms)
-      ease,
-    box-shadow
-      var(--dm-fast, 150ms)
-      ease;
-
+    transform var(--dm-fast, 150ms) ease,
+    box-shadow var(--dm-fast, 150ms) ease;
 
   &:hover {
-    transform:
-      translateY(-2px);
+    transform: translateY(-2px);
 
-    box-shadow:
-      var(
-        --dm-shadow-lg,
-        0 24px 64px rgba(16, 17, 15, 0.12)
-      );
+    box-shadow: var(--dm-shadow-lg, 0 24px 64px rgba(16, 17, 15, 0.12));
   }
-
 
   &:active {
-    transform:
-      scale(0.985);
+    transform: scale(0.985);
   }
 }
-
 
 /* ==========================================================================
    TOAST ICON
@@ -3405,57 +2575,42 @@ button {
 
   border-radius: 50%;
 
-  background:
-    var(--dm-gray-100, #f0f1eb);
+  background: var(--dm-gray-100, #f0f1eb);
 
-  color:
-    var(--dm-gray-700, #40433d);
+  color: var(--dm-gray-700, #40433d);
 }
-
 
 .toast--success {
   .toast__indicator {
-    background:
-      rgba(87, 167, 115, 0.12);
+    background: rgba(87, 167, 115, 0.12);
 
-    color:
-      var(--dm-success, #57a773);
+    color: var(--dm-success, #57a773);
   }
 }
-
 
 .toast--error {
   .toast__indicator {
-    background:
-      rgba(232, 93, 93, 0.1);
+    background: rgba(232, 93, 93, 0.1);
 
-    color:
-      var(--dm-danger, #e85d5d);
+    color: var(--dm-danger, #e85d5d);
   }
 }
-
 
 .toast--warning {
   .toast__indicator {
-    background:
-      rgba(228, 184, 77, 0.14);
+    background: rgba(228, 184, 77, 0.14);
 
-    color:
-      var(--dm-warning, #e4b84d);
+    color: var(--dm-warning, #e4b84d);
   }
 }
-
 
 .toast--info {
   .toast__indicator {
-    background:
-      var(--dm-cyan-soft, #e7f7f7);
+    background: var(--dm-cyan-soft, #f2eef8);
 
-    color:
-      var(--dm-gray-700, #40433d);
+    color: var(--dm-gray-700, #40433d);
   }
 }
-
 
 /* ==========================================================================
    TOAST MESSAGE
@@ -3466,8 +2621,7 @@ button {
 
   flex: 1;
 
-  color:
-    var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 
   font-size: 0.73rem;
 
@@ -3478,11 +2632,13 @@ button {
 
 .toast--interactive {
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(18, 23, 20, 0.14);
+    box-shadow: none;
   }
 }
 
@@ -3493,11 +2649,10 @@ button {
   background: rgba(185, 222, 50, 0.35);
   border: 1px solid rgba(185, 222, 50, 0.7);
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 4px;
   flex-shrink: 0;
   letter-spacing: 0.02em;
 }
-
 
 /* ==========================================================================
    TOAST CLOSE
@@ -3514,29 +2669,20 @@ button {
 
   border-radius: 50%;
 
-  color:
-    var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 
   transition:
-    background-color
-      var(--dm-fast, 150ms)
-      ease,
-    color
-      var(--dm-fast, 150ms)
-      ease;
+    background-color var(--dm-fast, 150ms) ease,
+    color var(--dm-fast, 150ms) ease;
 }
-
 
 .toast:hover {
   .toast__close {
-    background:
-      var(--dm-gray-100, #f0f1eb);
+    background: var(--dm-gray-100, #f0f1eb);
 
-    color:
-      var(--dm-ink, #10110f);
+    color: var(--dm-ink);
   }
 }
-
 
 /* ==========================================================================
    MOBILE MENU SCRIM
@@ -3546,7 +2692,6 @@ button {
   display: none;
 }
 
-
 /* ==========================================================================
    ANIMATIONS
    ========================================================================== */
@@ -3555,58 +2700,43 @@ button {
   0% {
     opacity: 0;
 
-    transform:
-      translateY(-8px)
-      scale(0.98);
+    transform: translateY(-8px) scale(0.98);
   }
 
   100% {
     opacity: 1;
 
-    transform:
-      translateY(0)
-      scale(1);
+    transform: translateY(0) scale(1);
   }
 }
-
 
 @keyframes dm-dropdown-in {
   0% {
     opacity: 0;
 
-    transform:
-      translateY(-10px)
-      scale(0.96);
+    transform: translateY(-10px) scale(0.96);
   }
 
   100% {
     opacity: 1;
 
-    transform:
-      translateY(0)
-      scale(1);
+    transform: translateY(0) scale(1);
   }
 }
-
 
 @keyframes dm-modal-in {
   from {
     opacity: 0;
 
-    transform:
-      translate(-50%, calc(-50% + 16px))
-      scale(0.98);
+    transform: translate(-50%, calc(-50% + 16px)) scale(0.98);
   }
 
   to {
     opacity: 1;
 
-    transform:
-      translate(-50%, -50%)
-      scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
-
 
 @keyframes dm-fade-in {
   from {
@@ -3618,63 +2748,50 @@ button {
   }
 }
 
-
 @keyframes dm-badge-pop {
   0% {
     opacity: 0;
 
-    transform:
-      scale(0.65);
+    transform: scale(0.65);
   }
 
   70% {
-    transform:
-      scale(1.12);
+    transform: scale(1.12);
   }
 
   100% {
     opacity: 1;
 
-    transform:
-      scale(1);
+    transform: scale(1);
   }
 }
-
 
 @keyframes dm-toast-in {
   from {
     opacity: 0;
 
-    transform:
-      translateX(18px)
-      scale(0.98);
+    transform: translateX(18px) scale(0.98);
   }
 
   to {
     opacity: 1;
 
-    transform:
-      translateX(0)
-      scale(1);
+    transform: translateX(0) scale(1);
   }
 }
-
 
 /* ==========================================================================
    LARGE TABLET / COMPACT DESKTOP
    ========================================================================== */
 
 @media (max-width: 1199px) {
-
   :host {
     --shell-sidebar-width: 15.5rem;
   }
 
-
   .topbar-context {
     display: none;
   }
-
 
   .account__copy {
     strong {
@@ -3682,23 +2799,19 @@ button {
     }
   }
 
-
   .page-frame__glow {
     opacity: 0.4;
   }
 }
-
 
 /* ==========================================================================
    TABLET / MOBILE DRAWER
    ========================================================================== */
 
 @media (max-width: 1023px) {
-
   :host {
     --shell-sidebar-gap: 0.75rem;
   }
-
 
   /* ------------------------------------------------------------------------
      SIDEBAR AS DRAWER
@@ -3710,32 +2823,18 @@ button {
     bottom: 0.75rem;
     left: 0.75rem;
 
-    width:
-      min(
-        20rem,
-        calc(100vw - 1.5rem)
-      );
+    width: min(20rem, calc(100vw - 1.5rem));
 
-    transform:
-      translateX(
-        calc(-100% - 1.5rem)
-      );
+    transform: translateX(calc(-100% - 1.5rem));
 
-    box-shadow:
-      var(
-        --dm-shadow-lg,
-        0 24px 64px rgba(16, 17, 15, 0.12)
-      );
+    box-shadow: var(--dm-shadow-lg, 0 24px 64px rgba(16, 17, 15, 0.12));
   }
-
 
   .app-shell--menu-open {
     .sidebar {
-      transform:
-        translateX(0);
+      transform: translateX(0);
     }
   }
-
 
   /* ------------------------------------------------------------------------
      SCRIM
@@ -3753,30 +2852,22 @@ button {
 
     border: 0;
 
-    background:
-      rgba(16, 17, 15, 0.34);
+    background: rgba(16, 17, 15, 0.34);
 
-    backdrop-filter:
-      blur(6px);
+    backdrop-filter: blur(6px);
 
-    -webkit-backdrop-filter:
-      blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 
     cursor: pointer;
   }
-
 
   .app-shell--menu-open {
     .menu-scrim {
       display: block;
 
-      animation:
-        dm-fade-in
-        var(--dm-fast, 150ms)
-        ease;
+      animation: dm-fade-in var(--dm-fast, 150ms) ease;
     }
   }
-
 
   /* ------------------------------------------------------------------------
      WORKSPACE
@@ -3787,7 +2878,6 @@ button {
     margin-left: 0;
   }
 
-
   /* ------------------------------------------------------------------------
      TOPBAR
      ------------------------------------------------------------------------ */
@@ -3796,27 +2886,22 @@ button {
     display: grid;
   }
 
-
   .topbar,
   .dm-topbar {
     top: 0.75rem;
 
-    width:
-      calc(100% - 1.5rem);
+    width: calc(100% - 1.5rem);
 
     margin-top: 0.75rem;
   }
-
 
   .topbar-left {
     gap: 0.65rem;
   }
 
-
   .account--topbar {
     display: none;
   }
-
 
   /* ------------------------------------------------------------------------
      PAGE
@@ -3824,27 +2909,17 @@ button {
 
   .page-frame,
   .dm-page-frame {
-    width:
-      calc(
-        100% -
-        var(
-          --dm-page-padding,
-          clamp(16px, 3vw, 48px)
-        ) *
-        2
-      );
+    width: calc(100% - var(--dm-page-padding, clamp(16px, 3vw, 48px)) * 2);
 
     padding-top: 2rem;
   }
 }
-
 
 /* ==========================================================================
    MOBILE
    ========================================================================== */
 
 @media (max-width: 767px) {
-
   /* ------------------------------------------------------------------------
      TOPBAR
      ------------------------------------------------------------------------ */
@@ -3853,14 +2928,10 @@ button {
   .dm-topbar {
     min-height: 60px;
 
-    padding:
-      0.4rem
-      0.45rem;
+    padding: 0.4rem 0.45rem;
 
-    border-radius:
-      30px;
+    border-radius: 4px;
   }
-
 
   .topbar-left {
     min-width: 0;
@@ -3868,11 +2939,9 @@ button {
     flex: 1;
   }
 
-
   .topbar-actions {
     flex-shrink: 0;
   }
-
 
   /* ------------------------------------------------------------------------
      BRANCH TRIGGER
@@ -3883,15 +2952,10 @@ button {
 
     min-height: 44px;
 
-    padding:
-      0.25rem
-      0.45rem
-      0.25rem
-      0.28rem;
+    padding: 0.25rem 0.45rem 0.25rem 0.28rem;
 
     gap: 0.42rem;
   }
-
 
   .branch-selector-trigger__visual {
     width: 34px;
@@ -3903,28 +2967,19 @@ button {
     }
   }
 
-
   .branch-tiny-label {
     display: none;
   }
 
-
   .branch-current-name {
-    max-width:
-      clamp(
-        80px,
-        22vw,
-        130px
-      );
+    max-width: clamp(80px, 22vw, 130px);
 
     font-size: 0.7rem;
   }
 
-
   .branch-chevron-icon {
     margin: 0;
   }
-
 
   /* ------------------------------------------------------------------------
      CART
@@ -3945,20 +3000,16 @@ button {
     border-radius: 50%;
   }
 
-
   .cart-trigger-btn__icon {
     width: 100%;
     height: 100%;
 
-    background:
-      transparent;
+    background: transparent;
   }
-
 
   .cart-label {
     display: none;
   }
-
 
   .cart-badge {
     position: absolute;
@@ -3969,17 +3020,12 @@ button {
     min-width: 20px;
     height: 20px;
 
-    padding:
-      0
-      0.25rem;
+    padding: 0 0.25rem;
 
-    border:
-      2px solid
-      var(--dm-surface, #ffffff);
+    border: 2px solid var(--dm-surface, #ffffff);
 
     font-size: 0.57rem;
   }
-
 
   /* ------------------------------------------------------------------------
      BRANCH DROPDOWN
@@ -3995,41 +3041,25 @@ button {
 
     width: auto;
 
-    max-height:
-      min(
-        520px,
-        calc(100dvh - 100px)
-      );
+    max-height: min(520px, calc(100dvh - 100px));
 
-    border-radius:
-      32px 32px 24px 24px;
+    border-radius: 4px 4px 4px 4px;
 
-    animation:
-      dm-mobile-sheet-in
-      var(--dm-normal, 280ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      );
+    animation: dm-mobile-sheet-in var(--dm-normal, 280ms)
+      var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
-
 
   .branch-menu-scrim {
-    background:
-      rgba(16, 17, 15, 0.28);
+    background: rgba(16, 17, 15, 0.28);
 
-    backdrop-filter:
-      blur(5px);
+    backdrop-filter: blur(5px);
 
-    -webkit-backdrop-filter:
-      blur(5px);
+    -webkit-backdrop-filter: blur(5px);
   }
-
 
   .branch-items-list {
     max-height: 350px;
   }
-
 
   /* ------------------------------------------------------------------------
      PAGE FRAME
@@ -4037,24 +3067,17 @@ button {
 
   .page-frame,
   .dm-page-frame {
-    width:
-      calc(100% - 32px);
+    width: calc(100% - 32px);
 
-    padding:
-      1.4rem
-      0
-      5rem;
+    padding: 1.4rem 0 5rem;
   }
-
 
   .page-frame__glow {
     width: 230px;
     height: 230px;
 
-    filter:
-      blur(75px);
+    filter: blur(75px);
   }
-
 
   /* ------------------------------------------------------------------------
      MODAL
@@ -4066,29 +3089,19 @@ button {
     bottom: 12px;
     left: 12px;
 
-    width:
-      calc(100% - 24px);
+    width: calc(100% - 24px);
 
-    max-height:
-      calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
 
-    padding:
-      1.25rem;
+    padding: 1.25rem;
 
-    border-radius:
-      32px 32px 22px 22px;
+    border-radius: 4px 4px 4px 4px;
 
     transform: none;
 
-    animation:
-      dm-mobile-modal-in
-      var(--dm-normal, 280ms)
-      var(
-        --dm-ease,
-        cubic-bezier(0.22, 1, 0.36, 1)
-      );
+    animation: dm-mobile-modal-in var(--dm-normal, 280ms)
+      var(--dm-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
-
 
   .branch-modal-intro {
     align-items: flex-start;
@@ -4097,34 +3110,23 @@ button {
     gap: 0.75rem;
   }
 
-
   .branch-modal-title {
-    font-size:
-      clamp(
-        1.55rem,
-        7vw,
-        2rem
-      );
+    font-size: clamp(1.55rem, 7vw, 2rem);
   }
-
 
   .branch-modal-live {
     align-self: flex-start;
   }
 
-
   .branch-modal-grid {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
 
     gap: 0.7rem;
   }
 
-
   .branch-choice-card {
     min-height: 185px;
   }
-
 
   /* ------------------------------------------------------------------------
      TOAST
@@ -4140,66 +3142,53 @@ button {
     width: auto;
   }
 
-
   .toast {
     min-height: 54px;
   }
 }
-
 
 /* ==========================================================================
    SMALL MOBILE
    ========================================================================== */
 
 @media (max-width: 479px) {
-
   .sidebar,
   .dm-sidebar {
-    width:
-      calc(100vw - 1.5rem);
+    width: calc(100vw - 1.5rem);
   }
-
 
   .brand__title {
     font-size: 1.05rem;
   }
 
-
   .brand__sub {
     font-size: 0.52rem;
   }
-
 
   .branch-current-name {
     max-width: 86px;
   }
 
-
   .branch-selector-trigger__visual {
     display: none;
   }
-
 
   .branch-selector-trigger {
     padding-left: 0.65rem;
   }
 
-
   .branch-modal-card {
     gap: 1rem;
   }
-
 
   .branch-modal-eyebrow {
     font-size: 0.52rem;
   }
 
-
   .branch-choice-active-pill {
     font-size: 0.48rem;
   }
 }
-
 
 /* ==========================================================================
    MOBILE ANIMATIONS
@@ -4209,58 +3198,401 @@ button {
   from {
     opacity: 0;
 
-    transform:
-      translateY(24px)
-      scale(0.98);
+    transform: translateY(24px) scale(0.98);
   }
 
   to {
     opacity: 1;
 
-    transform:
-      translateY(0)
-      scale(1);
+    transform: translateY(0) scale(1);
   }
 }
-
 
 @keyframes dm-mobile-modal-in {
   from {
     opacity: 0;
 
-    transform:
-      translateY(30px)
-      scale(0.98);
+    transform: translateY(30px) scale(0.98);
   }
 
   to {
     opacity: 1;
 
-    transform:
-      translateY(0)
-      scale(1);
+    transform: translateY(0) scale(1);
   }
 }
-
 
 /* ==========================================================================
    REDUCED MOTION
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
 
-    animation-duration:
-      0.01ms !important;
+    animation-duration: 0.01ms !important;
 
-    animation-iteration-count:
-      1 !important;
+    animation-iteration-count: 1 !important;
 
-    transition-duration:
-      0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+} /* Customer storefront; operational navigation keeps its existing layout. */
+.storefront-shell {
+  min-height: 100dvh;
+  background: var(--dm-bg);
+}
+.storefront-shell--chat {
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.storefront-shell--chat .storefront-header {
+  flex-shrink: 0;
+}
+.storefront-content.storefront-content--chat {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  min-height: 0;
+  margin: 0;
+}
+.storefront-shell--chat .storefront-footer {
+  display: none;
+}
+.storefront-header {
+  background: #fff;
+  border-bottom: 1px solid var(--dm-border);
+  position: relative;
+  z-index: 20;
+}
+.storefront-topline {
+  min-height: 32px;
+  padding: 6px clamp(20px, 4vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--dm-ink);
+  color: #f8f8ee;
+  font-size: 10px;
+  letter-spacing: 0.035em;
+}
+.storefront-topline button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  min-height: 24px;
+}
+.storefront-topline button span {
+  margin-left: 8px;
+  color: var(--dm-lime);
+}
+.storefront-header__main {
+  max-width: 1600px;
+  min-height: 92px;
+  margin: auto;
+  padding: 0 clamp(20px, 4vw, 64px);
+  display: flex;
+  align-items: center;
+  gap: 42px;
+}
+.storefront-brand {
+  display: flex;
+  align-items: center;
+  color: var(--dm-ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -1.4px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.storefront-brand__mark {
+  width: 33px;
+  height: 36px;
+  background: var(--dm-ink);
+  color: var(--dm-lime);
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  font-weight: 600;
+  margin-right: 9px;
+  border-radius: 3px;
+}
+.storefront-brand__dot {
+  color: #597400;
+}
+.storefront-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 28px;
+}
+.storefront-nav a {
+  color: #60645b;
+  font-size: 12px;
+  text-decoration: none;
+  padding: 36px 0 33px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.storefront-nav a:hover,
+.storefront-nav a.is-active {
+  color: var(--dm-ink);
+  border-bottom-color: var(--dm-ink);
+}
+.storefront-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.storefront-actions button,
+.storefront-actions > a {
+  position: relative;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--dm-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 40px;
+  padding: 8px;
+}
+.storefront-actions app-nav-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+.storefront-actions svg {
+  width: 19px;
+  height: 19px;
+}
+.storefront-actions .storefront-cart {
+  margin-left: 8px;
+  font-size: 12px;
+}
+.storefront-cart b {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  background: var(--dm-lime);
+  border-radius: 50%;
+  font-size: 10px;
+}
+.storefront-actions .storefront-logout {
+  font-size: 11px;
+  color: #60645b;
+  margin-left: 6px;
+}
+.storefront-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  right: 8px;
+  top: 7px;
+  background: #9b431e;
+}
+.storefront-content {
+  max-width: 1600px;
+  margin: auto;
+  padding: 44px clamp(20px, 4vw, 64px) 70px;
+  min-height: calc(100dvh - 230px);
+}
+.storefront-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px clamp(20px, 4vw, 64px);
+  border-top: 1px solid var(--dm-border);
+  color: #65695e;
+  font-size: 11px;
+}
+.storefront-footer a {
+  color: var(--dm-ink);
+  text-decoration: none;
+}
+.storefront-footer > a:first-child {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.8px;
+}
+.storefront-shell a:focus-visible,
+.storefront-shell button:focus-visible {
+  outline: 3px solid #647b14;
+  outline-offset: 4px;
+}
+@media (max-width: 1100px) {
+  .storefront-header__main {
+    gap: 18px;
+  }
+  .storefront-nav {
+    gap: 18px;
+  }
+  .storefront-actions .storefront-cart > span,
+  .storefront-actions .storefront-logout {
+    display: none;
+  }
+}
+@media (max-width: 820px) {
+  .storefront-header__main {
+    flex-wrap: wrap;
+    min-height: 80px;
+    padding-top: 13px;
+    gap: 0;
+    justify-content: space-between;
+  }
+  .storefront-brand {
+    font-size: 23px;
+  }
+  .storefront-brand__mark {
+    width: 28px;
+    height: 30px;
+    font-size: 21px;
+  }
+  .storefront-nav {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: flex-start;
+    gap: 28px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .storefront-nav a {
+    padding: 18px 0 14px;
+  }
+  .storefront-content {
+    padding-top: 28px;
+  }
+  .storefront-footer {
+    flex-wrap: wrap;
+  }
+  .storefront-footer > span {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront-shell * {
+    scroll-behavior: auto;
+  }
+}
+
+/* Shared fashion identity; role navigation and operational density are retained. */
+.sidebar,
+.dm-sidebar {
+  background: var(--dm-paper);
+  border: 2px solid var(--dm-ink);
+  border-radius: 4px;
+}
+.sidebar-header {
+  border-bottom-color: var(--dm-ink);
+}
+.brand__mark {
+  border-radius: 4px;
+}
+.brand__title {
+  font-weight: 800;
+}
+.topbar,
+.dm-topbar {
+  background: var(--dm-paper);
+  border: 2px solid var(--dm-ink);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.page-frame__glow {
+  display: none;
+}
+.branch-modal-card,
+.branch-dropdown-card {
+  background: var(--dm-paper);
+  border: 2px solid var(--dm-ink);
+  box-shadow: 4px 4px 0 var(--dm-ink);
+}
+.nav-link--active {
+  box-shadow: none;
+}
+.nav-package {
+  border-radius: 4px;
+}
+.storefront-header {
+  background: var(--dm-paper);
+  border-bottom: 2px solid var(--dm-ink);
+}
+.storefront-brand {
+  font-weight: 800;
+}
+.storefront-brand__dot {
+  color: var(--dm-ink);
+}
+.storefront-topline {
+  letter-spacing: 0.06em;
+}
+.storefront-cart b {
+  border: 1px solid var(--dm-ink);
+  border-radius: 3px;
+}
+.storefront-nav a {
+  font-weight: 650;
+  color: var(--dm-ink);
+}
+.storefront-nav a.is-active {
+  box-shadow: inset 0 -7px var(--dm-lime);
+}
+.storefront-actions .storefront-cart {
+  border: 1px solid var(--dm-ink);
+  border-radius: 4px;
+}
+.storefront-footer {
+  background: var(--dm-paper);
+  border-top: 2px solid var(--dm-ink);
+}
+.storefront-shell a:focus-visible,
+.storefront-shell button:focus-visible {
+  outline-color: var(--dm-ink);
+}
+@media (max-width: 479px) {
+  .storefront-header__main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .storefront-brand {
+    font-size: 21px;
+  }
+  .storefront-brand__mark {
+    width: 25px;
+    height: 28px;
+    margin-right: 6px;
+  }
+  .storefront-actions {
+    gap: 0;
+  }
+  .storefront-actions button,
+  .storefront-actions > a {
+    min-width: 34px;
+    padding: 6px;
+  }
+  .storefront-actions .storefront-cart {
+    margin-left: 2px;
+    gap: 4px;
+  }
+  .storefront-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .storefront-nav {
+    gap: 22px;
   }
 }

@@ -40,13 +40,7 @@
             @for (item of cart.items(); track item.id) {
               <article class="garment-row">
                 <div class="garment-row__thumb">
-                  @if (hasRealImage(item.imagen)) {
-                    <img [src]="runtime.resolveImageUrl(item.imagen)" [alt]="item.nombre" />
-                  } @else {
-                    <div class="placeholder-thumb" [attr.data-type]="getGarmentType(item.nombre)">
-                      <span>{{ item.nombre.substring(0, 2).toUpperCase() }}</span>
-                    </div>
-                  }
+                  <app-product-media [src]="runtime.resolveImageUrl(item.imagen)" [label]="item.nombre" />
                 </div>
                 <div class="garment-row__details">
                   <h3>{{ item.nombre }}</h3>
@@ -179,13 +173,7 @@
                       @for (item of auditedCartItems(); track item.id) {
                         <div class="audited-card">
                           <div class="audited-thumb">
-                            @if (hasRealImage(item.imagen)) {
-                              <img [src]="runtime.resolveImageUrl(item.imagen)" [alt]="item.nombre" />
-                            } @else {
-                              <div class="placeholder-thumb" [attr.data-type]="getGarmentType(item.nombre)">
-                                <span>{{ item.nombre.substring(0, 2).toUpperCase() }}</span>
-                              </div>
-                            }
+                            <app-product-media [src]="runtime.resolveImageUrl(item.imagen)" [label]="item.nombre" />
                           </div>
                           <div class="audited-info">
                             <strong>{{ item.nombre }}</strong>
@@ -214,13 +202,7 @@
                       @for (p of suggestedComplements(); track p.id) {
                         <div class="suggestion-card">
                           <div class="suggestion-thumb">
-                            @if (hasRealImage(p.imagen)) {
-                              <img [src]="runtime.resolveImageUrl(p.imagen)" [alt]="p.nombre" />
-                            } @else {
-                              <div class="placeholder-thumb" [attr.data-type]="getGarmentType(p.nombre)">
-                                <span>{{ p.nombre.substring(0, 2).toUpperCase() }}</span>
-                              </div>
-                            }
+                            <app-product-media [src]="runtime.resolveImageUrl(p.imagen)" [label]="p.nombre" />
                           </div>
                           <div class="suggestion-info">
                             <strong>{{ p.nombre }}</strong>

@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -6,7 +7,7 @@ import { Category, Product } from '@core/models';
 @Component({
   selector: 'app-pos-catalog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DecimalPipe],
+  imports: [ProductMediaComponent, CommonModule, ReactiveFormsModule, DecimalPipe],
   templateUrl: './pos-catalog.component.html',
   styleUrl: './pos-catalog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

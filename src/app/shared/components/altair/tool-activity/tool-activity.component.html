@@ -1,0 +1,37 @@
+@if (trace.length) {
+  <section class="tool-activity" [class.is-running]="running" aria-label="Herramientas de Altair">
+    <button
+      class="activity-toggle"
+      type="button"
+      (click)="expanded.set(!isOpen)"
+      [attr.aria-expanded]="isOpen"
+    >
+      <span class="activity-mark" aria-hidden="true">{{ running ? '↻' : '✓' }}</span>
+      <span
+        >{{ running ? 'Consultando la tienda' : 'Consultas realizadas'
+        }}<small>{{ trace.length }}</small></span
+      >
+      <span class="activity-chevron" [class.is-open]="isOpen" aria-hidden="true">⌄</span>
+    </button>
+    <div class="activity-reveal" [class.is-open]="isOpen" [attr.aria-hidden]="!isOpen">
+      <div>
+        @for (step of trace; track $index) {
+          <div class="activity-step" [class.is-error]="step.state === 'error'">
+            <span
+              class="step-indicator"
+              [class.is-running]="step.state === 'running'"
+              aria-hidden="true"
+              >{{ step.state === 'running' ? '' : step.state === 'error' ? '!' : '✓' }}</span
+            >
+            <div>
+              <strong>{{ step.name }}</strong>
+              <p>
+                {{ step.state === 'running' ? 'En curso…' : step.summary || 'Consulta completada' }}
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}

@@ -1,3 +1,4 @@
+@use '../../../../../styles/fashion' as fashion;
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -33,9 +34,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: #FFFFFF;
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-xl, 30px);
-  box-shadow: 0 20px 60px rgba(16, 17, 15, 0.22);
+  box-shadow: none;
   width: 92%;
   max-width: 580px;
   max-height: 88vh;
@@ -55,7 +56,7 @@
     .popup-eyebrow {
       font-size: 0.72rem;
       font-weight: 800;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin: 0 0 0.25rem;
@@ -65,7 +66,7 @@
       font-family: var(--font-display, 'Manrope', sans-serif);
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       margin: 0;
     }
 
@@ -74,12 +75,12 @@
       border: 0;
       font-size: 1.6rem;
       line-height: 1;
-      color: #7B7F75;
+      color: var(--dm-muted);
       cursor: pointer;
       transition: color 0.15s ease;
 
       &:hover {
-        color: #10110F;
+        color: var(--dm-ink);
       }
     }
   }
@@ -97,14 +98,14 @@
       justify-content: center;
       padding: 2.5rem 1rem;
       gap: 0.85rem;
-      color: var(--dm-text-muted, #7B7F75);
+      color: var(--dm-text-muted, var(--dm-muted));
       font-size: 0.85rem;
 
       .spinner {
         width: 28px;
         height: 28px;
-        border: 3px solid #E1E3DA;
-        border-top-color: var(--dm-ink, #10110F);
+        border: 3px solid var(--dm-border);
+        border-top-color: var(--dm-ink);
         border-radius: 50%;
         animation: spin 0.7s linear infinite;
       }
@@ -123,7 +124,7 @@
         .active-color-name {
           font-size: 0.8rem;
           font-weight: 700;
-          color: var(--dm-text-muted, #7B7F75);
+          color: var(--dm-text-muted, var(--dm-muted));
           text-transform: capitalize;
         }
       }
@@ -131,7 +132,7 @@
       .group-label {
         font-size: 0.8rem;
         font-weight: 800;
-        color: var(--dm-ink, #10110F);
+        color: var(--dm-ink);
       }
 
       .colors-row,
@@ -143,7 +144,7 @@
 
       .no-sizes-hint {
         font-size: 0.76rem;
-        color: var(--dm-text-muted, #7B7F75);
+        color: var(--dm-text-muted, var(--dm-muted));
         font-style: italic;
         margin: 0.25rem 0;
       }
@@ -153,12 +154,12 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.45rem 0.95rem;
-        background: #F8F9F2;
-        border: 1.5px solid var(--dm-border, #E1E3DA);
-        border-radius: var(--dm-radius-pill, 999px);
+        background: var(--dm-canvas);
+        border: 1.5px solid var(--dm-border);
+        border-radius: var(--dm-radius-sm, 999px);
         font-size: 0.78rem;
         font-weight: 700;
-        color: var(--dm-ink, #10110F);
+        color: var(--dm-ink);
         cursor: pointer;
         transition: all 0.15s ease;
 
@@ -172,14 +173,14 @@
 
         &:hover {
           background: #FFFFFF;
-          border-color: var(--dm-ink, #10110F);
+          border-color: var(--dm-ink);
         }
 
         &.selected {
-          border-color: var(--dm-ink, #10110F);
+          border-color: var(--dm-ink);
           background: #FFFFFF;
           font-weight: 800;
-          box-shadow: 0 0 0 2px var(--dm-lime, #DFFF3F);
+          box-shadow: 0 0 0 2px var(--dm-lime);
         }
       }
 
@@ -189,16 +190,16 @@
         align-items: center;
         min-width: 58px;
         padding: 0.45rem 0.75rem;
-        background: #F8F9F2;
-        border: 1.5px solid var(--dm-border, #E1E3DA);
-        border-radius: 12px;
+        background: var(--dm-canvas);
+        border: 1.5px solid var(--dm-border);
+        border-radius: 4px;
         cursor: pointer;
         transition: all 0.15s ease;
 
         .size-letter {
           font-size: 0.84rem;
           font-weight: 800;
-          color: var(--dm-ink, #10110F);
+          color: var(--dm-ink);
         }
 
         .size-stock-badge {
@@ -208,14 +209,14 @@
         }
 
         &:hover:not(:disabled) {
-          border-color: var(--dm-ink, #10110F);
+          border-color: var(--dm-ink);
           background: #FFFFFF;
         }
 
         &.selected {
-          border-color: var(--dm-ink, #10110F);
+          border-color: var(--dm-ink);
           background: #FFFFFF;
-          box-shadow: 0 0 0 2px var(--dm-lime, #DFFF3F);
+          box-shadow: 0 0 0 2px var(--dm-lime);
         }
 
         &.out-of-stock {
@@ -233,20 +234,20 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.85rem 1.15rem;
-      border-radius: 16px;
-      background: #F8F9F2;
-      border: 1px solid var(--dm-border, #E1E3DA);
+      border-radius: 4px;
+      background: var(--dm-canvas);
+      border: 1px solid var(--dm-border);
 
       .summary-left {
         strong {
           font-size: 0.8rem;
-          color: #10110F;
+          color: var(--dm-ink);
           display: block;
         }
         p {
           font-size: 0.76rem;
           margin: 0.2rem 0 0;
-          color: #7B7F75;
+          color: var(--dm-muted);
         }
       }
 
@@ -259,7 +260,7 @@
         color: #059669;
         background: #E8F7F0;
         padding: 0.3rem 0.7rem;
-        border-radius: 999px;
+        border-radius: 4px;
       }
 
       .badge-stock-zero {
@@ -271,7 +272,7 @@
         color: #FF4757;
         background: #FDE8EA;
         padding: 0.3rem 0.7rem;
-        border-radius: 999px;
+        border-radius: 4px;
       }
     }
   }
@@ -285,12 +286,12 @@
 
     .btn-secondary {
       padding: 0.65rem 1.25rem;
-      background: #F8F9F2;
-      border: 1px solid var(--dm-border, #E1E3DA);
-      border-radius: var(--dm-radius-pill, 999px);
+      background: var(--dm-canvas);
+      border: 1px solid var(--dm-border);
+      border-radius: var(--dm-radius-sm, 999px);
       font-size: 0.82rem;
       font-weight: 700;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       cursor: pointer;
       transition: all 0.15s ease;
 
@@ -301,10 +302,10 @@
 
     .btn-primary {
       padding: 0.65rem 1.5rem;
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-ink);
       color: #FFFFFF;
       border: 0;
-      border-radius: var(--dm-radius-pill, 999px);
+      border-radius: var(--dm-radius-sm, 999px);
       font-size: 0.82rem;
       font-weight: 800;
       cursor: pointer;
@@ -328,3 +329,5 @@
     transform: rotate(360deg);
   }
 }
+
+@include fashion.controls;

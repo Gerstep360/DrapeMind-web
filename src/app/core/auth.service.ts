@@ -30,9 +30,10 @@ export class AuthService {
     if (token) this.scheduleExpiry(token);
   }
 
-  login(email: string, password: string): Observable<User> {
+  login(email: string, password: string, platform = false): Observable<User> {
+    this.logout(false);
     return this.http
-      .post<TokenResponse>(`${this.runtime.apiUrl}/auth/login`, { email, password })
+      .post<TokenResponse>(`${this.runtime.apiUrl}${platform ? '/saas/platform/login' : '/auth/login'}`, { email, password })
       .pipe(
         tap((response) => {
           localStorage.setItem(TOKEN_KEY, response.access_token);

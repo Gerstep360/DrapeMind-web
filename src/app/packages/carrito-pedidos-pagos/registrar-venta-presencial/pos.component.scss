@@ -1,3 +1,4 @@
+@use '../../../../styles/fashion' as fashion;
 /* ==========================================================================
    DRAPEMIND POS TERMINAL (ORCHESTRATOR LAYOUT)
    Design System: Warm Editorial Canvas + Soft Futurism + Electric Lime
@@ -40,3 +41,6 @@
     min-height: calc(100vh - 4.5rem);
   }
 }
+
+// Shared primitives own visual identity; this component owns layout.
+@include fashion.page;

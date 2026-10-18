@@ -1,3 +1,4 @@
+@use '../../../../styles/fashion' as fashion;
 /* ==========================================================================
    DRAPEMIND — CASH PAYMENT MODAL COMPONENT
    Direction: AI Fashion Commerce + Editorial Minimal + Soft Futurism
@@ -29,9 +30,9 @@
   max-height: calc(100dvh - 3rem);
   overflow-y: auto;
   background: #ffffff;
-  border: 1.5px solid var(--dm-border, #e1e3da);
+  border: 1.5px solid var(--dm-border);
   border-radius: var(--dm-radius-xl, 28px);
-  box-shadow: 0 24px 64px rgba(16, 17, 15, 0.16);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   animation: dm-modal-in 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -43,7 +44,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.4rem 1rem;
-  border-bottom: 1.5px solid var(--dm-border, #e1e3da);
+  border-bottom: 1.5px solid var(--dm-border);
 
   &__brand {
     display: flex;
@@ -55,9 +56,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--dm-lime-soft, #eeff9d);
+    background: var(--dm-lime-soft);
     border: 1.5px solid rgba(223, 255, 63, 0.85);
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -75,7 +76,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--dm-text-muted, #7b7f75);
+  color: var(--dm-text-muted, var(--dm-muted));
 }
 
 .cash-modal-title {
@@ -84,16 +85,16 @@
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.025em;
-  color: var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 }
 
 .cash-modal-close-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--dm-border, #e1e3da);
-  background: var(--dm-surface-soft, #f8f9f2);
-  color: var(--dm-text-muted, #7b7f75);
+  border: 1px solid var(--dm-border);
+  background: var(--dm-surface-soft, var(--dm-canvas));
+  color: var(--dm-text-muted, var(--dm-muted));
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -101,7 +102,7 @@
 
   &:hover:not(:disabled) {
     background: #ffffff;
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
     border-color: var(--dm-border-strong, #cdd0c5);
     transform: scale(1.05);
   }
@@ -121,8 +122,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.9rem 1.2rem;
-  background: var(--dm-surface-soft, #f8f9f2);
-  border: 1.5px solid var(--dm-border, #e1e3da);
+  background: var(--dm-surface-soft, var(--dm-canvas));
+  border: 1.5px solid var(--dm-border);
   border-radius: var(--dm-radius-md, 20px);
 
   &__text {
@@ -136,7 +137,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
   }
 
   .cash-total-sub {
@@ -149,7 +150,7 @@
     font-size: 1.55rem;
     font-weight: 900;
     letter-spacing: -0.03em;
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
   }
 }
 
@@ -163,20 +164,20 @@
 .cash-input-label {
   font-size: 0.78rem;
   font-weight: 750;
-  color: var(--dm-ink, #10110f);
+  color: var(--dm-ink);
 }
 
 .cash-input-wrapper {
   display: flex;
   align-items: center;
   background: #ffffff;
-  border: 2px solid var(--dm-border, #e1e3da);
+  border: 2px solid var(--dm-border);
   border-radius: var(--dm-radius-md, 18px);
   padding: 0.5rem 1rem;
   transition: all 0.18s ease;
 
   &:focus-within {
-    border-color: var(--dm-ink, #10110f);
+    border-color: var(--dm-ink);
     box-shadow: 0 0 0 4px rgba(223, 255, 63, 0.35);
   }
 
@@ -184,7 +185,7 @@
     font-family: var(--font-display, 'Manrope', sans-serif);
     font-size: 1.25rem;
     font-weight: 800;
-    color: var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
     margin-right: 0.5rem;
   }
 
@@ -195,7 +196,7 @@
     font-family: var(--font-display, 'Manrope', sans-serif);
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
     outline: none;
 
     &::placeholder {
@@ -212,26 +213,26 @@
   flex-wrap: wrap;
 
   .quick-bill-chip {
-    background: var(--dm-surface-soft, #f8f9f2);
-    border: 1.5px solid var(--dm-border, #e1e3da);
-    border-radius: var(--dm-radius-pill, 999px);
+    background: var(--dm-surface-soft, var(--dm-canvas));
+    border: 1.5px solid var(--dm-border);
+    border-radius: var(--dm-radius-sm, 999px);
     padding: 0.35rem 0.85rem;
     font-size: 0.76rem;
     font-weight: 750;
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover:not(:disabled) {
       background: #ffffff;
-      border-color: var(--dm-ink, #10110f);
+      border-color: var(--dm-ink);
       transform: translateY(-1px);
     }
 
     &--active {
-      background: var(--dm-ink, #10110f) !important;
-      color: var(--dm-lime, #dfff3f) !important;
-      border-color: var(--dm-ink, #10110f) !important;
+      background: var(--dm-ink) !important;
+      color: var(--dm-lime) !important;
+      border-color: var(--dm-ink) !important;
     }
   }
 }
@@ -286,23 +287,23 @@
 
   /* ESTADOS */
   &--neutral {
-    background: var(--dm-surface-soft, #f8f9f2);
-    border: 1.5px dashed var(--dm-border, #e1e3da);
-    color: var(--dm-text-muted, #7b7f75);
+    background: var(--dm-surface-soft, var(--dm-canvas));
+    border: 1.5px dashed var(--dm-border);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     .feedback-icon--neutral {
       background: #ffffff;
-      color: var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
 
     strong {
       font-size: 0.82rem;
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
     }
 
     span {
       font-size: 0.74rem;
-      color: var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
   }
 
@@ -384,8 +385,8 @@
   justify-content: flex-end;
   gap: 0.65rem;
   padding: 1rem 1.4rem 1.25rem;
-  border-top: 1.5px solid var(--dm-border, #e1e3da);
-  background: var(--dm-surface-soft, #f8f9f2);
+  border-top: 1.5px solid var(--dm-border);
+  background: var(--dm-surface-soft, var(--dm-canvas));
   border-bottom-left-radius: var(--dm-radius-xl, 28px);
   border-bottom-right-radius: var(--dm-radius-xl, 28px);
 
@@ -393,17 +394,17 @@
     height: 2.75rem;
     padding: 0 1.25rem;
     background: transparent;
-    border: 1.5px solid var(--dm-border, #e1e3da);
-    border-radius: var(--dm-radius-pill, 999px);
+    border: 1.5px solid var(--dm-border);
+    border-radius: var(--dm-radius-sm, 999px);
     font-size: 0.8rem;
     font-weight: 750;
-    color: var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover:not(:disabled) {
       background: #ffffff;
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
       border-color: var(--dm-border-strong, #cdd0c5);
     }
   }
@@ -415,20 +416,20 @@
     gap: 0.5rem;
     height: 2.75rem;
     padding: 0 1.5rem;
-    background: var(--dm-lime, #dfff3f);
+    background: var(--dm-lime);
     border: 0;
-    border-radius: var(--dm-radius-pill, 999px);
+    border-radius: var(--dm-radius-sm, 999px);
     font-size: 0.84rem;
     font-weight: 850;
-    color: var(--dm-ink, #10110f);
+    color: var(--dm-ink);
     cursor: pointer;
-    box-shadow: 0 3px 14px rgba(223, 255, 63, 0.45);
+    box-shadow: none;
     transition: all 0.18s ease;
 
     &:hover:not(:disabled) {
-      background: var(--dm-lime-hover, #d2f632);
+      background: var(--dm-lime-hover);
       transform: translateY(-1px);
-      box-shadow: 0 5px 18px rgba(223, 255, 63, 0.55);
+      box-shadow: none;
     }
 
     &:disabled {
@@ -444,7 +445,7 @@
   width: 15px;
   height: 15px;
   border: 2px solid rgba(16, 17, 15, 0.2);
-  border-top-color: #10110f;
+  border-top-color: var(--dm-ink);
   border-radius: 50%;
   animation: dm-spin 0.65s linear infinite;
 }
@@ -475,3 +476,5 @@
     transform: rotate(360deg);
   }
 }
+
+@include fashion.controls;

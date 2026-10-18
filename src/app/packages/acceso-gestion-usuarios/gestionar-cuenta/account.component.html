@@ -126,8 +126,7 @@
         <article class="favorite-card">
           <button class="favorite-main" type="button" (click)="openProduct(product)">
             <div class="favorite-visual">
-              @if (imageUrl(product); as image) { <img [src]="image" [alt]="product.nombre" /> }
-              @else { <span>{{ product.nombre.slice(0, 2).toUpperCase() }}</span> }
+              <app-product-media [src]="imageUrl(product)" [label]="product.nombre" />
             </div>
             <div><small>{{ product.marca || 'DrapeMind' }}</small><strong>{{ product.nombre }}</strong><span>Bs {{ product.precio | number: '1.2-2' }}</span></div>
           </button>

@@ -57,7 +57,7 @@ export class CommerceApiService {
     sesion_id?: number;
     skills_ejecutadas?: string[];
   }> {
-    const body = { modelo_ia: 'ALTAIR_MINI', ...payload };
+    const body = { modelo_ia: 'NVIDIA', ...payload };
     return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/style-check`, body);
   }
 
@@ -69,7 +69,7 @@ export class CommerceApiService {
     sesion_id?: number;
     skills_ejecutadas?: string[];
   }> {
-    const body = { modelo_ia: 'ALTAIR_MINI', ...payload };
+    const body = { modelo_ia: 'NVIDIA', ...payload };
     return this.http.post<any>(`${this.runtime.apiUrl}/ai/cart/value-check`, body);
   }
 

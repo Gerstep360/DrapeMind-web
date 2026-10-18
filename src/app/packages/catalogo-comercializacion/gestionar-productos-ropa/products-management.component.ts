@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,7 +18,7 @@ export interface ProductColorChoice {
 @Component({
   selector: 'app-products-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [ProductMediaComponent, CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './products-management.component.html',
   styleUrl: './products-management.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -430,7 +431,7 @@ export class ProductsManagementComponent implements OnInit {
         detalles_confeccion: prompt,
         estilo_objetivo: 'Alta Costura y Sastrería Contemporánea',
         genero_objetivo: this.productForm.get('genero_objetivo')?.value || 'UNISEX',
-        modelo_ia: 'ALTAIR_VARIABLE',
+        modelo_ia: 'NVIDIA',
       })
       .subscribe({
         next: (res) => {

@@ -83,12 +83,20 @@
             <label>Ocasión habitual (opcional)<input [ngModel]="selectedOccasion()" (ngModelChange)="selectedOccasion.set($event)" placeholder="Casual, Oficina, Noche..." maxlength="80"></label>
             <label>Presupuesto habitual (Bs)<input type="number" min="0" [ngModel]="selectedBudget() || null" (ngModelChange)="selectedBudget.set($event || 0)" placeholder="Sin definir"></label>
           </div>
-          <p>Guardaremos estas preferencias para sincronizarlas con el Atelier y Altair AI.</p>
-          <footer><button type="button" (click)="goToStep('survey_sizes')">Atrás</button><button class="primary" type="button" (click)="startInference()">Guardar preferencias →</button></footer>
+          <p>Guardaremos tus preferencias y Altair elaborará una sugerencia breve a partir de tus respuestas.</p>
+          <footer><button type="button" (click)="goToStep('survey_sizes')">Atrás</button><button class="primary" type="button" (click)="startInference()">Guardar y conocer mi estilo →</button></footer>
         }
-        @case ('inferring') { <h2>Guardando tus preferencias…</h2><p role="status">Sincronizando con el Atelier de DrapeMind.</p> }
+        @case ('inferring') { <h2>Altair está leyendo tus preferencias…</h2><p role="status" aria-live="polite">Guardando tus respuestas y preparando una primera sugerencia de estilo.</p> }
         @case ('reveal') {
           <span class="saved-mark" aria-hidden="true">✓</span><h2>Todo listo para explorar.</h2>
+          @if (resultProfile()?.adn_estilo_ia) {
+            <h3>Tu primera sugerencia de Altair</h3>
+            <p class="style-analysis">{{ resultProfile()?.adn_estilo_ia }}</p>
+          }
+          @if (resultProfile()?.inferencia_error) {
+            <p role="status">{{ resultProfile()?.inferencia_error }}</p>
+            <button type="button" (click)="startInference()">Reintentar análisis</button>
+          }
           <p>Tus preferencias están guardadas. ¿Quieres que Altair consulte novedades y te ayude a elegir?</p>
           <div class="next-actions">
             <button class="primary" type="button" (click)="exploreWithAltair()">Consultar novedades con Altair ↗</button>

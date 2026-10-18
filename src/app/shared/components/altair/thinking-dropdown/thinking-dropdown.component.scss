@@ -1,3 +1,4 @@
+@use '../../../../../styles/fashion' as fashion;
 :host {
   display: block;
 }
@@ -22,13 +23,13 @@
     cursor: pointer;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     border-radius: var(--dm-radius-sm, 10px);
     transition: all var(--dm-fast, 150ms) ease;
 
     &:hover {
-      color: var(--dm-ink, #10110F);
-      background: var(--dm-surface-soft, #F8F9F2);
+      color: var(--dm-ink);
+      background: var(--dm-surface-soft, var(--dm-canvas));
     }
   }
 
@@ -38,14 +39,14 @@
     justify-content: center;
     width: 16px;
     height: 16px;
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     .pulse-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--dm-lime, #DFFF3F);
-      box-shadow: 0 0 8px rgba(223, 255, 63, 0.8);
+      background: var(--dm-lime);
+      box-shadow: none;
       animation: pulseSparkle 1.4s infinite ease-in-out;
     }
   }
@@ -75,12 +76,12 @@
 
   .thinking-cancel-btn {
     background: transparent;
-    border: 1px solid var(--dm-border, #E1E3DA);
+    border: 1px solid var(--dm-border);
     color: var(--dm-danger, #E85D5D);
     font-size: 0.72rem;
     font-weight: 700;
     padding: 0.15rem 0.5rem;
-    border-radius: var(--dm-radius-pill, 999px);
+    border-radius: var(--dm-radius-sm, 999px);
     cursor: pointer;
     transition: all var(--dm-fast, 150ms) ease;
 
@@ -93,9 +94,9 @@
   &__content {
     margin-top: 0.5rem;
     padding: 0.5rem 0.85rem 0.5rem 1rem;
-    border-left: 2px solid var(--dm-lime, #DFFF3F);
-    background: var(--dm-surface-soft, #F8F9F2);
-    border-radius: 0 14px 14px 0;
+    border-left: 2px solid var(--dm-lime);
+    background: var(--dm-surface-soft, var(--dm-canvas));
+    border-radius: 0 4px 4px 0;
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
@@ -111,7 +112,7 @@
     color: var(--dm-gray-700, #40433D);
 
     &--current {
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       font-weight: 600;
     }
   }
@@ -126,8 +127,8 @@
   .step-spinner {
     width: 12px;
     height: 12px;
-    border: 2px solid #E1E3DA;
-    border-top-color: var(--dm-ink, #10110F);
+    border: 2px solid var(--dm-border);
+    border-top-color: var(--dm-ink);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     flex-shrink: 0;
@@ -166,3 +167,5 @@
     transform: translateY(0);
   }
 }
+
+@include fashion.controls;

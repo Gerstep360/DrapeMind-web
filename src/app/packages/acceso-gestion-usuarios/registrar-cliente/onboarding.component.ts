@@ -169,6 +169,7 @@ export class OnboardingComponent implements OnInit {
       this.chosenBranchId.set(this.branchService.selectedBranchId());
     }
 
+    if (this.auth.user()?.has_style_profile) {
     this.auth.getStyleProfile().subscribe({
       next: (profile) => {
         if (!profile) return;
@@ -202,6 +203,7 @@ export class OnboardingComponent implements OnInit {
         // Nuevo usuario sin perfil de estilo aún
       },
     });
+    }
   }
 
   fetchAltairGreeting(): void {
@@ -307,7 +309,7 @@ export class OnboardingComponent implements OnInit {
       presupuesto_habitual: this.selectedBudget() || undefined,
       silueta_preferida: this.selectedSilhouette() || undefined,
     };
-    this.auth.saveStyleProfile({ ...payload, infer_outfit: false }).subscribe({
+    this.auth.saveStyleProfile({ ...payload, infer_outfit: false, infer_style: true }).subscribe({
       next: (profile) => {
         this.isSaving.set(false);
         this.auth.markStyleProfileDoneLocally();

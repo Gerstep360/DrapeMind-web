@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -19,7 +20,7 @@ export interface QuickAiSuggestion {
 @Component({
   selector: 'app-pos-ai-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DecimalPipe],
+  imports: [ProductMediaComponent, CommonModule, ReactiveFormsModule, DecimalPipe],
   templateUrl: './pos-ai-modal.component.html',
   styleUrl: './pos-ai-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +28,7 @@ export interface QuickAiSuggestion {
 export class PosAiModalComponent {
   @Input({ required: true }) open: boolean = false;
   @Input() loading: boolean = false;
-  @Input() selectedModel: AiModelChoice = 'altair';
+  @Input() selectedModel: AiModelChoice = 'nvidia';
   @Input({ required: true }) occasionControl!: FormControl<string>;
   @Input() outfitSets: OutfitSet[] = [];
   @Input() selectedOutfitSet: OutfitSet | null = null;
@@ -143,7 +144,7 @@ export class PosAiModalComponent {
   }
 
   /**
-   * Parsea Markdown generado por Altair / Gemma a HTML semántico y seguro.
+   * Parsea Markdown generado por Altair / NVIDIA a HTML semántico y seguro.
    */
   renderMarkdown(markdown: string | null | undefined): string {
     if (!markdown) {

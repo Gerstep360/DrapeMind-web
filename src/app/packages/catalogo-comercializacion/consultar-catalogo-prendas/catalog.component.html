@@ -1,27 +1,44 @@
-<section class="page-heading page-heading--split">
+﻿<section class="collection-heading">
   <div>
-    <p class="eyebrow">Colección DrapeMind</p>
-    <h1>Catálogo de Moda.</h1>
-    <p class="page-lead">
-      Prendas seleccionadas con trazabilidad de stock en tiempo real y asistencia inteligente de
-      estilo.
-    </p>
+    <p class="collection-eyebrow">DRAPEMIND / LA COLECCIÓN</p>
+    <h1>Tu estilo, a tu manera.</h1>
+    <p class="collection-lead">Prendas para repetir, combinar y hacer tuyas.</p>
   </div>
-  @if (auth.user()?.rol === 'ADMIN') {
-    <a class="button button--primary" routerLink="/products-admin" [queryParams]="{ action: 'new' }">
-      + Nueva Prenda
-    </a>
-  }
+  <div class="collection-heading__aside">
+    <span>El próximo favorito de tu armario<br />puede estar aquí.</span>
+    @if (auth.user()?.rol === 'ADMIN') {
+      <a
+        class="button button--primary"
+        routerLink="/products-admin"
+        [queryParams]="{ action: 'new' }"
+        >Nueva prenda</a
+      >
+    }
+  </div>
 </section>
-
 <app-catalog-filters [state]="catalogFilterState()" (action)="handleCatalogFilterAction($event)" />
-
-<!-- PRODUCTS GRID -->
+<div class="collection-results" aria-live="polite">
+  <span>{{
+    loading() ? 'Buscando tus próximas prendas…' : products().length + ' prendas para explorar'
+  }}</span
+  ><button type="button" (click)="resetFilters()">Ver toda la colección</button>
+</div>
 @if (loading()) {
-  <div class="loading-state"><span class="spinner"></span> Consultando el perchero y stock...</div>
+  <div class="collection-loading" role="status">
+    <span class="spinner"></span>
+    <p>Preparando la colección…</p>
+  </div>
 } @else {
-  <section class="product-grid" aria-label="Productos">
-    @for (product of products(); track product.id; let index = $index) {
+  @if (catalogError()) {
+    <div class="catalog-error" role="alert">
+      <p>{{ catalogError() }}</p>
+      <button type="button" class="btn-clear-filters" (click)="loadProducts(products().length > 0)">
+        Reintentar
+      </button>
+    </div>
+  }
+  <section class="product-grid" aria-label="Prendas de la colección">
+    @for (product of products(); track product.id) {
       <app-product-card
         [product]="product"
         [favorite]="favoriteIds().has(product.id)"
@@ -29,108 +46,30 @@
         (favoriteChange)="toggleFavorite($event)"
       />
     } @empty {
-      <div class="catalog-not-found">
-        <div class="not-found-visual">
-          <div class="garment-art-card">
-            <svg class="garment-hanger-svg" width="60" height="60" viewBox="0 0 48 48" fill="none">
-              <!-- Soft background geometric badge -->
-              <rect
-                width="48"
-                height="48"
-                rx="16"
-                fill="var(--dm-lime-soft, #EEFF9D)"
-                fill-opacity="0.5"
-              />
-              <!-- Hanger top hook -->
-              <path
-                d="M24 11a3 3 0 0 0-3 3c0 2 2 3 3 4"
-                stroke="var(--dm-ink, #10110F)"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-              <!-- Garment hanger body -->
-              <path
-                d="M12 24 24 18l12 6"
-                stroke="var(--dm-ink, #10110F)"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M14 24h20"
-                stroke="var(--dm-ink, #10110F)"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-              <!-- Silhouette of dress / jacket dangling -->
-              <path
-                d="M16 24v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V24"
-                stroke="var(--dm-ink, #10110F)"
-                stroke-width="2"
-                stroke-dasharray="3 3"
-              />
-              <!-- Delicate lapel lines -->
-              <path
-                d="M21 24v5M27 24v5"
-                stroke="var(--dm-ink, #10110F)"
-                stroke-width="1.8"
-                stroke-linecap="round"
-              />
-            </svg>
-          </div>
-          <span class="not-found-badge">0 PRENDAS ENCONTRADAS</span>
+      @if (!catalogError()) {
+        <div class="catalog-not-found">
+          <span class="catalog-empty-mark" aria-hidden="true">dm.</span>
+          <h2>Probemos con otra búsqueda.</h2>
+          <p>Cambia el color, la categoría o el presupuesto para encontrar otras prendas.</p>
+          <button type="button" class="btn-clear-filters" (click)="resetFilters()">
+            Ver toda la colección
+          </button>
         </div>
-
-        <div class="not-found-copy">
-          <h3 class="not-found-title">No encontramos prendas con esos filtros</h3>
-          <p class="not-found-subtitle">
-            Prueba quitando una categoría, cambiando el presupuesto o limpiando los filtros de
-            búsqueda para ver todo el perchero.
-          </p>
-        </div>
-
-        <button type="button" class="btn-clear-filters" (click)="resetFilters()">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-            <path d="M3 3v5h5" />
-          </svg>
-          <span>Limpiar filtros</span>
-        </button>
-      </div>
+      }
     }
   </section>
-
-  @if (products().length > 0) {
+  @if (products().length > 0 && !catalogError()) {
     <div class="catalog-pagination-bar">
-      <p class="pagination-info">
-        Mostrando <strong>{{ products().length }}</strong> prendas en el perchero
-      </p>
       @if (hasMore()) {
         <button type="button" class="btn-load-more" [disabled]="loadingMore()" (click)="loadMore()">
-          @if (loadingMore()) {
-            <span class="spinner-sm"></span>
-            <span>Cargando más prendas...</span>
-          } @else {
-            <span>Cargar más prendas (+48)</span>
-          }
+          {{ loadingMore() ? 'Cargando…' : 'Ver más prendas' }} <span aria-hidden="true">↓</span>
         </button>
       } @else {
-        <p class="pagination-end">Has explorado todas las prendas de esta selección</p>
+        <p>Has visto todas las prendas de esta selección.</p>
       }
     </div>
   }
 }
-
-<!-- PRODUCT DETAIL & VARIANT MODAL -->
 <app-product-detail-modal
   [state]="productDetailState()"
   (action)="handleProductDetailAction($event)"

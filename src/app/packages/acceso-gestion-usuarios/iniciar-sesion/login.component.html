@@ -22,7 +22,7 @@
 
   <section class="login-form-wrap">
     <div class="login-form">
-      <p class="eyebrow">Acceso al atelier</p>
+      <p class="eyebrow">Tu tienda, tu empresa</p>
 
       @if (mode() !== 'forgot') {
         <div class="mode-tabs">
@@ -50,13 +50,32 @@
         <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
       } @else if (mode() === 'register') {
         <h2>Crea tu cuenta</h2>
-        <p class="form-intro">Regístrate para guardar favoritos, reservar prendas y diseñar con IA.</p>
+        <p class="form-intro">
+          Regístrate para guardar favoritos, reservar prendas y diseñar con IA.
+        </p>
       } @else {
         <h2>Recuperar acceso</h2>
-        <p class="form-intro">Ingresa tu correo registrado y define tu nueva contraseña para acceder.</p>
+        <p class="form-intro">
+          Ingresa tu correo registrado y define tu nueva contraseña para acceder.
+        </p>
       }
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (mode() === 'login') {
+          <label class="platform-access"
+            ><input type="checkbox" [checked]="platform()" (change)="togglePlatform()" />
+            Administración de la plataforma</label
+          >
+        }
+        @if (!platform()) {
+          <label for="company">Empresa</label
+          ><input
+            id="company"
+            formControlName="company"
+            autocomplete="organization"
+            placeholder="mi-empresa"
+          /><small>Usa el identificador que te entreg? tu empresa.</small>
+        }
         @if (mode() === 'register') {
           <label for="nombre">Nombre completo</label>
           <input
@@ -84,7 +103,9 @@
         }
 
         <div class="password-meta">
-          <label for="password">{{ mode() === 'forgot' ? 'Nueva contraseña' : 'Contraseña' }}</label>
+          <label for="password">{{
+            mode() === 'forgot' ? 'Nueva contraseña' : 'Contraseña'
+          }}</label>
           @if (mode() === 'login') {
             <button type="button" class="forgot-password-link" (click)="setMode('forgot')">
               ¿Olvidaste tu contraseña?
@@ -113,7 +134,9 @@
         }
 
         @if (mode() === 'register') {
-          <label for="telefono">Teléfono / Celular <span class="label-optional">(opcional)</span></label>
+          <label for="telefono"
+            >Teléfono / Celular <span class="label-optional">(opcional)</span></label
+          >
           <input
             id="telefono"
             type="tel"
@@ -133,13 +156,21 @@
         <button class="button button--primary button--wide" type="submit" [disabled]="loading()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
-            @if (mode() === 'login') { Verificando... }
-            @else if (mode() === 'register') { Creando cuenta... }
-            @else { Restableciendo... }
+            @if (mode() === 'login') {
+              Verificando...
+            } @else if (mode() === 'register') {
+              Creando cuenta...
+            } @else {
+              Restableciendo...
+            }
           } @else {
-            @if (mode() === 'login') { Entrar al sistema }
-            @else if (mode() === 'register') { Registrarme y acceder }
-            @else { Restablecer contraseña }
+            @if (mode() === 'login') {
+              Entrar al sistema
+            } @else if (mode() === 'register') {
+              Registrarme y acceder
+            } @else {
+              Restablecer contraseña
+            }
             <span aria-hidden="true">-&gt;</span>
           }
         </button>
@@ -147,19 +178,25 @@
         <div class="toggle-action">
           @if (mode() === 'login') {
             <span>¿No tienes una cuenta aún?</span>
-            <button type="button" class="link-button" (click)="setMode('register')">Regístrate aquí</button>
+            <button type="button" class="link-button" (click)="setMode('register')">
+              Regístrate aquí
+            </button>
           } @else if (mode() === 'register') {
             <span>¿Ya tienes una cuenta creada?</span>
-            <button type="button" class="link-button" (click)="setMode('login')">Inicia sesión</button>
+            <button type="button" class="link-button" (click)="setMode('login')">
+              Inicia sesión
+            </button>
           } @else {
             <span>¿Recordaste tu contraseña?</span>
-            <button type="button" class="link-button" (click)="setMode('login')">Volver al inicio de sesión</button>
+            <button type="button" class="link-button" (click)="setMode('login')">
+              Volver al inicio de sesión
+            </button>
           }
         </div>
       </form>
 
       <p class="privacy-note">
-        Conexion protegida con JWT. Tu sesion se cierra al cerrar esta pestana.
+        Conexion protegida con JWT. Tus datos están asociados a tu empresa.
       </p>
     </div>
   </section>

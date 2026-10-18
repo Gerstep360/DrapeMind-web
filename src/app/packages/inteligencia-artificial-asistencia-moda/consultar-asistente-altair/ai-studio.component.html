@@ -1,98 +1,118 @@
 <section class="ai-page" [class.ai-page--empty]="ai.messages().length === 0">
-  <!-- FLOATING DISCRETE CORNER ACTIONS (MODELO IA, NUEVO CHAT & HISTORIAL) -->
-  <div class="chat-corner-actions" role="toolbar" aria-label="Acciones de sesión y motor IA">
-    <!-- SELECTOR DE MODELO ALTAIR -->
-    <div class="model-segmented-pills" role="radiogroup" aria-label="Motor de IA">
-      @for (m of availableModels; track m.id) {
-        <button
-          type="button"
-          class="model-segment-btn"
-          [class.active]="activeModel() === m.id"
-          (click)="selectModel(m.id)"
-          [title]="m.desc"
-          role="radio"
-          [attr.aria-checked]="activeModel() === m.id"
-        >
-          <span class="model-name">{{ m.name }}</span>
-          @if (m.id === 'mini') {
-            <span class="model-mini-tag">Rápido</span>
-          }
-        </button>
-      }
+  <header class="chat-topbar">
+    <div class="chat-identity">
+      <span class="chat-identity__mark" [class.is-working]="ai.isBusy()" aria-hidden="true">✦</span>
+      <div>
+        <h1>Altair<span>Tu estilista personal</span></h1>
+        <p>
+          <i [class.is-connected]="['connected', 'ready', 'loading'].includes(ai.status())"></i
+          >{{
+            ['connected', 'ready', 'loading'].includes(ai.status())
+              ? 'Listo para conversar'
+              : 'Conectando con tu tienda…'
+          }}
+        </p>
+      </div>
     </div>
-
-    <button
-      type="button"
-      class="corner-action-btn"
-      (click)="handleNewChat()"
-      title="Iniciar una nueva conversación limpia"
-      aria-label="Nuevo chat"
-    >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
-      <span>Nuevo chat</span>
-    </button>
-
-    <button
-      type="button"
-      class="corner-action-btn"
-      (click)="handleOpenSessions()"
-      title="Ver historial de conversaciones de las últimas 24h"
-      aria-label="Historial de chats"
-    >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      <span>Historial</span>
-    </button>
-  </div>
-
+    <div class="chat-corner-actions">
+      <button
+        type="button"
+        class="corner-action-btn"
+        (click)="handleOpenSessions()"
+        aria-label="Ver tus conversaciones"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v5l3 2" /></svg
+        ><span>Conversaciones</span></button
+      ><button
+        type="button"
+        class="corner-action-btn new-chat"
+        (click)="handleNewChat()"
+        aria-label="Nueva conversación"
+      >
+        <span aria-hidden="true">＋</span><span>Nuevo chat</span>
+      </button>
+    </div>
+  </header>
   <!-- CONVERSATION CANVAS (INFINITE SCROLL) -->
   <div #conversation class="conversation" aria-live="polite" (scroll)="onConversationScroll()">
     <!-- EMPTY STATE (DISAPPEARS AS SOON AS FIRST MESSAGE IS SENT) -->
     @if (ai.messages().length === 0) {
       <div class="chat-welcome-state">
-        <div class="welcome-sparkle-mark">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-          </svg>
+        <div class="welcome-art" aria-hidden="true">
+          <div class="welcome-sparkle-mark">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path
+                d="M32 8c2 16 8 22 24 24-16 2-22 8-24 24C30 40 24 34 8 32c16-2 22-8 24-24Z"
+                fill="currentColor"
+              />
+              <path d="m51 7 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="currentColor" />
+            </svg>
+          </div>
         </div>
-        <h2>¿Qué armamos hoy?</h2>
+        <p class="welcome-eyebrow">DRAPEMIND / TU ESTILISTA</p>
+        <h2>Tu próximo look.<br /><em>Empieza aquí.</em></h2>
         <p class="welcome-lead">
-          Pregúntame por prendas, combinaciones, outfits completos o asesoría para tu estilo.
+          Una idea, una ocasión o esa prenda que no sabes cómo combinar.<br class="desktop-break" />
+          Cuéntamelo. Lo encontramos juntos.
         </p>
-
         <div class="welcome-pill-grid">
-          <button type="button" class="welcome-prompt-pill" (click)="send('Arma un outfit elegante con presupuesto de Bs 700')">
-            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-            </svg>
-            <span>Armar un outfit</span>
-          </button>
-          <button type="button" class="welcome-prompt-pill" (click)="send('Mira mi perchero y dime qué puedo combinar o mejorar')">
-            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
-            </svg>
-            <span>Mejorar mi perchero</span>
-          </button>
-          <button type="button" class="welcome-prompt-pill" (click)="send('Dime opciones casuales y económicas por menos de Bs 300')">
-            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>Look económico</span>
+          <button
+            type="button"
+            class="welcome-prompt-pill"
+            (click)="composer.executeCatalogExplore()"
+          >
+            <span class="prompt-card-icon"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" /></svg></span
+            ><span
+              ><strong>Encontrar una prenda</strong><small>Lo que buscas, a tu manera.</small></span
+            ><span class="prompt-card-arrow" aria-hidden="true">↗</span>
           </button>
           <button type="button" class="welcome-prompt-pill" (click)="handleOpenQuestionnaire()">
-            <svg class="pill-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/>
-              <path d="m14.5 12.5 2-2"/>
-              <path d="m11.5 9.5 2-2"/>
-              <path d="m8.5 6.5 2-2"/>
-            </svg>
-            <span>Cuestionario a medida</span>
+            <span class="prompt-card-icon"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <path d="M9 6a3 3 0 0 1 6 0c0 3-3 3-3 5L3 17h18l-9-6" /></svg></span
+            ><span
+              ><strong>Armar mi próximo look</strong
+              ><small>Para ese plan que ya tienes.</small></span
+            ><span class="prompt-card-arrow" aria-hidden="true">↗</span>
           </button>
+          <button
+            type="button"
+            class="welcome-prompt-pill"
+            (click)="composer.executeClosetAnalysis()"
+          >
+            <span class="prompt-card-icon"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                aria-hidden="true"
+              >
+                <path d="M5 7h14l1 14H4L5 7Z" />
+                <path d="M8 8V6a4 4 0 0 1 8 0v2" /></svg></span
+            ><span
+              ><strong>Combinar mi carrito</strong><small>Haz más con tus favoritos.</small></span
+            ><span class="prompt-card-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+        <div class="welcome-note">
+          <span aria-hidden="true">✦</span> Prendas reales de tu tienda. Ideas que se sienten tuyas.
         </div>
       </div>
     }
@@ -108,15 +128,35 @@
         <div class="message__avatar">
           @if (message.role === 'user') {
             @if (message.isCommand) {
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
             } @else {
               <span>TÚ</span>
             }
           } @else {
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+              />
             </svg>
           }
         </div>
@@ -132,26 +172,45 @@
             </div>
           }
 
-          <!-- INLINE THINKING DROPDOWN (CHATGPT / GEMINI STYLE) -->
-          @if (message.role === 'assistant' && (message.pending || (message.thoughtSteps && message.thoughtSteps.length > 0) || (message.trace && message.trace.length > 0) || ai.liveThoughtSteps().length > 0)) {
-            <app-thinking-dropdown
-              [pending]="!!message.pending"
-              [currentThought]="ai.currentThought()"
-              [thinkingElapsedFormatted]="ai.thinkingElapsedFormatted()"
-              [thoughtSteps]="message.pending ? ai.liveThoughtSteps() : (message.thoughtSteps || [])"
-              [trace]="message.trace"
-              [isOpen]="isThinkingOpen(message.id)"
-              [thinkingTime]="message.thinkingTime"
-              [hasContent]="!!message.content"
-              (toggle)="toggleThinking(message.id)"
-              (cancel)="cancel()"
-            />
+          @if (message.role === 'assistant') {
+            <app-tool-activity [trace]="message.trace || []" [pending]="!!message.pending" />
+          }
+          @if (message.role === 'assistant' && message.pending && !message.content) {
+            <div class="assistant-waiting" role="status">
+              <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span
+              ><span>{{
+                message.trace?.length ? 'Preparando la respuesta…' : 'Pensando en tu consulta…'
+              }}</span>
+            </div>
           }
 
-          @if (message.role === 'assistant' && (!message.pending || message.content || message.actionItems?.length)) {
+          @if (
+            message.role === 'assistant' &&
+            (!message.pending || message.content || message.actionItems?.length)
+          ) {
             <!-- COMPLETED BUBBLE TEXT CONTENT -->
             @if (message.content) {
               <div class="message__markdown" [innerHTML]="parseMarkdown(message.content)"></div>
+              @if (!message.pending && !message.error) {
+                <div class="message-tools">
+                  <button
+                    type="button"
+                    (click)="copyMessage(message.content)"
+                    aria-label="Copiar respuesta"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      aria-hidden="true"
+                    >
+                      <rect x="8" y="8" width="12" height="13" rx="1" />
+                      <path d="M16 8V3H3v13h5" /></svg
+                    >Copiar
+                  </button>
+                </div>
+              }
             }
 
             <!-- NOTICES (INFO / WARNING) -->
@@ -159,7 +218,8 @@
               <div class="notices-list">
                 @for (notice of message.notices; track $index) {
                   <div class="notice-box notice-box--{{ notice.type }}">
-                    <strong>{{ notice.title }}</strong>: {{ notice.message }}
+                    <strong>{{ notice.title }}</strong
+                    >: {{ notice.message }}
                   </div>
                 }
               </div>
@@ -178,17 +238,40 @@
             @if (message.responseMeta?.product_picker?.length) {
               <div class="action-items-section" role="group" aria-label="Seleccionar una prenda">
                 @for (option of message.responseMeta!.product_picker!; track option.id) {
-                  <button class="button" type="button" [disabled]="ai.isBusy()" (click)="ai.selectProduct(option.id)">{{ option.label }}</button>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="ai.isBusy()"
+                    (click)="ai.selectProduct(option.id)"
+                  >
+                    {{ option.label }}
+                  </button>
                 }
               </div>
             }
 
+            <app-ai-presentation
+              [blocks]="message.uiBlocks || []"
+              [disabled]="!ai.canSend()"
+              (answerQuestion)="send($event)"
+            />
             <!-- GARMENT CARDS GRID -->
             @if (message.actionItems && message.actionItems.length > 0) {
               <div class="action-items-section">
                 <div class="action-items-title">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+                    />
                   </svg>
                   <span>{{ message.responseTitle || 'Resultados de tu consulta' }}</span>
                 </div>
@@ -199,57 +282,25 @@
                       [item]="item"
                       [index]="idx"
                       (cardClick)="openGarmentDetail($event)"
-                      (quickAdd)="$event.accion === 'AGREGAR' ? addToCart($event) : openGarmentDetail($event)"
+                      (quickAdd)="
+                        $event.accion === 'AGREGAR' ? addToCart($event) : openGarmentDetail($event)
+                      "
                     />
                   }
                 </div>
               </div>
             }
 
-            <!-- AUDIT TRACE EXPANDABLE SECTION -->
-            @if (message.trace && message.trace.length > 0) {
-              <div class="audit-trace-container">
-                <button type="button" class="audit-trace-toggle" (click)="toggleTrace(message.id)">
-                  <div class="trace-toggle-left">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                    <span>Acciones · {{ message.trace.length }} {{ message.trace.length === 1 ? 'consulta' : 'consultas' }}</span>
-                    @if (message.durationMs && isTraceExpanded(message.id)) {
-                      <span class="trace-duration">({{ formatDuration(message.durationMs) }})</span>
-                    }
-                  </div>
-                  <svg
-                    class="trace-chevron"
-                    [class.trace-chevron--open]="isTraceExpanded(message.id)"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
+            @if (message.suggestedActions?.length) {
+              <div class="chat-suggestions" aria-label="Continuar conversación">
+                @for (suggestion of message.suggestedActions; track $index) {
+                  <button
+                    type="button"
+                    [disabled]="!ai.canSend()"
+                    (click)="send(suggestion.prompt)"
                   >
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-
-                @if (isTraceExpanded(message.id)) {
-                  <div class="audit-trace-details">
-                    @for (step of message.trace; track $index) {
-                      <div class="trace-step-item">
-                        <div class="trace-step-status" [class.trace-step-status--error]="step.state === 'error'"></div>
-                        <div class="trace-step-info">
-                          <div class="trace-step-title">
-                            <strong>{{ toolLabel(step.name) }}</strong>
-                            <span class="trace-step-name">({{ step.name }})</span>
-                          </div>
-                          @if (step.summary) {
-                            <div class="trace-step-summary">{{ step.summary }}</div>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
+                    {{ suggestion.label }} <span aria-hidden="true">↗</span>
+                  </button>
                 }
               </div>
             }
@@ -259,26 +310,46 @@
     }
   </div>
 
+  @if (setupLoading()) {
+    <p role="status" class="shopping-setup-loading">Cargando tus preferencias…</p>
+  }
+  @if (shoppingSetup().length && setupOwner() === ai.activeSessionId()) {
+    <section class="shopping-setup" aria-label="Preparar consulta">
+      <button type="button" class="shopping-setup-close" (click)="closeShoppingSetup()">
+        Cerrar preparación
+      </button>
+      <app-ai-presentation
+        [blocks]="shoppingSetup()"
+        [disabled]="!ai.canSend()"
+        (answerQuestion)="submitShoppingSetup($event)"
+      />
+    </section>
+  }
   <!-- FLOATING COMPOSER ZONE (CHATGPT STYLE SINGLE CARD) -->
   <div class="ai-composer-zone" role="region" aria-label="Escribir a Altair">
     <div class="composer-container-stack">
       @if (ai.isBusy()) {
         <div class="cancel-generation-pill-row">
-          <button type="button" class="btn-cancel-generation-pill" (click)="cancel()" title="Detener generacion de respuesta">
+          <button
+            type="button"
+            class="btn-cancel-generation-pill"
+            (click)="cancel()"
+            title="Detener generacion de respuesta"
+          >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-              <rect width="18" height="18" x="3" y="3" rx="3"/>
+              <rect width="18" height="18" x="3" y="3" rx="3" />
             </svg>
-            <span>Cancelar respuesta</span>
+            <span>Detener respuesta</span>
           </button>
         </div>
       }
       <app-chat-composer
-        [isBusy]="ai.isBusy()"
-        [activeModel]="activeModel()"
+        #composer
+        [isBusy]="!ai.canSend()"
         (sendMessage)="onComposerSend($event)"
         (cancelGeneration)="cancel()"
         (openOutfitBuilder)="handleOpenQuestionnaire()"
-        (modelChange)="selectModel($event)"
+        (openShoppingSetup)="openShoppingSetup($event)"
       />
     </div>
   </div>
@@ -286,28 +357,64 @@
   <!-- SESSIONS DRAWER (HISTORIAL 24 HORAS) -->
   @if (isSessionsOpen()) {
     <div class="modal-backdrop" (click)="toggleSessions()">
-      <div class="sessions-drawer" (click)="$event.stopPropagation()">
+      <div
+        class="sessions-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tus conversaciones"
+        (click)="$event.stopPropagation()"
+      >
         <div class="drawer-header">
           <div class="drawer-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
-            <h3>Historial de Sesiones</h3>
+            <h3>Tus conversaciones</h3>
           </div>
-          <button type="button" class="drawer-close-btn" (click)="toggleSessions()" aria-label="Cerrar historial">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+          <button
+            type="button"
+            class="drawer-close-btn"
+            (click)="toggleSessions()"
+            aria-label="Cerrar historial"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
 
-        <p class="drawer-intro">Conversaciones activas de las últimas 24 horas.</p>
+        <p class="drawer-intro">Retoma una idea o empieza algo nuevo.</p>
 
         <button type="button" class="btn-new-session" (click)="handleNewChat(); toggleSessions()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M5 12h14"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 5v14M5 12h14" />
           </svg>
           <span>Nueva conversación</span>
         </button>
@@ -316,13 +423,22 @@
           @for (session of ai.sessions(); track session.id) {
             <div
               class="session-card"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="ai.switchSession(session.id); toggleSessions()"
+              (keydown.space)="
+                $event.preventDefault(); ai.switchSession(session.id); toggleSessions()
+              "
               [class.session-card--active]="session.id === ai.activeSessionId()"
               (click)="ai.switchSession(session.id); toggleSessions()"
             >
               <div class="session-card-content">
-                <strong class="session-card-title">{{ session.title || 'Conversación sin título' }}</strong>
+                <strong class="session-card-title">{{
+                  session.title || 'Conversación sin título'
+                }}</strong>
                 <span class="session-card-meta">
-                  {{ session.messages.length }} mensajes · {{ formatRelativeTime(session.updatedAt) }}
+                  {{ session.messages.length }} mensajes ·
+                  {{ formatRelativeTime(session.updatedAt) }}
                 </span>
               </div>
               <button
@@ -332,9 +448,18 @@
                 title="Eliminar conversación"
                 aria-label="Eliminar conversación"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>

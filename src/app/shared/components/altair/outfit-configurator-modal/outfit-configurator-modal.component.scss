@@ -1,3 +1,4 @@
+@use '../../../../../styles/fashion' as fashion;
 :host {
   display: block;
 }
@@ -20,7 +21,7 @@
   overflow-y: auto;
   background: var(--dm-surface, #FFFFFF);
   border-radius: var(--dm-radius-xl, 32px);
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   box-shadow: var(--dm-shadow-lg, 0 20px 48px rgba(16, 17, 15, 0.14));
   padding: 1.85rem;
   animation: scaleUp 240ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -29,8 +30,8 @@
     width: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--dm-border, #E1E3DA);
-    border-radius: 999px;
+    background: var(--dm-border);
+    border-radius: 4px;
   }
 }
 
@@ -53,12 +54,12 @@
       font-size: 0.95rem;
       font-weight: 800;
       letter-spacing: 0.04em;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
     }
   }
 
   .close-btn {
-    border: 1px solid var(--dm-border, #E1E3DA);
+    border: 1px solid var(--dm-border);
     border-radius: 50%;
     width: 28px;
     height: 28px;
@@ -66,20 +67,20 @@
     cursor: pointer;
     display: grid;
     place-items: center;
-    color: var(--dm-text-muted, #7B7F75);
+    color: var(--dm-text-muted, var(--dm-muted));
     transition: all var(--dm-fast, 150ms) ease;
 
     &:hover {
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-ink);
       color: #FFFFFF;
-      border-color: var(--dm-ink, #10110F);
+      border-color: var(--dm-ink);
     }
   }
 }
 
 .modal-intro {
   font-size: 0.82rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   margin: 0.65rem 0 1.25rem;
   line-height: 1.45;
 }
@@ -96,7 +97,7 @@
     label {
       font-size: 0.72rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       letter-spacing: 0.04em;
       margin-bottom: 0.4rem;
     }
@@ -105,16 +106,16 @@
       width: 100%;
       padding: 0.65rem 0.85rem;
       border-radius: var(--dm-radius-sm, 14px);
-      border: 1px solid var(--dm-border, #E1E3DA);
-      background: var(--dm-surface-soft, #F8F9F2);
-      color: var(--dm-ink, #10110F);
+      border: 1px solid var(--dm-border);
+      background: var(--dm-surface-soft, var(--dm-canvas));
+      color: var(--dm-ink);
       font-size: 0.82rem;
       font-family: inherit;
       outline: none;
       transition: all var(--dm-fast, 150ms) ease;
 
       &:focus {
-        border-color: var(--dm-ink, #10110F);
+        border-color: var(--dm-ink);
         background: #FFFFFF;
       }
     }
@@ -128,23 +129,23 @@
 
   .choice-chip {
     padding: 0.38rem 0.8rem;
-    border-radius: var(--dm-radius-pill, 999px);
-    border: 1px solid var(--dm-border, #E1E3DA);
+    border-radius: var(--dm-radius-sm, 999px);
+    border: 1px solid var(--dm-border);
     background: var(--dm-surface, #FFFFFF);
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
     font-size: 0.72rem;
     font-weight: 700;
     cursor: pointer;
     transition: all var(--dm-fast, 150ms) ease;
 
     &:hover {
-      border-color: var(--dm-ink, #10110F);
+      border-color: var(--dm-ink);
     }
 
     &--selected {
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-ink);
       color: #FFFFFF;
-      border-color: var(--dm-ink, #10110F);
+      border-color: var(--dm-ink);
     }
   }
 
@@ -157,9 +158,9 @@
   .btn-submit-questionnaire {
     margin-top: 0.5rem;
     padding: 0.95rem 1.25rem;
-    border-radius: var(--dm-radius-pill, 999px);
-    background: var(--dm-lime, #DFFF3F);
-    color: var(--dm-ink, #10110F);
+    border-radius: var(--dm-radius-sm, 999px);
+    background: var(--dm-lime);
+    color: var(--dm-ink);
     border: 0;
     font-size: 0.82rem;
     font-weight: 800;
@@ -169,11 +170,11 @@
     justify-content: center;
     gap: 0.5rem;
     cursor: pointer;
-    box-shadow: 0 4px 18px var(--dm-lime-glow, rgba(223, 255, 63, 0.4));
+    box-shadow: none;
     transition: all var(--dm-fast, 150ms) ease;
 
     &:hover {
-      background: var(--dm-lime-hover, #D2F632);
+      background: var(--dm-lime-hover);
       transform: translateY(-1px);
     }
 
@@ -197,10 +198,12 @@
   .questionnaire-modal {
     width: 95% !important;
     padding: 1.25rem !important;
-    border-radius: 22px !important;
+    border-radius: 4px !important;
   }
 
   .questionnaire-form .form-row-2 {
     grid-template-columns: 1fr;
   }
 }
+
+@include fashion.controls;

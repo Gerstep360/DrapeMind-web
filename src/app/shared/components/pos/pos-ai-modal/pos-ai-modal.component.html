@@ -35,59 +35,6 @@
         </div>
       }
 
-      <!-- AI MODEL SELECTOR TABS -->
-      <div class="ai-model-selector-bar">
-        <span class="model-select-label">Motor de Inteligencia de Moda:</span>
-        <div class="model-tabs">
-          <button
-            type="button"
-            class="model-tab-btn"
-            [class.active]="selectedModel === 'mini'"
-            (click)="onSelectModel('mini')"
-          >
-            <div class="model-tab-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-              </svg>
-            </div>
-            <span class="model-name">Mini</span>
-            <small class="model-desc">Rápido y Directo</small>
-          </button>
-
-          <button
-            type="button"
-            class="model-tab-btn"
-            [class.active]="selectedModel === 'dinamico'"
-            (click)="onSelectModel('dinamico')"
-          >
-            <div class="model-tab-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                <polyline points="2 17 12 22 22 17"/>
-                <polyline points="2 12 12 17 22 12"/>
-              </svg>
-            </div>
-            <span class="model-name">Dinámico</span>
-            <small class="model-desc">Moda Balanceado</small>
-          </button>
-
-          <button
-            type="button"
-            class="model-tab-btn"
-            [class.active]="selectedModel === 'altair'"
-            (click)="onSelectModel('altair')"
-          >
-            <div class="model-tab-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="m12 1 2.5 6.5L21 10l-6.5 2.5L12 19l-2.5-6.5L3 10l6.5-2.5L12 1z"/>
-              </svg>
-            </div>
-            <span class="model-name">Altair</span>
-            <small class="model-desc">Curaduría Atelier Pro</small>
-          </button>
-        </div>
-      </div>
-
       <!-- PERSONALIZACIÓN LIBRE Y CONTROLES DEL VENDEDOR -->
       <div class="stylist-custom-panel">
         <div class="custom-panel-header">
@@ -367,16 +314,7 @@
                   <div class="outfit-pieces-collage">
                     @for (piece of set.pieces; track piece.productId) {
                       <div class="collage-item" [title]="piece.roleLabel + ': ' + piece.name + ' (Bs. ' + piece.price + ')'">
-                        @if (piece.image) {
-                          <img [src]="piece.image" [alt]="piece.name" loading="lazy" />
-                        } @else {
-                          <div class="collage-placeholder">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                              <line x1="3" y1="6" x2="21" y2="6"/>
-                            </svg>
-                          </div>
-                        }
+                        <app-product-media [src]="piece.image" [label]="piece.name" />
                         <span class="collage-role-tag">{{ piece.roleLabel }}</span>
                       </div>
                     }
@@ -461,16 +399,7 @@
             @for (piece of outfit.pieces; track piece.productId) {
               <div class="full-piece-card">
                 <div class="piece-thumb-wrap">
-                  @if (piece.image) {
-                    <img [src]="piece.image" [alt]="piece.name" loading="lazy" />
-                  } @else {
-                    <div class="piece-placeholder">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                      </svg>
-                    </div>
-                  }
+                  <app-product-media [src]="piece.image" [label]="piece.name" />
                   <span class="piece-role-badge">{{ piece.roleLabel }}</span>
                 </div>
 

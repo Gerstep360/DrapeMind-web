@@ -137,11 +137,7 @@
                   (click)="setPrimaryImage(idx)"
                   [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
                 >
-                  @if (resolveImage(img)) {
-                    <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
-                  } @else {
-                    <div class="thumb-placeholder"><span>IMG</span></div>
-                  }
+                  <app-product-media [src]="resolveImage(img)" [label]="'Prenda'" />
                   @if (idx === 0) {
                     <span class="badge-primary-photo">Principal</span>
                   } @else {
@@ -213,10 +209,7 @@
         </div>
 
         <div class="form-group model-selection-group">
-          <app-altair-model-selector
-            [(selectedModel)]="selectedModel"
-            label="Motor de IA para Asistencia Editorial"
-          />
+
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.5rem;">
@@ -388,11 +381,7 @@
                     (click)="setPrimaryImage(idx)"
                     [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
                   >
-                    @if (resolveImage(img)) {
-                      <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
-                    } @else {
-                      <div class="thumb-placeholder"><span>IMG</span></div>
-                    }
+                    <app-product-media [src]="resolveImage(img)" [label]="'Prenda'" />
                     @if (idx === 0) {
                       <span class="badge-primary-photo">Principal</span>
                     } @else {

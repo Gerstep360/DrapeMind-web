@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -7,7 +8,7 @@ import { CustomerMode, PaymentMethod, PosTicketItem } from '@shared/components/p
 @Component({
   selector: 'app-pos-ticket',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, DecimalPipe],
+  imports: [ProductMediaComponent, CommonModule, FormsModule, ReactiveFormsModule, DecimalPipe],
   templateUrl: './pos-ticket.component.html',
   styleUrl: './pos-ticket.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

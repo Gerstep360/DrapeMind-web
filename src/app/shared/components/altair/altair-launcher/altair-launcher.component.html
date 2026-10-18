@@ -16,7 +16,7 @@
       <header class="altair-launcher__header">
         <span class="altair-launcher__mark" aria-hidden="true">✦</span>
         <div>
-          <p>Asistente compartido</p>
+          <p>Tu asistente de estilo</p>
           <h2>{{ title }}</h2>
           <span>{{ description }}</span>
         </div>
@@ -31,19 +31,13 @@
           </button>
         }
       </header>
-      @if (context) {
-        <p class="altair-launcher__context"><strong>En esta vista</strong>{{ context }}</p>
-      }
       <app-chat-composer
-        [activeModel]="model()"
-        (modelChange)="selectModel($event)"
+
+
         (sendMessage)="submit($event)"
         (openOutfitBuilder)="openOutfitBuilder()"
       />
-      <p class="altair-launcher__foot">
-        La consulta continuará en Altair para conservar el chat, las cards y las confirmaciones
-        reales.
-      </p>
+      <p class="altair-launcher__foot">Continuaremos la conversación con Altair.</p>
     </div>
   </section>
 }

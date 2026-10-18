@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,7 +21,7 @@ import { CartDrawerStep } from './cart-drawer.models';
 
 @Component({
   selector: 'app-cart-drawer',
-  imports: [ReactiveFormsModule, DecimalPipe, ReceiptModalComponent, StripePaymentComponent],
+  imports: [ProductMediaComponent, ReactiveFormsModule, DecimalPipe, ReceiptModalComponent, StripePaymentComponent],
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

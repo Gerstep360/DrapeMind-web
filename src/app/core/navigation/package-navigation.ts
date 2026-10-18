@@ -42,6 +42,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
     label: 'Acceso y gestión de usuarios',
     description: 'Perfil y preferencias',
     items: [
+      { label: 'Plan de empresa', description: 'Suscripción y límites', icon: 'branches', route: '/subscription', roles: ['ADMIN'] },
       {
         label: 'Mi cuenta',
         description: 'Datos, direcciones y estilo',

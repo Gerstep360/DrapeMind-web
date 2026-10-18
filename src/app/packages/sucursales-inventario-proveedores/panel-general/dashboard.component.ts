@@ -117,22 +117,20 @@ export class DashboardComponent {
   }
 
   toggleRuntime(): void {
-    const current = this.runtime();
-    if (!current || this.runtimeBusy()) return;
+    if (this.runtimeBusy()) return;
     this.runtimeBusy.set(true);
-    const action = current.running ? this.operationsApi.stopAi() : this.operationsApi.startAi();
-    action.subscribe({
+    this.operationsApi.aiRuntime().subscribe({
       next: (status) => {
         this.runtime.set(status);
         this.runtimeBusy.set(false);
         this.toast.show(
-          status.running ? 'Gemma esta listo' : 'Gemma fue descargado de memoria',
-          'success',
+          status.healthy ? 'Conexión con NVIDIA disponible' : 'Revisa la configuración de NVIDIA en el servidor',
+          status.healthy ? 'success' : 'error',
         );
       },
       error: (error) => {
         this.runtimeBusy.set(false);
-        this.toast.show(error?.error?.detail ?? 'No se pudo cambiar el runtime', 'error');
+        this.toast.show(error?.error?.detail ?? 'No se pudo comprobar la conexión', 'error');
       },
     });
   }

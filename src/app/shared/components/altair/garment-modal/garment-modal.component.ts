@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -19,7 +20,7 @@ import {
 @Component({
   selector: 'app-garment-modal',
   standalone: true,
-  imports: [DecimalPipe, RouterLink],
+  imports: [ProductMediaComponent, DecimalPipe, RouterLink],
   templateUrl: './garment-modal.component.html',
   styleUrl: './garment-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

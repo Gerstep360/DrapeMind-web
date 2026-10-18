@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -18,7 +19,7 @@ import {
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [ProductMediaComponent, DecimalPipe],
   templateUrl: './product-card.component.html',
   styleUrl: './product-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

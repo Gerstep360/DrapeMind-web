@@ -1,3 +1,4 @@
+import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -6,6 +7,8 @@ import {
   Input,
   Output,
   inject,
+  signal,
+  OnChanges,
 } from '@angular/core';
 import { AiActionItem } from '@core/models';
 import { RuntimeConfigService } from '@core/runtime-config.service';
@@ -18,22 +21,27 @@ import {
 @Component({
   selector: 'app-garment-card',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [ProductMediaComponent, DecimalPipe],
   templateUrl: './garment-card.component.html',
   styleUrl: './garment-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GarmentCardComponent {
+export class GarmentCardComponent implements OnChanges {
   private readonly runtime = inject(RuntimeConfigService);
 
   @Input({ required: true }) item!: AiActionItem;
   @Input() index = 0;
+  readonly imageFailed = signal(false);
+
+  ngOnChanges(): void {
+    this.imageFailed.set(false);
+  }
 
   @Output() cardClick = new EventEmitter<AiActionItem>();
   @Output() quickAdd = new EventEmitter<AiActionItem>();
 
   cardImageUrl(): string | null {
-    return hasUsableGarmentImage(this.item.imagen)
+    return !this.imageFailed() && hasUsableGarmentImage(this.item.imagen)
       ? this.runtime.resolveImageUrl(this.item.imagen)
       : null;
   }

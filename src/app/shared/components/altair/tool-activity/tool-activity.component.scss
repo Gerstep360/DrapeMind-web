@@ -1,0 +1,166 @@
+@use '../../../../../styles/fashion' as fashion;
+:host {
+  display: block;
+  margin: 0 0 16px;
+}
+.tool-activity {
+  border: 1px solid var(--dm-border);
+  background: var(--dm-paper);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 520px;
+  animation: tool-arrive 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.activity-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  padding: 13px 16px;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--dm-ink);
+  min-height: 46px;
+}
+.activity-toggle > span:nth-child(2) {
+  flex: 1;
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.activity-toggle small {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--dm-canvas);
+  border-radius: 6px;
+}
+.activity-mark {
+  color: var(--dm-ink);
+  font-size: 18px;
+}
+.is-running > .activity-toggle .activity-mark {
+  animation: tool-spin 1.8s linear infinite;
+}
+.activity-chevron {
+  transition: transform 0.25s;
+  font-size: 16px;
+}
+.activity-chevron.is-open {
+  transform: rotate(180deg);
+}
+.activity-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.activity-reveal.is-open {
+  grid-template-rows: 1fr;
+}
+.activity-reveal > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.activity-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 6px 16px 14px;
+  animation: tool-arrive 0.3s ease both;
+}
+.step-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dm-canvas);
+  color: var(--dm-ink);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.step-indicator.is-running {
+  border: 2px solid var(--dm-border);
+  border-top-color: var(--dm-ink);
+  background: none;
+  animation: tool-spin 0.9s linear infinite;
+}
+.activity-step strong {
+  font-size: 12px;
+  font-weight: 550;
+}
+.activity-step p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--dm-muted);
+}
+.is-error .step-indicator {
+  background: var(--dm-canvas);
+  color: var(--dm-ink);
+}
+button:focus-visible {
+  outline: 2px solid var(--dm-muted);
+  outline-offset: -3px;
+}
+@keyframes tool-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes tool-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.tool-activity {
+  border-color: var(--dm-border);
+  background: var(--dm-paper);
+}
+.activity-toggle {
+  color: var(--dm-ink);
+  padding: 10px 12px;
+}
+.activity-mark {
+  color: var(--dm-ink);
+}
+.activity-toggle small {
+  background: var(--dm-lime-soft);
+}
+.step-indicator {
+  color: var(--dm-ink);
+  background: var(--dm-lime);
+}
+.activity-step p {
+  color: var(--dm-muted);
+}
+.is-error .step-indicator {
+  background: var(--dm-danger-soft);
+  color: var(--dm-danger);
+}
+.step-indicator.is-running {
+  border-color: var(--dm-border);
+  border-top-color: var(--dm-ink);
+}
+button:focus-visible {
+  outline-color: var(--dm-ink);
+}
+
+@include fashion.controls;

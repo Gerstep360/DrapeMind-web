@@ -1,0 +1,223 @@
+/* Shared visual primitives. Component files continue to own layout and behavior. */
+@mixin controls {
+  :host :is(.btn, .button, .button-pill, .dm-btn, .dm-btn-primary, .dm-btn-secondary) {
+    min-height: 44px;
+    border: 2px solid var(--dm-ink);
+    border-radius: 4px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    box-shadow: none;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      transform 160ms ease;
+  }
+  :host :is(.btn-primary, .button--primary, .dm-btn-primary) {
+    background: var(--dm-ink);
+    color: var(--dm-paper);
+  }
+  :host
+    :is(
+      .btn-secondary,
+      .button--secondary,
+      .button--ghost,
+      .dm-btn-secondary,
+      .button-pill--ghost
+    ) {
+    background: var(--dm-paper);
+    color: var(--dm-ink);
+  }
+  :host :is(.btn-accent, .button--accent, .button--ai, .dm-btn-ai) {
+    background: var(--dm-lime);
+    color: var(--dm-ink);
+    border-color: var(--dm-ink);
+  }
+  :host :is(.btn-danger, .button--danger) {
+    color: var(--dm-danger);
+    border-color: var(--dm-danger);
+    background: var(--dm-danger-soft);
+  }
+  :host :is(.btn, .button, .button-pill, .dm-btn):disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+    box-shadow: none;
+  }
+  :host :is(.btn, .button, .button-pill, .dm-btn):focus-visible {
+    outline: 3px solid var(--dm-ink);
+    outline-offset: 3px;
+  }
+  :host :is(.close-btn, .close-button, .modal-close-btn, .btn-close, .btn-icon) {
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 4px;
+  }
+}
+
+@mixin page {
+  @include controls;
+  :host {
+    color: var(--dm-ink);
+    font-family: var(--font-body);
+  }
+  :host :is(.page-heading, .page-header) {
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--dm-ink);
+  }
+  :host :is(.page-heading, .page-header) :is(h1, .page-title) {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(30px, 3.5vw, 48px);
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    color: var(--dm-ink);
+  }
+  :host :is(.page-lead, .page-subtitle, .section-description) {
+    color: var(--dm-muted);
+    font-size: 14px;
+    line-height: 1.65;
+    max-width: 65ch;
+  }
+  :host .eyebrow {
+    color: var(--dm-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  :host
+    :is(
+      .panel,
+      .card,
+      .form-panel,
+      .stat-card,
+      .summary-card,
+      .branch-card,
+      .supplier-card,
+      .season-card,
+      .promo-card,
+      .report-sheet,
+      .control-panel,
+      .metric-strip article
+    ) {
+    background: var(--dm-paper);
+    color: var(--dm-ink);
+    border: 1px solid var(--dm-ink);
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  :host :is(.panel-header, .card-header, .modal-header) {
+    border-bottom-color: var(--dm-border);
+  }
+  :host
+    :is(
+      input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+          [type='file']
+        ),
+      select,
+      textarea
+    ) {
+    font-family: var(--font-body);
+    min-height: 44px;
+    border: 1px solid var(--dm-ink);
+    border-radius: 4px;
+    background: var(--dm-paper);
+    color: var(--dm-ink);
+    font-size: 13px;
+  }
+  :host :is(.search-box, .catalog-search) input {
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+  :host :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--dm-ink);
+    outline-offset: 3px;
+    box-shadow: none;
+  }
+  :host :is(.tab-pill, .filter-tab, .mode-tab, .filter-chip, .cat-chip) {
+    border: 1px solid var(--dm-border);
+    border-radius: 4px;
+    min-height: 40px;
+    color: var(--dm-ink);
+    background: var(--dm-paper);
+    font-size: 12px;
+  }
+  :host :is(.tab-pill--active, .mode-tab--active),
+  :host :is(.filter-tab, .filter-chip, .cat-chip).active {
+    color: var(--dm-paper);
+    background: var(--dm-ink);
+    border-color: var(--dm-ink);
+    box-shadow: none;
+  }
+  :host :is(.data-table, .dm-table, .inventory-table, .users-table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  :host :is(.data-table, .dm-table, .inventory-table, .users-table) th {
+    color: var(--dm-muted);
+    background: var(--dm-surface-soft);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dm-ink);
+  }
+  :host :is(.data-table, .dm-table, .inventory-table, .users-table) td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dm-border-subtle);
+    color: var(--dm-ink);
+  }
+  :host :is(.empty-state, .empty-favorites-card, .loading-state) {
+    color: var(--dm-muted);
+    background: var(--dm-paper);
+    border: 1px dashed var(--dm-border);
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  :host :is(.form-alert, .error-msg, .load-error) {
+    color: var(--dm-danger);
+    background: var(--dm-danger-soft);
+    border-radius: 4px;
+  }
+  :host
+    :is(.modal-content, .modal-card, .product-detail-modal, .garment-modal, .branch-modal-card) {
+    background: var(--dm-paper);
+    border: 2px solid var(--dm-ink);
+    border-radius: 6px;
+    box-shadow: 6px 6px 0 var(--dm-ink);
+  }
+  @media (max-width: 600px) {
+    :host :is(.page-heading, .page-header) {
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+    }
+    :host :is(.header-actions, .page-actions) {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    :host :is(.modal-content, .modal-card) {
+      max-width: calc(100vw - 24px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :host :is(.btn, .button, .button-pill) {
+      transition: none;
+      transform: none;
+    }
+  }
+  @media print {
+    :host :is(.panel, .card, .modal-content, .modal-card) {
+      background: white;
+      color: black;
+      box-shadow: none;
+    }
+  }
+}

@@ -133,11 +133,7 @@
         @for (item of ticketItems; track item.variantId) {
           <div class="ticket-item-row">
             <div class="item-thumb">
-              @if (item.image) {
-                <img [src]="item.image" [alt]="item.name" />
-              } @else {
-                <div class="item-thumb-placeholder">DM</div>
-              }
+              <app-product-media [src]="item.image" [label]="item.name" />
             </div>
 
             <div class="item-info">

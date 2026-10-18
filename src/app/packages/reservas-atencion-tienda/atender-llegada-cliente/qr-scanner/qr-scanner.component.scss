@@ -3,8 +3,8 @@
   width: min(92vw, 460px);
   padding: 0;
   border-radius: var(--dm-radius-xl, 28px);
-  border: 1px solid var(--dm-border, #e1e3da);
-  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--dm-border);
+  box-shadow: none;
   background: var(--dm-surface, #ffffff);
 
   &::backdrop {
@@ -40,21 +40,21 @@
       font-weight: 800;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
     }
 
     h2 {
       margin: 0;
       font: 800 1.3rem var(--font-display, 'Manrope', sans-serif);
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
       letter-spacing: -0.02em;
     }
 
     .btn-close-scanner {
       background: none;
-      border: 1px solid var(--dm-border, #e1e3da);
+      border: 1px solid var(--dm-border);
       cursor: pointer;
-      color: var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
       padding: 0.4rem;
       border-radius: 50%;
       display: inline-flex;
@@ -66,7 +66,7 @@
 
       &:hover {
         background: var(--dm-gray-100, #f0f1eb);
-        color: var(--dm-ink, #10110f);
+        color: var(--dm-ink);
       }
     }
   }
@@ -76,7 +76,7 @@
     width: 100%;
     aspect-ratio: 1;
     background: #0b0c0a;
-    border-radius: 20px;
+    border-radius: 4px;
     overflow: hidden;
 
     video {
@@ -92,9 +92,7 @@
       width: 84%;
       height: 2px;
       background: var(--dm-accent, #d2ff3a);
-      box-shadow:
-        0 0 12px #d2ff3a,
-        0 0 24px #d2ff3a;
+      box-shadow: none;
       animation: laser-scan 2.2s ease-in-out infinite alternate;
       z-index: 2;
     }
@@ -151,7 +149,7 @@
   .scanner-hint {
     text-align: center;
     font-size: 0.84rem;
-    color: var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
     margin: 0;
     line-height: 1.5;
   }
@@ -160,7 +158,7 @@
     text-align: center;
     padding: 2rem 1.25rem;
     background: var(--dm-gray-50, #f7f8f4);
-    border-radius: 20px;
+    border-radius: 4px;
     border: 1px dashed var(--dm-border-strong, #cdd0c5);
 
     .scanner-icon-wrap {
@@ -171,8 +169,8 @@
       height: 64px;
       border-radius: 50%;
       background: var(--dm-surface, #ffffff);
-      border: 1px solid var(--dm-border, #e1e3da);
-      color: var(--dm-ink, #10110f);
+      border: 1px solid var(--dm-border);
+      color: var(--dm-ink);
       margin-bottom: 0.85rem;
       box-shadow: var(--dm-shadow-xs);
 
@@ -185,12 +183,12 @@
     h3 {
       margin: 0 0 0.5rem;
       font: 700 1.1rem var(--font-display, 'Manrope', sans-serif);
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
     }
 
     .scanner-desc {
       font-size: 0.82rem;
-      color: var(--dm-text-muted, #7b7f75);
+      color: var(--dm-text-muted, var(--dm-muted));
       line-height: 1.5;
       margin: 0;
       max-width: 22rem;
@@ -204,7 +202,7 @@
     background: #fef2f2;
     border: 1px solid #fecaca;
     padding: 0.65rem 0.95rem;
-    border-radius: 12px;
+    border-radius: 4px;
     margin: 0;
     line-height: 1.4;
   }
@@ -220,7 +218,7 @@
       justify-content: center;
       align-items: center;
       gap: 0.5rem;
-      border-radius: var(--dm-radius-pill, 999px);
+      border-radius: var(--dm-radius-sm, 999px);
       padding: 0.75rem 1.25rem;
       font-size: 0.86rem;
       font-weight: 700;
@@ -231,7 +229,7 @@
     }
 
     .button--secondary {
-      border-radius: var(--dm-radius-pill, 999px);
+      border-radius: var(--dm-radius-sm, 999px);
       padding: 0.75rem 1.25rem;
     }
   }
@@ -241,15 +239,15 @@
     align-items: center;
     gap: 0.65rem;
     background: var(--dm-gray-50, #f7f8f4);
-    border: 1px solid var(--dm-border, #e1e3da);
+    border: 1px solid var(--dm-border);
     padding: 0.75rem 1rem;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 0.76rem;
-    color: var(--dm-text-muted, #7b7f75);
+    color: var(--dm-text-muted, var(--dm-muted));
 
     svg {
       flex-shrink: 0;
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
     }
 
     kbd {
@@ -259,7 +257,7 @@
       padding: 1px 6px;
       font-size: 0.72rem;
       font-weight: 700;
-      color: var(--dm-ink, #10110f);
+      color: var(--dm-ink);
     }
   }
 }

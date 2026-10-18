@@ -118,13 +118,7 @@
             <td>
               <div class="product-info-cell">
                 <div class="thumb-box">
-                  @if (resolveImage(extractFirstImage(prod.imagenes))) {
-                    <img [src]="resolveImage(extractFirstImage(prod.imagenes))" [alt]="prod.nombre" class="thumb-img" />
-                  } @else {
-                    <div class="thumb-placeholder">
-                      <span>{{ prod.nombre.slice(0, 2).toUpperCase() }}</span>
-                    </div>
-                  }
+                  <app-product-media [src]="resolveImage(extractFirstImage(prod.imagenes))" [label]="prod.nombre" />
                 </div>
                 <div>
                   <strong class="product-name">{{ prod.nombre }}</strong>
@@ -290,11 +284,7 @@
                     (click)="setPrimaryImage(idx)"
                     [title]="idx === 0 ? 'Foto Principal' : 'Haz clic para definir como foto principal'"
                   >
-                    @if (resolveImage(img)) {
-                      <img [src]="resolveImage(img)" alt="Foto prenda {{ idx + 1 }}" />
-                    } @else {
-                      <div class="thumb-placeholder"><span>IMG</span></div>
-                    }
+                    <app-product-media [src]="resolveImage(img)" [label]="'Prenda'" />
                     @if (idx === 0) {
                       <span class="badge-primary-photo">Principal</span>
                     } @else {

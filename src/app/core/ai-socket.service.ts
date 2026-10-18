@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from './auth.service';
+import { readAiDataBlocks } from './models/ai-presentation.models';
 import {
   AgentTraceStep,
   AiPresentationMode,
@@ -49,10 +50,19 @@ export class AiSocketService {
   private reconnectAttempt = 0;
   private heartbeat: number | null = null;
   private tickerTimer: number | null = null;
-  private queuedMessage: { content: string; mode?: 'mini' | 'dynamic' | 'gemma' } | null = null;
+  private queuedMessage: { content: string; mode?: 'nvidia' } | null = null;
   private responseStartedAt = 0;
   private authRejected = false;
   private manualDisconnect = false;
+  private eventRequestId?: string;
+  readonly concurrent = signal(false);
+  readonly canSend = computed(
+    () =>
+      !this.isBusy() ||
+      (this.concurrent() &&
+        this.messages().filter((message) => message.pending).length < 3 &&
+        ['connected', 'ready', 'loading'].includes(this.status())),
+  );
 
   readonly status = signal<SocketStatus>('offline');
   readonly sessions = signal<ChatSession[]>([]);
@@ -319,6 +329,8 @@ export class AiSocketService {
       if (this.socket !== connection) return;
       console.error('[Altair WebSocket Error]', err);
       this.status.set('error');
+      this.interruptPending('Se interrumpió la conexión con Altair. Puedes reintentar.');
+      this.eventRequestId = undefined;
       this.stopThinkingTicker();
       this.updateLastMessage(this.activeSessionId(), (last) => {
         if (last.pending) {
@@ -345,6 +357,9 @@ export class AiSocketService {
         return;
       }
       this.socket = null;
+      this.concurrent.set(false);
+      this.interruptPending('Se cerró la conexión con Altair. Puedes reintentar.');
+      this.eventRequestId = undefined;
       this.stopHeartbeat();
       this.stopThinkingTicker();
 
@@ -468,12 +483,12 @@ export class AiSocketService {
     options?: {
       isCommand?: boolean;
       commandLabel?: string;
-      mode?: 'mini' | 'dynamic' | 'gemma';
+      mode?: 'nvidia';
       context?: string;
     },
   ): void {
     const clean = content;
-    if (!clean.trim() || this.isBusy()) return;
+    if (!clean.trim() || !this.canSend()) return;
 
     let isCommand = options?.isCommand ?? false;
     let commandLabel = options?.commandLabel;
@@ -503,8 +518,8 @@ export class AiSocketService {
     const wireContent = options?.context?.trim()
       ? `${clean}\n\n[Contexto actual de la interfaz]\n${options.context.trim()}`
       : clean;
-    const userMsgId = `user-${Date.now()}`;
-    const assistantMsgId = `assistant-${Date.now()}`;
+    const userMsgId = `user-${generateSafeUuid()}`;
+    const assistantMsgId = `assistant-${generateSafeUuid()}`;
     const activeId = this.activeSessionId();
 
     this.sessions.update((list) =>
@@ -553,7 +568,7 @@ export class AiSocketService {
 
     if (
       this.socket?.readyState === WebSocket.OPEN &&
-      ['connected', 'ready'].includes(this.status())
+      ['connected', 'ready', 'loading'].includes(this.status())
     ) {
       this.sendChat(wireContent, options?.mode);
     } else {
@@ -578,22 +593,34 @@ export class AiSocketService {
     }
   }
 
-  private sendChat(content: string, mode: string = 'dynamic'): void {
+  private sendChat(content: string, mode: string = 'nvidia'): void {
     const backendSessionId = this.currentSession().backendSessionId;
     this.socket?.send(
       JSON.stringify({
         type: 'chat',
+        request_id: this.currentSession().messages.at(-1)?.id,
         message: content,
         session_id: backendSessionId,
-        mode: mode || 'dynamic',
       }),
     );
   }
 
   private handleEvent(event: AiSocketEvent): void {
-    const activeId = this.activeSessionId();
+    this.eventRequestId = event.request_id;
+    const eventSession = event.request_id
+      ? this.sessions().find((session) =>
+          session.messages.some((message) => message.id === event.request_id),
+        )
+      : undefined;
+    if (event.request_id && !eventSession) return;
+    const activeId = eventSession?.id ?? this.activeSessionId();
+    if (event.request_id) {
+      const message = eventSession?.messages.find((item) => item.id === event.request_id);
+      this.toolActivity.set(message?.trace || []);
+    }
 
     if (event.type === 'connected') {
+      this.concurrent.set(event.concurrent === true);
       this.reconnectAttempt = 0;
       this.status.set('connected');
       if (this.queuedMessage) {
@@ -601,6 +628,22 @@ export class AiSocketService {
         this.queuedMessage = null;
         this.sendChat(item.content, item.mode);
       }
+      return;
+    }
+
+    if (event.type === 'task_started') {
+      if (event.session_id) this.updateSessionBackendId(activeId, event.session_id);
+      return;
+    }
+    if (event.type === 'task_cancelled') {
+      this.updateLastMessage(activeId, (message) => ({
+        ...message,
+        pending: false,
+        content: 'Consulta cancelada. Continuamos con tus nuevos requisitos.',
+        actionItems: [],
+        uiBlocks: [],
+      }));
+      this.saveSessionsToStorage();
       return;
     }
 
@@ -618,16 +661,8 @@ export class AiSocketService {
       if (event.session_id) {
         this.updateSessionBackendId(activeId, event.session_id);
       }
-      const isMini = event.mode === 'mini' || event.model_role === 'scout';
-      this.currentThought.set(
-        event.status === 'loading'
-          ? isMini
-            ? 'Preparando Altair Mini…'
-            : 'Preparando Altair…'
-          : isMini
-            ? 'Pensando con Altair Mini…'
-            : 'Pensando…',
-      );
+
+      this.currentThought.set('Preparando tu respuesta…');
       return;
     }
 
@@ -635,6 +670,7 @@ export class AiSocketService {
       const formatted = event.label || this.formatToolName(event.name);
       this.currentThought.set(formatted);
       this.startTrace(formatted);
+      this.updateLastMessage(activeId, (last) => ({ ...last, trace: this.toolActivity() }));
       return;
     }
 
@@ -650,6 +686,7 @@ export class AiSocketService {
         failed ? 'La consulta devolvió un error' : this.resultSummary(event.result),
         failed,
       );
+      this.updateLastMessage(activeId, (last) => ({ ...last, trace: this.toolActivity() }));
       return;
     }
 
@@ -670,6 +707,7 @@ export class AiSocketService {
         notices: event.notices || last.notices,
         responseMeta: event.response_meta || last.responseMeta,
         suggestedActions: event.suggested_actions || last.suggestedActions,
+        uiBlocks: event.ui_blocks === undefined ? last.uiBlocks : readAiDataBlocks(event.ui_blocks),
       }));
       return;
     }
@@ -703,6 +741,7 @@ export class AiSocketService {
         ...last,
         pending: false,
         tools: event.tools || last.tools,
+        uiBlocks: event.ui_blocks === undefined ? last.uiBlocks : readAiDataBlocks(event.ui_blocks),
         actionItems: event.action_items || last.actionItems,
         trace,
         presentationMode: event.presentation_mode || last.presentationMode,
@@ -731,7 +770,7 @@ export class AiSocketService {
         );
       }
       this.stopThinkingTicker();
-      this.status.set('error');
+      this.status.set(this.socket?.readyState === WebSocket.OPEN ? 'connected' : 'error');
       this.currentThought.set(null);
 
       const trace = this.toolActivity().map((step) =>
@@ -742,14 +781,14 @@ export class AiSocketService {
 
       const errorMsg =
         event.message || (event as any).detail || 'No se pudo completar la consulta.';
-      const codeMsg = event.code ? ` (${event.code})` : '';
 
       this.updateLastMessage(activeId, (last) =>
         last.pending
           ? {
               ...last,
-              content: `**[Error de Altair AI]**${codeMsg}: ${errorMsg}`,
+              content: errorMsg,
               actionItems: [],
+              uiBlocks: [],
               pending: false,
               error: true,
               trace,
@@ -776,8 +815,10 @@ export class AiSocketService {
       list.map((s) => {
         if (s.id !== sessionId || s.messages.length === 0) return s;
         const copy = [...s.messages];
-        const lastIdx = copy.length - 1;
-        if (copy[lastIdx].role === 'assistant') {
+        const lastIdx = this.eventRequestId
+          ? copy.findIndex((message) => message.id === this.eventRequestId)
+          : copy.length - 1;
+        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
           copy[lastIdx] = updater(copy[lastIdx]);
         }
         return { ...s, updatedAt: new Date().toISOString(), messages: copy };
@@ -791,37 +832,76 @@ export class AiSocketService {
     );
   }
 
+  private interruptPending(content: string): void {
+    this.sessions.update((list) =>
+      list.map((session) => ({
+        ...session,
+        messages: session.messages.map((message) =>
+          message.pending
+            ? {
+                ...message,
+                pending: false,
+                error: true,
+                content: message.content || content,
+              }
+            : message,
+        ),
+      })),
+    );
+    this.saveSessionsToStorage();
+  }
+
   private formatToolName(name: string): string {
     const labels: Record<string, string> = {
-      search_products: 'Explorando catálogo del showroom',
-      get_product_detail: 'Inspeccionando detalles de prenda',
-      get_my_cart: 'Consultando prendas en tu perchero',
-      recommend_outfit: 'Diseñando combinación de outfit',
-      get_trending_pieces: 'Consultando prendas de alta gama',
-      get_new_arrivals: 'Explorando novedades del atelier',
-      get_most_expensive_product: 'Seleccionando pieza exclusiva de alto valor',
+      search_products: 'Buscando prendas',
+      respond_with_products: 'Verificando precios del catálogo',
+      respond_with_store_data: 'Confirmando los datos de la tienda',
+      present_ui: 'Preparando las opciones',
+      get_my_shopping_context: 'Consultando tus preferencias',
+      discover_for_me: 'Buscando prendas para ti',
+      recommend_pickup_branches: 'Comparando stock entre sucursales',
+      plan_more_for_less: 'Calculando más prendas por tu presupuesto',
+      find_cart_savings: 'Buscando ahorro real en tu carrito',
+      get_branch_availability: 'Consultando disponibilidad en tiendas',
+      get_store_policy: 'Consultando la información de la tienda',
+      get_my_favorites: 'Revisando tus favoritos',
+      calculate_selection_budget: 'Calculando el presupuesto de tu selección',
+      get_my_payment_status: 'Consultando el estado de tu pago',
+      get_product_detail: 'Consultando detalles de la prenda',
+      get_my_cart: 'Revisando tu carrito',
+      recommend_outfit: 'Armando tu look',
+      get_trending_pieces: 'Consultando prendas destacadas',
+      get_new_arrivals: 'Buscando novedades',
+      get_most_expensive_product: 'Consultando la prenda de mayor precio',
       get_stock: 'Verificando tallas y disponibilidad',
-      find_alternatives: 'Contrastando alternativas de estilo',
+      find_alternatives: 'Buscando alternativas',
       calculate_cart_totals: 'Calculando totales exactos',
-      compare_products: 'Analizando relación valor y calidad',
+      compare_products: 'Comparando prendas',
       get_my_orders: 'Verificando compras recientes',
       get_my_reservations: 'Revisando reservas activas en tienda',
-      evaluate_garment_fit: 'Evaluando caída y holgura textil',
+      evaluate_garment_fit: 'Comprobando datos para evaluar ajuste',
+      ask_shopping_preferences: 'Preparando las opciones para ti',
       analyze_styling: 'Analizando armonía de look',
       prepare_model: 'Preparando Altair AI',
-      compose_response: 'Sintetizando dictamen de estilo',
+      compose_response: 'Preparando la respuesta',
     };
     return labels[name] || `Ejecutando ${name.replace(/_/g, ' ')}`;
   }
 
   private resultSummary(result: unknown): string {
-    if (Array.isArray(result)) return `${result.length} ítems verificados`;
-    if (result && typeof result === 'object') return 'Datos confirmados';
+    if (Array.isArray(result)) return `${result.length} resultados disponibles`;
+    if (
+      result &&
+      typeof result === 'object' &&
+      'configured' in result &&
+      result.configured === false
+    )
+      return 'Esta información aún no está configurada por la tienda';
+    if (result && typeof result === 'object') return 'Consulta completada';
     return 'Completado';
   }
 
   private startTrace(name: string): void {
-    if (this.toolActivity().some((step) => step.name === name)) return;
     this.toolActivity.update((steps) => [
       ...steps,
       { name, state: 'running', startedAt: Date.now() },
@@ -846,12 +926,9 @@ export class AiSocketService {
 
   private scheduleReconnect(): void {
     this.clearReconnect();
-    if (!this.auth.hasValidToken()) return;
-    if (this.reconnectAttempt >= 5) {
-      this.status.set('error');
-      return;
-    }
-    const delay = Math.min(30_000, 1000 * 2 ** this.reconnectAttempt++);
+    if (!this.auth.hasValidToken() || this.manualDisconnect || this.authRejected) return;
+    const delay = Math.min(30_000, 1000 * 2 ** this.reconnectAttempt);
+    this.reconnectAttempt = Math.min(this.reconnectAttempt + 1, 5);
     this.reconnectTimer = window.setTimeout(() => this.connect(), delay);
   }
 

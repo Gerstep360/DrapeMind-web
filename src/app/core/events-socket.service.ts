@@ -21,6 +21,8 @@ export class EventsSocketService {
   connect(): void {
     const token = this.auth.hasValidToken() ? this.auth.token() : null;
     if (!token || this.socket) return;
+    if (this.retryTimer !== null) window.clearTimeout(this.retryTimer);
+    this.retryTimer = null;
     this.manualDisconnect = false;
     this.authRejected = false;
     this.socket = new WebSocket(this.runtime.wsUrl('events'));
@@ -71,15 +73,21 @@ export class EventsSocketService {
   disconnect(manual = true): void {
     this.manualDisconnect = manual;
     if (this.retryTimer !== null) window.clearTimeout(this.retryTimer);
+    this.retryTimer = null;
     this.socket?.close(1000, 'logout');
     this.socket = null;
     this.connected.set(false);
   }
 
   private scheduleRetry(): void {
-    if (!this.auth.hasValidToken() || this.retry >= 5) return;
-    const delay = Math.min(30_000, 1000 * 2 ** this.retry++);
-    this.retryTimer = window.setTimeout(() => this.connect(), delay);
+    if (!this.auth.hasValidToken() || this.manualDisconnect || this.authRejected) return;
+    if (this.retryTimer !== null) return;
+    const delay = Math.min(30_000, 1000 * 2 ** this.retry);
+    this.retry = Math.min(this.retry + 1, 5);
+    this.retryTimer = window.setTimeout(() => {
+      this.retryTimer = null;
+      this.connect();
+    }, delay);
   }
 
   private eventMessage(event: RealtimeEvent): string {

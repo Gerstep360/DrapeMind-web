@@ -1,3 +1,4 @@
+@use '../../../../styles/fashion' as fashion;
 :host {
   display: block;
   min-height: 100dvh;
@@ -8,7 +9,7 @@
   width: 100%;
   min-height: 100dvh;
   grid-template-columns: minmax(390px, 1.05fr) minmax(430px, 0.95fr);
-  background: var(--dm-bg, #F4F5EA);
+  background: var(--dm-bg, var(--dm-canvas));
 }
 
 .login-story {
@@ -19,7 +20,7 @@
   overflow: hidden;
   padding: clamp(1.75rem, 4vw, 4rem);
   color: #FFFFFF;
-  background: var(--dm-ink, #10110F);
+  background: var(--dm-ink);
 }
 
 .story-copy {
@@ -74,8 +75,8 @@
 
 .garment--one {
   inset: 4rem 5rem 0 2rem;
-  background: var(--dm-lime, #DFFF3F);
-  box-shadow: 0 10px 40px var(--dm-lime-glow, rgba(223, 255, 63, 0.35));
+  background: var(--dm-lime);
+  box-shadow: none;
   clip-path: polygon(
     22% 0,
     38% 10%,
@@ -111,14 +112,14 @@
   position: absolute;
   right: 4rem;
   bottom: 5rem;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   background: #FFFFFF;
   padding: 0.2rem 0.6rem;
-  border-radius: var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
 }
 
 .login-form-wrap {
@@ -142,12 +143,12 @@
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 1;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
 }
 
 .form-intro {
   margin: 0 0 2.25rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   font-size: 0.92rem;
   line-height: 1.6;
 }
@@ -167,7 +168,7 @@ form label {
   margin-top: 0.65rem;
   font-size: 0.78rem;
   font-weight: 800;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
 }
 
 .password-meta {
@@ -184,7 +185,7 @@ form label {
 .forgot-password-link {
   border: 0;
   background: transparent;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
@@ -192,7 +193,7 @@ form label {
   transition: color 0.15s ease;
 
   &:hover {
-    color: var(--dm-ink, #10110F);
+    color: var(--dm-ink);
     text-decoration: underline;
   }
 }
@@ -213,7 +214,7 @@ form label {
   min-height: 2.2rem;
   transform: translateY(-50%);
   border: 0;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
   background: transparent;
   font-size: 0.74rem;
   font-weight: 800;
@@ -254,9 +255,9 @@ form label {
   gap: 0.35rem;
   margin: 0.8rem 0 1.25rem;
   padding: 0.3rem;
-  border-radius: var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
   background: var(--dm-surface, #FFFFFF);
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   width: fit-content;
   box-shadow: var(--dm-shadow-xs);
 }
@@ -264,18 +265,18 @@ form label {
 .mode-tab {
   border: 0;
   padding: 0.5rem 1.25rem;
-  border-radius: var(--dm-radius-pill, 999px);
+  border-radius: var(--dm-radius-sm, 999px);
   font-size: 0.82rem;
   font-weight: 800;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &--active {
     color: #FFFFFF;
-    background: var(--dm-ink, #10110F);
-    box-shadow: 0 2px 10px rgba(16, 17, 15, 0.16);
+    background: var(--dm-ink);
+    box-shadow: none;
   }
 }
 
@@ -286,13 +287,13 @@ form label {
   gap: 0.4rem;
   margin-top: 1.35rem;
   font-size: 0.85rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
 }
 
 .link-button {
   border: 0;
   background: transparent;
-  color: var(--dm-ink, #10110F);
+  color: var(--dm-ink);
   font-weight: 800;
   cursor: pointer;
   text-decoration: underline;
@@ -302,7 +303,7 @@ form label {
 
 .privacy-note {
   margin-top: 1.5rem;
-  color: var(--dm-text-muted, #7B7F75);
+  color: var(--dm-text-muted, var(--dm-muted));
   font-size: 0.76rem;
   line-height: 1.55;
 }
@@ -337,3 +338,11 @@ form label {
     padding: 3rem 1.5rem;
   }
 }
+
+.login-story { background:var(--dm-coral); color:var(--dm-ink); border-right:2px solid var(--dm-ink); }.login-story .brand--light,.story-copy h1,.story-copy > p:last-child,.story-foot,.login-story .eyebrow--light { color:var(--dm-ink); }
+.story-copy h1 { font-weight:800; }.garment--one { box-shadow:none; }.garment--two { border-color:var(--dm-ink); }.garment-label { border:2px solid var(--dm-ink); background:var(--dm-paper); box-shadow:4px 4px 0 var(--dm-ink); }
+.login-form-wrap { background:var(--dm-canvas); }.login-form input { border:2px solid var(--dm-ink); }.login-form .button--primary { background:var(--dm-lime); color:var(--dm-ink); border:2px solid var(--dm-ink); box-shadow:4px 4px 0 var(--dm-ink); }
+@media(max-width:900px) { .login-story { border-right:0; border-bottom:2px solid var(--dm-ink); } }
+
+// Shared primitives own visual identity; this component owns layout.
+@include fashion.page;

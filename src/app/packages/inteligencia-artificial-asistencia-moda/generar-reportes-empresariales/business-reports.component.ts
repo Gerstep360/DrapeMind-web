@@ -4,12 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ExecutiveReportRequest, ExecutiveReportResponse } from '@core/models';
 import { ToastService } from '@core/toast.service';
-import { AltairModelSelectorComponent } from '@shared/components/altair/altair-model-selector/altair-model-selector.component';
 
 @Component({
   selector: 'app-business-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, AltairModelSelectorComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './business-reports.component.html',
   styleUrl: './business-reports.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,29 +22,9 @@ export class BusinessReportsComponent implements OnInit {
 
   selectedType: ExecutiveReportRequest['tipo_reporte'] = 'VENTAS_Y_TENDENCIAS';
   selectedPeriod: ExecutiveReportRequest['periodo'] = 'MES_ACTUAL';
-  selectedModel: NonNullable<ExecutiveReportRequest['modelo_ia']> = 'ALTAIR_MINI';
+  selectedModel: NonNullable<ExecutiveReportRequest['modelo_ia']> = 'NVIDIA';
   customFocus = '';
 
-  readonly aiModels = [
-    {
-      id: 'ALTAIR_MINI' as const,
-      title: 'Altair Mini (Scout 0.6B)',
-      badge: 'Predeterminado / Rápido',
-      desc: 'Generación directa y sintética de KPIs con latencia mínima para respuestas ultra-rápidas.',
-    },
-    {
-      id: 'ALTAIR_VARIABLE' as const,
-      title: 'Altair Variable (Híbrido)',
-      badge: 'Adaptativo',
-      desc: 'Orquestación dinámica según la complejidad del periodo y el enfoque analítico elegido.',
-    },
-    {
-      id: 'ALTAIR' as const,
-      title: 'Altair Principal (Gemma 4 E2B)',
-      badge: 'Razonamiento Profundo',
-      desc: 'Análisis exhaustivo, redacción ejecutiva de alto impacto y correlaciones sastreras avanzadas.',
-    },
-  ];
 
   readonly reportTypes = [
     {

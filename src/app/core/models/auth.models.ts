@@ -2,6 +2,8 @@ export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO'
 export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO' | 'SUSPENDIDO';
 
 export interface User {
+  tenant_id?: number | null;
+  is_platform_admin?: boolean;
   id: number;
   nombre: string;
   email: string;
@@ -44,6 +46,8 @@ export interface UserStyleProfile {
   presupuesto_habitual?: number | null;
   silueta_preferida?: string | null;
   adn_estilo_ia?: string | null;
+  inferencia_error?: string | null;
+  infer_style?: boolean;
   primer_outfit_ia?: any | null;
   completado?: boolean;
   created_at?: string;

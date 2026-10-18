@@ -97,7 +97,7 @@ export class PosComponent implements OnInit {
 
   // Asistente de Estilo e IA en Mostrador
   readonly aiModalOpen = signal<boolean>(false);
-  readonly selectedAiModel = signal<AiModelChoice>('altair');
+  readonly selectedAiModel = signal<AiModelChoice>('nvidia');
   readonly aiOccasionControl = new FormControl('', { nonNullable: true });
   readonly aiOutfitSets = signal<OutfitSet[]>([]);
   readonly selectedOutfitSet = signal<OutfitSet | null>(null);
@@ -624,12 +624,7 @@ export class PosComponent implements OnInit {
           }
         }
 
-        const modelLabel =
-          this.selectedAiModel() === 'mini'
-            ? 'Altair Mini'
-            : this.selectedAiModel() === 'dinamico'
-              ? 'Moda Dinámico'
-              : 'Altair Atelier Pro';
+        const modelLabel = 'Altair';
 
         if (allIds.length === 0) {
           this.aiLoading.set(false);

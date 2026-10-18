@@ -8,7 +8,6 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { AiModelMode } from '@core/models';
 import { ChatComposerComponent } from '../chat-composer/chat-composer.component';
 import { ComposerSubmitEvent } from '../altair-component.models';
 
@@ -25,28 +24,17 @@ export class AltairLauncherComponent {
 
   @Input() open = true;
   @Input() title = 'Conversa con Altair';
-  @Input() description = 'La misma sesión, herramientas y configuración del asistente principal.';
+  @Input() description = 'Cuéntanos qué buscas y encontraremos algo para ti.';
   @Input() context = '';
   @Input() modal = false;
   @Output() closed = new EventEmitter<void>();
-
-  readonly model = signal<AiModelMode>(this.readModel());
-
-  selectModel(value: AiModelMode): void {
-    this.model.set(value);
-    try {
-      localStorage.setItem('drapemind_altair_model', value);
-    } catch {
-      /* storage optional */
-    }
-  }
 
   async submit(event: ComposerSubmitEvent): Promise<void> {
     await this.router.navigate(['/ai-studio'], {
       queryParams: {
         autoQuery: event.text,
         context: this.context.trim() || null,
-        mode: this.model(),
+
         command: event.commandLabel || null,
       },
     });
@@ -58,19 +46,10 @@ export class AltairLauncherComponent {
       queryParams: {
         openConfigurator: true,
         context: this.context.trim() || null,
-        mode: this.model(),
+
       },
     });
     this.closed.emit();
   }
 
-  private readModel(): AiModelMode {
-    try {
-      const value = localStorage.getItem('drapemind_altair_model');
-      if (value === 'mini' || value === 'dynamic' || value === 'gemma') return value;
-    } catch {
-      /* storage optional */
-    }
-    return 'dynamic';
-  }
 }

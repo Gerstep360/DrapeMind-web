@@ -4,6 +4,8 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnChanges,
+  OnDestroy,
   Output,
   ViewChild,
   inject,
@@ -21,17 +23,16 @@ import { ComposerSubmitEvent } from '../altair-component.models';
   styleUrl: './chat-composer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatComposerComponent {
+export class ChatComposerComponent implements OnChanges, OnDestroy {
   private readonly toast = inject(ToastService);
 
   @Input() disabled = false;
   @Input() isBusy = false;
-  @Input() activeModel: 'mini' | 'dynamic' | 'gemma' = 'mini';
 
   @Output() sendMessage = new EventEmitter<ComposerSubmitEvent>();
   @Output() cancelGeneration = new EventEmitter<void>();
   @Output() openOutfitBuilder = new EventEmitter<void>();
-  @Output() modelChange = new EventEmitter<'mini' | 'dynamic' | 'gemma'>();
+  @Output() openShoppingSetup = new EventEmitter<string>();
 
   @ViewChild('promptTextarea') promptTextarea?: ElementRef<HTMLTextAreaElement>;
 
@@ -44,32 +45,80 @@ export class ChatComposerComponent {
 
   private speechRecognition: any = null;
 
+  ngOnChanges(): void {
+    if (this.disabled || this.isBusy) this.prompt.disable({ emitEvent: false });
+    else this.prompt.enable({ emitEvent: false });
+  }
+
+  ngOnDestroy(): void {
+    try {
+      this.speechRecognition?.abort();
+    } catch {
+      /* Already stopped. */
+    }
+  }
+
   readonly slashCommands = [
     {
-      label: 'Look por Presupuesto',
-      desc: 'Recomienda outfit por presupuesto máximo en Bs',
+      label: 'Para mí',
+      desc: 'Prendas según mis tallas y gustos',
       template:
-        'Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.',
+        'Busca prendas para mí usando mis preferencias y tallas guardadas. Explica las coincidencias y avisa si falta confirmar algo.',
     },
     {
-      label: 'Analizar Perchero',
+      label: 'Novedades para mí',
+      desc: 'Ingresos recientes que encajan conmigo',
+      template:
+        'Consulta novedades reales de los últimos 30 días que puedan interesarme según mi perfil. Evita repetir las prendas que ya vimos.',
+    },
+    {
+      label: 'Mi sucursal',
+      desc: 'Dónde reunir mi selección',
+      template: 'Compara sucursales para mi carrito con stock real y mi ciudad.',
+    },
+    {
+      label: 'Más por mi presupuesto',
+      desc: 'Más prendas dentro de mi límite',
+      template: 'Calcula más prendas dentro de mi presupuesto, respetando mis tallas y gustos.',
+    },
+    {
+      label: 'Ahorrar en mi carrito',
+      desc: 'Alternativas y extras con el ahorro',
+      template:
+        'Busca alternativas más baratas para mi carrito manteniendo tallas, colores y cantidades. Calcula el ahorro real y si puedo llevar alguna prenda extra sin superar el total actual. Muéstrame la propuesta antes de cambiar nada.',
+    },
+    {
+      label: 'Mi presupuesto',
+      desc: 'Recomienda outfit por presupuesto máximo en Bs',
+      template: 'Crea un look con mis preferencias y mi presupuesto.',
+    },
+    {
+      label: 'Combinar mi carrito',
       desc: 'Revisa prendas del perchero y sugiere combinaciones',
-      template: 'Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.',
+      template: 'Revisa mi carrito y ayúdame a combinar sus prendas.',
     },
     {
-      label: 'Explorar Catálogo',
+      label: 'Buscar prendas',
       desc: 'Descubre piezas exclusivas y novedades',
-      template: 'Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.',
+      template: 'Busca prendas según mis criterios confirmados.',
     },
     {
-      label: 'Diseñar Outfit a Medida',
+      label: 'Armar un look',
       desc: 'Diseña un look completo según criterio estético y ocasión',
-      template: 'Diseña un outfit completo para una ocasión casual elegante con piezas del showroom.',
+      template:
+        'Diseña un outfit completo para una ocasión casual elegante con piezas del showroom.',
     },
   ];
 
   clearActiveCommand(): void {
     this.activeCommand.set(null);
+  }
+
+  selectShoppingTool(index: number): void {
+    this.closePlusMenu();
+    this.openShoppingSetup.emit(
+      ['discover', 'new_arrivals', 'branches', 'budget', 'savings'][index],
+    );
   }
 
   selectSlashCommand(cmd: { label: string; desc: string; template: string }): void {
@@ -80,6 +129,11 @@ export class ChatComposerComponent {
   }
 
   onInputChange(): void {
+    const field = this.promptTextarea?.nativeElement;
+    if (field) {
+      field.style.height = 'auto';
+      field.style.height = `${Math.min(180, field.scrollHeight)}px`;
+    }
     const val = (this.prompt.value || '').trim();
     if (val === '/' && !this.activeCommand()) {
       this.isSlashMenuOpen.set(true);
@@ -104,6 +158,7 @@ export class ChatComposerComponent {
 
   closePlusMenu(): void {
     this.isPlusMenuOpen.set(false);
+    this.isSlashMenuOpen.set(false);
   }
 
   toggleModeMenu(): void {
@@ -118,41 +173,26 @@ export class ChatComposerComponent {
     this.isModeMenuOpen.set(false);
   }
 
-  selectModel(model: 'mini' | 'dynamic' | 'gemma'): void {
-    this.modelChange.emit(model);
-    this.closeModeMenu();
-  }
-
   executeOutfitBuilder(): void {
     this.closePlusMenu();
-    this.openOutfitBuilder.emit();
+    this.openShoppingSetup.emit('outfit');
   }
 
   executeClosetAnalysis(): void {
     this.closePlusMenu();
-    this.activeCommand.set('Analizar Perchero');
-    this.prompt.setValue(
-      'Analiza las prendas de mi perchero y recomiéndame combinaciones de estilo.',
-    );
+    this.activeCommand.set('Combinar mi carrito');
+    this.prompt.setValue('Revisa mi carrito y ayúdame a combinar sus prendas.');
     this.focusPrompt();
   }
 
   executeBudgetLook(): void {
     this.closePlusMenu();
-    this.activeCommand.set('Look por Presupuesto');
-    this.prompt.setValue(
-      'Recomiéndame un outfit moderno y elegante por menos de Bs 400 con piezas del showroom.',
-    );
-    this.focusPrompt();
+    this.openShoppingSetup.emit('budget');
   }
 
   executeCatalogExplore(): void {
     this.closePlusMenu();
-    this.activeCommand.set('Explorar Catálogo');
-    this.prompt.setValue(
-      'Muéstrame las prendas más destacadas y recientes disponibles en el catálogo.',
-    );
-    this.focusPrompt();
+    this.openShoppingSetup.emit('discover');
   }
 
   toggleVoiceRecognition(): void {
@@ -220,7 +260,7 @@ export class ChatComposerComponent {
   send(overrideText?: string): void {
     const raw = (overrideText ?? this.prompt.value ?? '').trim();
     if (!raw && !this.activeCommand()) return;
-    if (this.isBusy) return;
+    if (this.isBusy || this.disabled) return;
 
     const cmdLabel = this.activeCommand();
     let fullContent = raw;

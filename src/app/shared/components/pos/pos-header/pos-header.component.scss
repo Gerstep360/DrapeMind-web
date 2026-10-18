@@ -1,9 +1,10 @@
+@use '../../../../../styles/fashion' as fashion;
 .pos-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--dm-surface, #FFFFFF);
-  border: 1px solid var(--dm-border, #E1E3DA);
+  border: 1px solid var(--dm-border);
   border-radius: var(--dm-radius-lg, 24px);
   padding: 0.85rem 1.75rem;
   box-shadow: var(--dm-shadow-xs, 0 2px 8px rgba(16, 17, 15, 0.04));
@@ -22,16 +23,16 @@
       font-weight: 800;
       letter-spacing: 0.08em;
       padding: 0.35rem 0.85rem;
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-ink);
       color: #FFFFFF;
-      border-radius: var(--dm-radius-pill, 999px);
+      border-radius: var(--dm-radius-sm, 999px);
 
       .pulse-dot {
         width: 6px;
         height: 6px;
-        background: var(--dm-lime, #DFFF3F);
+        background: var(--dm-lime);
         border-radius: 50%;
-        box-shadow: 0 0 8px var(--dm-lime, #DFFF3F);
+        box-shadow: none;
       }
     }
 
@@ -39,7 +40,7 @@
       font-family: var(--font-display, 'Manrope', sans-serif);
       font-size: 1.3rem;
       font-weight: 800;
-      color: var(--dm-ink, #10110F);
+      color: var(--dm-ink);
       margin: 0;
       letter-spacing: -0.02em;
     }
@@ -50,19 +51,19 @@
       display: flex;
       align-items: center;
       gap: 0.65rem;
-      background: var(--dm-surface-soft, #F8F9F2);
-      border: 1px solid var(--dm-border, #E1E3DA);
-      border-radius: var(--dm-radius-pill, 999px);
+      background: var(--dm-surface-soft, var(--dm-canvas));
+      border: 1px solid var(--dm-border);
+      border-radius: var(--dm-radius-sm, 999px);
       padding: 0.35rem 1rem;
 
       .branch-icon {
-        color: var(--dm-ink, #10110F);
+        color: var(--dm-ink);
       }
 
       .label-text {
         font-size: 0.78rem;
         font-weight: 700;
-        color: var(--dm-text-muted, #7B7F75);
+        color: var(--dm-text-muted, var(--dm-muted));
       }
 
       select {
@@ -70,7 +71,7 @@
         background: transparent;
         font-size: 0.84rem;
         font-weight: 800;
-        color: var(--dm-ink, #10110F);
+        color: var(--dm-ink);
         cursor: pointer;
         outline: none;
       }
@@ -87,24 +88,24 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1.1rem;
-      background: var(--dm-ink, #10110F);
+      background: var(--dm-ink);
       color: #FFFFFF;
-      border: 1px solid var(--dm-ink, #10110F);
-      border-radius: var(--dm-radius-pill, 999px);
+      border: 1px solid var(--dm-ink);
+      border-radius: var(--dm-radius-sm, 999px);
       font-size: 0.78rem;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(16, 17, 15, 0.12);
+      box-shadow: none;
       transition: all 0.15s ease;
 
       svg {
-        color: var(--dm-lime, #DFFF3F);
+        color: var(--dm-lime);
       }
 
       &:hover {
         background: #1C1E19;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(16, 17, 15, 0.2);
+        box-shadow: none;
       }
     }
 
@@ -113,14 +114,14 @@
       align-items: center;
       gap: 0.65rem;
       padding-left: 0.75rem;
-      border-left: 1px solid var(--dm-border, #E1E3DA);
+      border-left: 1px solid var(--dm-border);
 
       .avatar-sm {
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: var(--dm-lime, #DFFF3F);
-        color: var(--dm-ink, #10110F);
+        background: var(--dm-lime);
+        color: var(--dm-ink);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -134,12 +135,12 @@
 
         strong {
           font-size: 0.78rem;
-          color: var(--dm-ink, #10110F);
+          color: var(--dm-ink);
         }
 
         small {
           font-size: 0.68rem;
-          color: var(--dm-text-muted, #7B7F75);
+          color: var(--dm-text-muted, var(--dm-muted));
           font-weight: 600;
         }
       }
@@ -158,3 +159,5 @@
     }
   }
 }
+
+@include fashion.controls;

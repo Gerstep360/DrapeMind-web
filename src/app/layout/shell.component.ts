@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 import { AiSocketService } from '@core/ai-socket.service';
+import { SaaSService } from '@core/saas.service';
 import { AuthService } from '@core/auth.service';
 import { CartService } from '@core/cart.service';
 import { EventsSocketService } from '@core/events-socket.service';
@@ -21,6 +24,7 @@ import { NotificationsDrawerComponent } from '@shared/components/notifications/n
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShellComponent {
+  readonly saas=inject(SaaSService);
   readonly auth = inject(AuthService);
   readonly cart = inject(CartService);
   readonly events = inject(EventsSocketService);
@@ -29,15 +33,29 @@ export class ShellComponent {
   readonly branchService = inject(BranchService);
   private readonly ai = inject(AiSocketService);
   private readonly router = inject(Router);
+  readonly chatRoute = toSignal(this.router.events.pipe(
+    filter(event => event instanceof NavigationEnd),
+    map(() => this.router.url.startsWith('/ai-studio')),
+    startWith(this.router.url.startsWith('/ai-studio')),
+  ));
   readonly menuOpen = signal(false);
+  readonly isCustomer = computed(() => this.auth.user()?.rol === 'CLIENTE');
+  readonly storefrontLinks = [
+    { label: 'Colección', route: '/catalog' },
+    { label: 'Favoritos', route: '/favorites' },
+    { label: 'Mis pedidos', route: '/orders' },
+    { label: 'Reservas', route: '/reservations' },
+    { label: 'Con Altair', route: '/ai-studio' },
+  ];
   readonly isBranchDropdownOpen = signal(false);
 
   readonly navigation = computed(() => {
-    return navigationForRole(this.auth.user()?.rol);
+    return navigationForRole(this.auth.user()?.rol).map(group=>({...group,items:group.items.filter(item=>item.route!=='/ai-reports'||this.saas.current()?.plan?.features['ai_reports'])})).filter(group=>group.items.length>0);
   });
   readonly expandedPackages = signal<Set<string>>(new Set());
 
   constructor() {
+    this.saas.load().subscribe({next:state=>{if(!state.access_active&&!this.router.url.startsWith('/subscription'))void this.router.navigate(['/subscription']);},error:()=>{}});
     this.events.connect();
     this.branchService.loadBranches();
 
@@ -55,7 +73,7 @@ export class ShellComponent {
     // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
     if (
-      user &&
+      user?.rol==='CLIENTE' && !this.router.url.startsWith('/subscription') &&
       user.has_style_profile === false &&
       this.auth.onboardingSkippedForUser() !== user.id
     ) {

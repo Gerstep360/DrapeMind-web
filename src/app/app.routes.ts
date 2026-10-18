@@ -1,8 +1,16 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { platformGuard } from './core/saas.service';
 import { packageRoutes } from './core/navigation/package-routes';
 
 export const routes: Routes = [
+  {
+    path: 'saas-platform',
+    title: 'Empresas | DrapeMind',
+    canActivate: [authGuard, platformGuard],
+    loadComponent: () =>
+      import('./packages/saas/platform.component').then((m) => m.PlatformComponent),
+  },
   {
     path: 'login',
     loadComponent: () =>

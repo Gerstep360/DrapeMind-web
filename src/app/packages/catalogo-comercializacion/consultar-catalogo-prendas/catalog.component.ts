@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, finalize, forkJoin, Observable } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, forkJoin, Observable, of } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { BranchService } from '@core/branch.service';
 import { CartService } from '@core/cart.service';
@@ -48,6 +48,8 @@ export class CatalogComponent {
   readonly products = signal<Product[]>([]);
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
+  readonly catalogError = signal<string | null>(null);
+  private productRequest = 0;
   readonly editorOpen = signal(false);
   readonly saving = signal(false);
   readonly favoriteIds = signal<Set<number>>(new Set());
@@ -219,32 +221,30 @@ export class CatalogComponent {
   }
 
   load(): void {
+    this.loadProducts();
     forkJoin({
-      categories: this.api.categories(),
-      products: this.api.products({ limit: this.limit, offset: 0 }),
-      favorites: this.api.favorites(),
+      categories: this.api.categories().pipe(catchError(() => of([]))),
+      favorites: this.api.favorites().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ categories, products, favorites }) => {
+      next: ({ categories, favorites }) => {
         this.categories.set(categories);
-        this.products.set(products);
-        this.offset.set(products.length);
-        this.hasMore.set(products.length >= this.limit);
         this.favoriteIds.set(new Set(favorites.map((product) => product.id)));
-        this.loading.set(false);
       },
-      error: () => this.loading.set(false),
     });
   }
 
   loadProducts(append = false): void {
     if (append) {
-      if (this.loadingMore() || !this.hasMore()) return;
+      if (this.loading() || this.loadingMore() || !this.hasMore()) return;
       this.loadingMore.set(true);
     } else {
       this.loading.set(true);
+      this.loadingMore.set(false);
       this.offset.set(0);
       this.hasMore.set(true);
     }
+    const request = ++this.productRequest;
+    this.catalogError.set(null);
 
     const currentOffset = append ? this.offset() : 0;
     const gender = this.selectedGender() === 'TODOS' ? undefined : this.selectedGender();
@@ -262,6 +262,7 @@ export class CatalogComponent {
       })
       .subscribe({
         next: (incoming) => {
+          if (request !== this.productRequest) return;
           if (append) {
             this.products.update((prev) => [...prev, ...incoming]);
             this.offset.set(currentOffset + incoming.length);
@@ -274,8 +275,10 @@ export class CatalogComponent {
           this.hasMore.set(incoming.length >= this.limit);
         },
         error: () => {
+          if (request !== this.productRequest) return;
+          this.catalogError.set('No pudimos cargar las prendas. Intenta de nuevo.');
           if (append) this.loadingMore.set(false);
-          else this.loading.set(false);
+          else { this.loading.set(false); this.products.set([]); }
         },
       });
   }

@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
+import { aiReportsPlanGuard } from '../saas.service';
 
 /** Feature routes grouped by the same business packages used by navigation. */
 export const packageRoutes: Routes = [
+  { path: 'subscription', title: 'Plan de empresa | DrapeMind', loadComponent: () => import('../../packages/saas/subscription.component').then(m => m.SubscriptionComponent) },
   {
     path: 'dashboard',
     title: 'Resumen | DrapeMind',
@@ -157,6 +159,7 @@ export const packageRoutes: Routes = [
   },
   {
     path: 'ai-reports',
+    canActivate: [aiReportsPlanGuard],
     title: 'Informes Ejecutivos IA | DrapeMind',
     data: { package: 'Inteligencia artificial y asistencia de moda' },
     loadComponent: () =>
