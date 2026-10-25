@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ToastService } from '@core/toast.service';
 import { Branch, City } from '@core/models';
+import { SaaSService, saasError } from '@core/saas.service';
 
 @Component({
   selector: 'app-branches-management',
@@ -14,6 +15,7 @@ import { Branch, City } from '@core/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BranchesManagementComponent implements OnInit {
+  readonly saas=inject(SaaSService);
   private readonly adminApi = inject(AdminApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toasts = inject(ToastService);
@@ -59,6 +61,7 @@ export class BranchesManagementComponent implements OnInit {
   }
 
   loadData(): void {
+    this.saas.load().subscribe({error:()=>{}});
     this.loading.set(true);
     this.adminApi.listCities(true).subscribe({
       next: (cities) => {
@@ -164,7 +167,7 @@ export class BranchesManagementComponent implements OnInit {
           this.loadData();
         },
         error: (err) => {
-          this.toasts.show('Error al registrar sucursal: ' + (err.error?.detail || err.message), 'error');
+          this.toasts.show(saasError(err), 'error');
         },
       });
     }

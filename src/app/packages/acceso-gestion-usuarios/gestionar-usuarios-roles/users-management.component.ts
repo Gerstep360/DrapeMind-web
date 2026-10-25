@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AdminApiService } from '@core/api/admin-api.service';
 import { ToastService } from '@core/toast.service';
 import { User, UserRole, UserStatus } from '@core/models';
+import { saasError } from '@core/saas.service';
 
 @Component({
   selector: 'app-users-management',
@@ -32,7 +33,7 @@ export class UsersManagementComponent implements OnInit {
   userForm!: FormGroup;
 
   readonly rolesList: UserRole[] = ['ADMIN', 'ENCARGADO', 'VENDEDOR', 'CAJERO', 'CLIENTE'];
-  readonly statusList: UserStatus[] = ['ACTIVO', 'SUSPENDIDO', 'INACTIVO'];
+  readonly statusList: UserStatus[] = ['ACTIVO', 'BLOQUEADO', 'INACTIVO'];
 
   ngOnInit(): void {
     this.initForm();
@@ -144,7 +145,7 @@ export class UsersManagementComponent implements OnInit {
           this.loadUsers();
         },
         error: (err) => {
-          this.toasts.show('Error al actualizar usuario: ' + (err.error?.detail || err.message), 'error');
+          this.toasts.show('Error al actualizar usuario: ' + saasError(err), 'error');
         },
       });
     } else {
@@ -155,7 +156,7 @@ export class UsersManagementComponent implements OnInit {
           this.loadUsers();
         },
         error: (err) => {
-          this.toasts.show('Error al crear usuario: ' + (err.error?.detail || err.message), 'error');
+          this.toasts.show('Error al crear usuario: ' + saasError(err), 'error');
         },
       });
     }
