@@ -15,15 +15,21 @@ manager() {
     printf 'Prepara ambos repositorios con python3 instalar_vps.py antes de configurar servicios.\n' >&2
     exit 1
 }
+feedback() {
+    [[ -z "${DRAPE_PROGRESS_FILE:-}" ]] || { printf '%s:?:%s\n' "$1" "$2" >"$DRAPE_PROGRESS_FILE.next"; mv -f "$DRAPE_PROGRESS_FILE.next" "$DRAPE_PROGRESS_FILE"; }
+}
 build() {
     [[ $EUID -eq 0 ]] || { printf 'Usa sudo para publicar en /var/www.\n' >&2; return 1; }
     [[ "$DRAPE_PREFIX" =~ ^/[a-zA-Z0-9_-]+$ ]] || return 2
     [[ "$PUBLIC_ROOT" == /*/drapemind && "$PUBLIC_ROOT" != *'/../'* ]] || return 2
     command -v node >/dev/null && command -v npm >/dev/null || { printf 'Prepara Node con el gestor principal.\n' >&2; return 1; }
     cd "$WEB_DIR"
+    feedback npm 'Instalando las dependencias exactas de package-lock.json'
     # npm valida el engine real de Angular; nunca se modifica node_modules para saltarlo.
     npm ci --no-audit --no-fund --engine-strict
+    feedback Angular 'Compilando la aplicación para producción'
     npm exec -- ng build --configuration production --base-href "$DRAPE_PREFIX/"
+    feedback Web 'Preparando la nueva versión; se conserva la publicada hasta terminar'
     [[ -f dist/web/browser/index.html ]] || return 1
     local release temporary previous=''
     release="$PUBLIC_ROOT/releases/$(date -u +%Y%m%dT%H%M%S)-$$"
