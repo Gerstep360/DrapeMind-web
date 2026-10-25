@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@core/auth.service';
@@ -7,7 +8,7 @@ import { SaaSService, SaaSPlan, CompanySubscription, saasError } from '@core/saa
 @Component({
   selector: 'app-saas-platform',
   standalone: true,
-  imports: [DatePipe, ReactiveFormsModule],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './saas.scss',
   template: `<main class="saas-page saas-platform">
@@ -58,6 +59,7 @@ import { SaaSService, SaaSPlan, CompanySubscription, saasError } from '@core/saa
                 <td>
                   <strong>{{ row.tenant.name }}</strong
                   ><small>{{ row.tenant.slug }}{{ row.tenant.is_demo ? ' · DEMO' : '' }}</small>
+                  <a [routerLink]="['/tienda', row.tenant.slug]" target="_blank" rel="noopener">Abrir acceso de la tienda</a>
                 </td>
                 <td>
                   {{ row.plan?.name || 'Sin plan'

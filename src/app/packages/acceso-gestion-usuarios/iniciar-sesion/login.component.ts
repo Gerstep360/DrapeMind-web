@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { AuthService } from '@core/auth.service';
 import { TenantService } from '@core/tenant.service';
-import { SaaSService, saasError } from '@core/saas.service';
+import { RuntimeConfigService } from '@core/runtime-config.service';
 import { BranchService } from '@core/branch.service';
 
 @Component({
@@ -21,8 +22,9 @@ export class LoginComponent {
   private readonly router = inject(Router);
 
   readonly tenant = inject(TenantService);
-  private readonly saas = inject(SaaSService);
-  readonly platform = signal(false);
+  readonly storeName = signal<string | null>(null);
+  readonly resolvingStore = signal(false);
+  readonly storeUnavailable = signal(false);
   readonly mode = signal<'login' | 'register' | 'forgot'>('login');
   readonly loading = signal(false);
   readonly error = signal('');
@@ -30,24 +32,31 @@ export class LoginComponent {
   readonly showPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    company: [
-      this.tenant.slug(),
-      [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)],
-    ],
     nombre: [''],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required]],
     telefono: [''],
   });
 
-  togglePlatform(): void {
-    this.platform.set(!this.platform());
-    if (this.platform()) this.form.controls.company.disable();
-    else this.form.controls.company.enable();
+  constructor() {
+    const slug = inject(ActivatedRoute).snapshot.paramMap.get('slug');
+    if (!slug) {
+      this.tenant.entrySlug.set(null);
+      this.tenant.select('drapemind');
+      return;
+    }
+    try { this.tenant.enterStore(slug); }
+    catch { this.storeUnavailable.set(true); this.error.set('Este enlace de tienda no es válido.'); return; }
+    this.resolvingStore.set(true);
+    const http = inject(HttpClient), runtime = inject(RuntimeConfigService);
+    http.get<{slug:string;name:string}>(`${runtime.apiUrl}/saas/companies/${encodeURIComponent(slug)}`)
+      .pipe(finalize(() => this.resolvingStore.set(false))).subscribe({
+        next: store => { this.storeName.set(store.name); this.tenant.name.set(store.name); },
+        error: () => { this.storeUnavailable.set(true); this.error.set('Esta tienda no está disponible. Revisa el enlace de acceso.'); },
+      });
   }
 
   setMode(target: 'login' | 'register' | 'forgot'): void {
-    if (target !== 'login' && this.platform()) this.togglePlatform();
     this.mode.set(target);
     this.error.set('');
     this.successMessage.set('');
@@ -58,6 +67,8 @@ export class LoginComponent {
       this.form.controls.nombre.clearValidators();
     }
     this.form.controls.nombre.updateValueAndValidity();
+    this.form.controls.password.setValidators(target === 'login' ? [Validators.required] : [Validators.required, Validators.minLength(8)]);
+    this.form.controls.password.updateValueAndValidity();
   }
 
   toggleMode(): void {
@@ -66,11 +77,10 @@ export class LoginComponent {
   }
 
   submit(): void {
-    if (this.form.invalid || this.loading()) {
+    if (this.form.invalid || this.loading() || this.resolvingStore() || this.storeUnavailable()) {
       this.form.markAllAsTouched();
       return;
     }
-    if (!this.platform()) this.tenant.select(this.form.controls.company.value);
     this.loading.set(true);
     this.error.set('');
     this.successMessage.set('');
@@ -127,30 +137,16 @@ export class LoginComponent {
         });
     } else {
       this.auth
-        .login(email.trim().toLowerCase(), password, this.platform())
+        .login(email.trim().toLowerCase(), password)
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: (user) => {
-            if (user.is_platform_admin) {
-              void this.router.navigate(['/saas-platform']);
-              return;
-            }
-            this.saas.load().subscribe({
-              next: (state) => {
-                if (!state.access_active) void this.router.navigate(['/subscription']);
-              },
-              error: () => {},
-            });
-            this.branchService.loadBranches();
-            if (user.rol === 'CLIENTE' && user.has_style_profile === false) {
-              void this.router.navigate(['/onboarding']);
-            } else {
-              void this.router.navigate(['/dashboard']);
-            }
+            if (!user.is_platform_admin && this.auth.destination() !== '/subscription') this.branchService.loadBranches();
+            void this.router.navigateByUrl(this.auth.destination());
           },
           error: (error) =>
             this.error.set(
-              error?.error?.detail ?? 'Credenciales incorrectas. Revisa tu correo y contraseña.',
+              (typeof error?.error?.detail === 'string' ? error.error.detail : error?.error?.detail?.message) || 'No pudimos iniciar sesión. Revisa tu correo y contraseña.',
             ),
         });
     }

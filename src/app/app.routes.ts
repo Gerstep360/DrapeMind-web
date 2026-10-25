@@ -5,6 +5,15 @@ import { packageRoutes } from './core/navigation/package-routes';
 
 export const routes: Routes = [
   {
+    path: 'tienda/:slug',
+    title: 'Entrar a tu tienda | DrapeMind',
+    loadComponent: () => import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(m => m.LoginComponent),
+  },
+  {
+    path: 'tienda/:slug/login',
+    loadComponent: () => import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(m => m.LoginComponent),
+  },
+  {
     path: 'saas-platform',
     title: 'Empresas | DrapeMind',
     canActivate: [authGuard, platformGuard],

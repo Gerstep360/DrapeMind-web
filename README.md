@@ -1,5 +1,7 @@
 # DrapeMind Web
 
+El acceso pide correo y contraseña; la API determina la empresa y el destino. Los enlaces `/tienda/<slug>` reconocen la tienda automáticamente. No hay selector de empresa ni casilla de administración.
+
 Despliegue compartido en `https://167.86.106.105/DrapeMind/`: prepara ambos repositorios con `python3 instalar_vps.py` desde `/root/app/DrapeMind`. El gestor nativo compila con Node privado, publica por versiones y configura Nginx/API/WebSockets. [Guía del instalador](../backend/docs/INSTALACION_VPS.md).
 
 Panel Angular standalone para ADMIN y VENDEDOR, con catalogo, inventario, reservas, pedidos,

@@ -12,6 +12,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     router = inject(Router);
   const base = inject(RuntimeConfigService).apiUrl;
   if (!(request.url === base || request.url.startsWith(base + '/'))) return next(request);
+  // El acceso descubre la cuenta por credenciales, sin arrastrar la tienda o JWT anteriores.
+  if (request.url === base + '/auth/login') return next(request);
   const company = tenant.slug();
   const token = auth.hasValidToken() ? auth.token() : null;
   const owner = () => {
@@ -29,7 +31,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   };
   const identity = owner();
   const authorized = request.clone({
-    setHeaders: { 'X-Tenant': company, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    setHeaders: { ...(company ? { 'X-Tenant': company } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   });
   return next(authorized).pipe(
     filter(

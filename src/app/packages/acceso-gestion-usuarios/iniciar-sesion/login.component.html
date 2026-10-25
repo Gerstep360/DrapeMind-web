@@ -22,7 +22,7 @@
 
   <section class="login-form-wrap">
     <div class="login-form">
-      <p class="eyebrow">Tu tienda, tu empresa</p>
+      <p class="eyebrow">{{ storeName() || 'DrapeMind' }}</p>
 
       @if (mode() !== 'forgot') {
         <div class="mode-tabs">
@@ -47,7 +47,7 @@
 
       @if (mode() === 'login') {
         <h2>Bienvenido de vuelta</h2>
-        <p class="form-intro">Ingresa con tu cuenta de administrador, vendedor o cliente.</p>
+        <p class="form-intro">Tu correo y contraseña. Nosotros te llevamos a tu espacio.</p>
       } @else if (mode() === 'register') {
         <h2>Crea tu cuenta</h2>
         <p class="form-intro">
@@ -61,21 +61,6 @@
       }
 
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-        @if (mode() === 'login') {
-          <label class="platform-access"
-            ><input type="checkbox" [checked]="platform()" (change)="togglePlatform()" />
-            Administración de la plataforma</label
-          >
-        }
-        @if (!platform()) {
-          <label for="company">Empresa</label
-          ><input
-            id="company"
-            formControlName="company"
-            autocomplete="organization"
-            placeholder="mi-empresa"
-          /><small>Usa el identificador que te entreg? tu empresa.</small>
-        }
         @if (mode() === 'register') {
           <label for="nombre">Nombre completo</label>
           <input
@@ -90,7 +75,7 @@
           }
         }
 
-        <label for="email">Correo electronico</label>
+        <label for="email">Correo electrónico</label>
         <input
           id="email"
           type="email"
@@ -118,7 +103,7 @@
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
             [autocomplete]="mode() === 'forgot' ? 'new-password' : 'current-password'"
-            placeholder="Minimo 8 caracteres"
+            [placeholder]="mode() === 'login' ? 'Tu contraseña' : 'Mínimo 8 caracteres'"
           />
           <button
             type="button"
@@ -153,7 +138,7 @@
           <div class="form-success" role="status">{{ successMessage() }}</div>
         }
 
-        <button class="button button--primary button--wide" type="submit" [disabled]="loading()">
+        <button class="button button--primary button--wide" type="submit" [disabled]="loading() || resolvingStore() || storeUnavailable()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
             @if (mode() === 'login') {
@@ -165,7 +150,7 @@
             }
           } @else {
             @if (mode() === 'login') {
-              Entrar al sistema
+              Entrar
             } @else if (mode() === 'register') {
               Registrarme y acceder
             } @else {
@@ -196,7 +181,7 @@
       </form>
 
       <p class="privacy-note">
-        Conexion protegida con JWT. Tus datos están asociados a tu empresa.
+        Una cuenta, tu espacio. Tu tienda y tus permisos se reconocen al entrar.
       </p>
     </div>
   </section>

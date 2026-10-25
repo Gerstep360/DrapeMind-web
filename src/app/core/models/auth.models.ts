@@ -4,6 +4,8 @@ export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO';
 export interface User {
   tenant_id?: number | null;
   is_platform_admin?: boolean;
+  tenant_slug?: string | null;
+  tenant_name?: string | null;
   id: number;
   nombre: string;
   email: string;
@@ -67,4 +69,7 @@ export interface TokenResponse {
   access_token: string;
   token_type: 'bearer';
   expires_in: number;
+  user?: User | null;
+  tenant?: { id: number; slug: string; name: string } | null;
+  redirect_path?: string | null;
 }

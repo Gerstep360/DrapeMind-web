@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, firstValueFrom, switchMap, tap, timeout } from 'rxjs';
+import { Observable, firstValueFrom, of, switchMap, tap, timeout, catchError, throwError } from 'rxjs';
 import { OnboardingGreeting, TokenResponse, User, UserStyleProfile } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
+import { TenantService } from './tenant.service';
 
 const TOKEN_KEY = 'drapemind_access_token';
 const USER_KEY = 'drapemind_user';
@@ -13,6 +14,8 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly runtime = inject(RuntimeConfigService);
+  private readonly tenant = inject(TenantService);
+  readonly destination = signal('/dashboard');
   private expiryTimer: number | null = null;
   private refreshPending: Promise<void> | null = null;
   private readonly tokenState = signal<string | null>(this.readStoredToken());
@@ -30,18 +33,24 @@ export class AuthService {
     if (token) this.scheduleExpiry(token);
   }
 
-  login(email: string, password: string, platform = false): Observable<User> {
+  login(email: string, password: string): Observable<User> {
     this.logout(false);
     return this.http
-      .post<TokenResponse>(`${this.runtime.apiUrl}${platform ? '/saas/platform/login' : '/auth/login'}`, { email, password })
+      .post<TokenResponse>(`${this.runtime.apiUrl}/auth/login`, {
+        email, password, ...(this.tenant.entrySlug() ? { tenant_slug: this.tenant.entrySlug() } : {}),
+      })
       .pipe(
         tap((response) => {
           localStorage.setItem(TOKEN_KEY, response.access_token);
           sessionStorage.setItem(TOKEN_KEY, response.access_token);
           this.tokenState.set(response.access_token);
           this.scheduleExpiry(response.access_token);
+          this.tenant.useAccount(response.tenant?.slug ?? response.user?.tenant_slug, response.tenant?.name ?? response.user?.tenant_name);
+          const allowed = ['/saas-platform','/subscription','/onboarding','/catalog','/pos','/dashboard'];
+          this.destination.set(allowed.includes(response.redirect_path || '') ? response.redirect_path! : '/dashboard');
         }),
-        switchMap(() => this.loadMe()),
+        switchMap((response) => response.user ? of(this.storeUser(response.user)) : this.loadMe()),
+        catchError(error => { this.logout(false); return throwError(() => error); }),
       );
   }
 
@@ -59,12 +68,16 @@ export class AuthService {
 
   loadMe(): Observable<User> {
     return this.http.get<User>(`${this.runtime.apiUrl}/auth/me`).pipe(
-      tap((user) => {
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
-        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-        this.user.set(user);
-      }),
+      tap((user) => this.storeUser(user)),
     );
+  }
+
+  private storeUser(user: User): User {
+    this.tenant.useAccount(user.tenant_slug, user.tenant_name);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    this.user.set(user);
+    return user;
   }
 
   getStyleProfile(): Observable<UserStyleProfile> {
