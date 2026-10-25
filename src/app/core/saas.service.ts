@@ -37,6 +37,7 @@ export interface CompanySubscription {
 }
 export function saasError(error: any): string {
   const detail = error?.error?.detail;
+  if(Array.isArray(detail)) return detail.map(item=>item.msg||'Revisa los datos del formulario').join('. ');
   return typeof detail === 'string'
     ? detail
     : detail?.message ||

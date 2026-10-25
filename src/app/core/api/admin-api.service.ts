@@ -114,7 +114,7 @@ export class AdminApiService {
   // CU-30: Categorías, Tallas, Colores y Variantes
   // ==========================================
   listCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.runtime.apiUrl}/catalog/categories`);
+    return this.http.get<Category[]>(`${this.runtime.apiUrl}/admin/categories`,{params:{include_inactive:true}});
   }
 
   createCategory(payload: CategoryInput): Observable<Category> {

@@ -5,6 +5,7 @@
     <p class="page-lead">
       Administra la presencia física del atelier, gestiona locales comerciales y coordina la red de ciudades habilitadas.
     </p>
+    @if(saas.current();as license){<p role="status">Plan {{license.plan?.name}}: {{license.active_branches}} de {{license.plan?.max_branches}} sucursales activas. Las sedes inactivas no consumen capacidad.</p>}
   </div>
   <div class="actions">
     @if (activeTab() === 'branches') {
