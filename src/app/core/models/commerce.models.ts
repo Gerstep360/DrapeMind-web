@@ -65,6 +65,8 @@ export interface AddressInput {
 export interface CheckoutRequest {
   tipo_entrega: 'DELIVERY' | 'RECOJO' | 'TIENDA';
   direccion_id?: number | null;
+  sucursal_id?: number | null;
+  canal?: 'WEB' | 'MOBILE';
   costo_envio?: number;
   observacion?: string | null;
   codigo_promocion?: string | null;

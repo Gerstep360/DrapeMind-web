@@ -16,9 +16,11 @@
       </div>
       <div class="storefront-header__main">
         <a class="storefront-brand" routerLink="/catalog" aria-label="DrapeMind · Ir a la colección"
-          ><span class="storefront-brand__mark">D</span>DrapeMind<span class="storefront-brand__dot"
-            >.</span
-          ></a
+          ><span class="storefront-brand__mark">{{
+            auth.user()?.tenant_name?.slice(0, 1) || 'D'
+          }}</span
+          ><span class="storefront-brand__name">{{ auth.user()?.tenant_name || 'DrapeMind' }}</span
+          ><span class="storefront-brand__dot">.</span></a
         >
         <nav class="storefront-nav" aria-label="Tu tienda">
           @for (link of storefrontLinks; track link.route) {
@@ -31,6 +33,7 @@
           }
         </nav>
         <div class="storefront-actions">
+          <a routerLink="/tiendas" title="Cambiar de tienda">Tiendas</a>
           <a routerLink="/account" title="Mi cuenta" aria-label="Mi cuenta"
             ><app-nav-icon name="account"
           /></a>

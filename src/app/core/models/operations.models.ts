@@ -67,6 +67,16 @@ export interface ReceiptPayment {
 }
 
 export interface ReceiptData {
+  empresa?: {
+    id: number;
+    nombre: string;
+    slug: string;
+    direccion: string;
+    telefono: string;
+    email: string;
+  };
+  atendido_por?: { id: number; nombre: string } | null;
+  comprador_registrado?: boolean;
   order: {
     id: number;
     codigo_publico: string;

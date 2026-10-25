@@ -12,6 +12,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     router = inject(Router);
   const base = inject(RuntimeConfigService).apiUrl;
   if (!(request.url === base || request.url.startsWith(base + '/'))) return next(request);
+  if (request.url.endsWith('/public-receipt')) return next(request);
   // El acceso descubre la cuenta por credenciales, sin arrastrar la tienda o JWT anteriores.
   if (request.url === base + '/auth/login') return next(request);
   const company = tenant.slug();
@@ -31,7 +32,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   };
   const identity = owner();
   const authorized = request.clone({
-    setHeaders: { ...(company ? { 'X-Tenant': company } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    setHeaders: {
+      ...(company ? { 'X-Tenant': company } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
   return next(authorized).pipe(
     filter(
@@ -42,7 +46,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       if (owner() !== identity || tenant.slug() !== company) return EMPTY;
       if (error.status === 401 && token && auth.token() === token) auth.logout();
       if (error.status === 402 && token && !router.url.startsWith('/subscription'))
-        void router.navigate(['/subscription']);
+        void router.navigate(auth.user()?.rol === 'CLIENTE' ? ['/tiendas'] : ['/subscription']);
       return throwError(() => error);
     }),
   );

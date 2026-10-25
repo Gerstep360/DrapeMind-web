@@ -1,0 +1,476 @@
+<main class="platform">
+  <header class="masthead">
+    <a class="brand" routerLink="/saas-platform"
+      ><span>D</span> DrapeMind <small>Empresas</small></a
+    >
+    <button class="quiet" (click)="auth.logout()">Cerrar sesión</button>
+  </header>
+  <section class="heading">
+    <div>
+      <p class="eyebrow">Administración de la plataforma</p>
+      <h1>El lugar de cada tienda.</h1>
+      <p>Registra empresas, comparte su enlace y acompaña su crecimiento.</p>
+    </div>
+    <button class="primary" (click)="openCompany()" [disabled]="loading() || !plans().length">
+      ＋ Crear empresa
+    </button>
+  </section>
+  @if (notice()) {
+    <p class="notice" role="status">
+      {{ notice()
+      }}<button class="quiet" aria-label="Cerrar aviso" (click)="notice.set('')">×</button>
+    </p>
+  }
+  @if (error() && !companyDialog.open && !licenseDialog.open && !detailsDialog.open) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (created(); as row) {
+    <section class="created">
+      <div>
+        <p class="eyebrow">Tu empresa ya tiene su lugar</p>
+        <h2>{{ row.tenant.name }}</h2>
+        <a [routerLink]="['/tienda', row.tenant.slug]" target="_blank" rel="noopener">{{
+          storeLink(row.tenant.slug)
+        }}</a>
+        <p>
+          {{
+            row.access_active
+              ? 'Su administrador ya puede configurar productos y sucursales.'
+              : 'Su administrador puede entrar con el correo y la contraseña que definiste para contratar el plan.'
+          }}
+        </p>
+      </div>
+      <button class="secondary" (click)="copyLink(row.tenant.slug)">Copiar enlace</button>
+    </section>
+  }
+  <section class="summary" aria-label="Resumen de empresas">
+    <div>
+      <span>Empresas registradas</span><strong>{{ tenants().length }}</strong>
+    </div>
+    <div>
+      <span>Con acceso activo</span><strong>{{ activeCount() }}</strong>
+    </div>
+    <div>
+      <span>Pendientes de activar</span><strong>{{ tenants().length - activeCount() }}</strong>
+    </div>
+  </section>
+  <nav class="tabs" aria-label="Administración">
+    <button [class.selected]="tab() === 'companies'" (click)="tab.set('companies')">Empresas</button
+    ><button [class.selected]="tab() === 'plans'" (click)="tab.set('plans')">
+      Planes y precios
+    </button>
+  </nav>
+  @if (tab() === 'companies') {
+    <section aria-labelledby="companies-title">
+      <div class="section-bar">
+        <h2 id="companies-title">Tus empresas</h2>
+        <div class="toolbar">
+          <input
+            aria-label="Buscar empresa"
+            placeholder="Buscar por nombre…"
+            [value]="search()"
+            (input)="search.set($any($event.target).value)"
+          /><button class="quiet" [disabled]="loading()" (click)="load()">
+            {{ loading() ? 'Actualizando…' : 'Actualizar' }}
+          </button>
+        </div>
+      </div>
+      @if (loading() && !tenants().length) {
+        <div class="empty" role="status">Cargando tus empresas…</div>
+      } @else {
+        <div class="companies">
+          @for (row of filtered(); track row.tenant.id) {
+            <article class="company-row">
+              <div class="store-mark" aria-hidden="true">
+                {{ row.tenant.name.slice(0, 1).toUpperCase() }}
+              </div>
+              <div class="company-name">
+                <h3>{{ row.tenant.name }}</h3>
+                <a [routerLink]="['/tienda', row.tenant.slug]" target="_blank" rel="noopener"
+                  >Abrir tienda ↗</a
+                ><small>{{
+                  row.tenant.is_demo ? 'Empresa de demostración' : row.tenant.slug
+                }}</small>
+              </div>
+              <div class="company-plan">
+                <strong>{{ row.plan?.name || 'Sin plan' }}</strong
+                ><small
+                  >{{ row.active_branches }} de {{ row.plan?.max_branches || '—' }} sucursales
+                  activas</small
+                >
+              </div>
+              <div class="company-status">
+                <span class="status" [class.active]="row.access_active">{{ status(row) }}</span
+                ><small>{{
+                  row.subscription?.ends_at
+                    ? 'Vence el ' + (row.subscription?.ends_at | date: 'dd/MM/yyyy')
+                    : 'Sin fecha de activación'
+                }}</small>
+              </div>
+              <div class="row-actions">
+                <button class="secondary" (click)="editLicense(row)">Gestionar plan</button>
+                <details>
+                  <summary aria-label="Más opciones de empresa">•••</summary>
+                  <div>
+                    <button (click)="editCompany(row)">Datos comerciales</button
+                    ><button (click)="copyLink(row.tenant.slug)">Copiar enlace</button
+                    ><button [disabled]="busy()" (click)="toggle(row)">
+                      {{ row.tenant.active ? 'Suspender acceso' : 'Habilitar acceso' }}
+                    </button>
+                  </div>
+                </details>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty">
+              <h3>{{ search() ? 'No encontramos esa empresa' : 'Todo empieza con una tienda' }}</h3>
+              <p>
+                {{
+                  search()
+                    ? 'Prueba con otro nombre.'
+                    : 'Registra su nombre, administrador y plan. El enlace se prepara automáticamente.'
+                }}
+              </p>
+              @if (!search()) {
+                <button class="primary" (click)="openCompany()">Crear primera empresa</button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="plan-layout">
+      <div>
+        <h2>Planes para cada etapa</h2>
+        <p class="muted">Elige un plan para ajustar su capacidad, funciones y precios.</p>
+        <div class="plan-list">
+          @for (plan of plans(); track plan.id) {
+            <button [class.selected]="editingPlan()?.id === plan.id" (click)="editPlan(plan)">
+              <strong>{{ plan.name }}</strong
+              ><span>{{ planPrice(plan) }} / mes</span
+              ><small>Hasta {{ plan.max_branches }} sucursales</small>
+            </button>
+          }
+        </div>
+      </div>
+      @if (editingPlan(); as plan) {
+        <section class="editor">
+          <h2>Editar {{ plan.name }}</h2>
+          <form [formGroup]="planForm" (ngSubmit)="savePlan()">
+            <label>Nombre del plan<input formControlName="name" /></label
+            ><label
+              >Sucursales activas permitidas<input
+                type="number"
+                min="1"
+                formControlName="max_branches"
+            /></label>
+            <fieldset>
+              <legend>Funciones incluidas</legend>
+              @for (feature of featureLabels; track feature.key) {
+                <label class="check"
+                  ><input type="checkbox" [formControlName]="feature.key" />{{
+                    feature.label
+                  }}</label
+                >
+              }
+            </fieldset>
+            <label class="check"
+              ><input type="checkbox" formControlName="active" />Disponible para contratar</label
+            ><button class="primary" [disabled]="planForm.invalid || busy()">
+              Guardar cambios del plan
+            </button>
+          </form>
+          <hr />
+          <h3>Precio de nuevas suscripciones</h3>
+          <p class="muted">
+            Los contratos actuales conservan su precio. Guardar aquí publica el nuevo precio en
+            Stripe.
+          </p>
+          <form [formGroup]="priceForm" (ngSubmit)="configurePrice()">
+            <div class="two-columns">
+              <label
+                >Periodo<select formControlName="interval" (change)="changePriceInterval()">
+                  <option value="month">Mensual</option>
+                  <option value="year">Anual</option>
+                </select></label
+              ><label
+                >Moneda<select formControlName="currency">
+                  <option value="bob">Bolivianos (Bs)</option>
+                  <option value="usd">Dólares (USD)</option>
+                </select></label
+              >
+            </div>
+            <label
+              >Precio por periodo<input
+                type="number"
+                min="1"
+                step="0.01"
+                formControlName="amount" /></label
+            ><button class="secondary" [disabled]="priceForm.invalid || busy()">
+              Guardar precio en Stripe
+            </button>
+          </form>
+        </section>
+      } @else {
+        <div class="empty">Selecciona un plan para ver sus opciones.</div>
+      }
+    </section>
+  }
+</main>
+
+<dialog #companyDialog aria-labelledby="create-title" (cancel)="busy() && $event.preventDefault()">
+  <header class="dialog-head">
+    <div>
+      <p class="eyebrow">Nueva empresa · Paso {{ step() }} de 3</p>
+      <h2 id="create-title">
+        {{
+          step() === 1
+            ? 'Dale un lugar a la tienda'
+            : step() === 2
+              ? 'Quién la administrará'
+              : 'Elige cómo comienza'
+        }}
+      </h2>
+    </div>
+    <button
+      class="quiet"
+      aria-label="Cerrar formulario"
+      [disabled]="busy()"
+      (click)="companyDialog.close()"
+    >
+      ×
+    </button>
+  </header>
+  <ol class="steps" aria-label="Progreso">
+    <li [class.current]="step() >= 1">Empresa</li>
+    <li [class.current]="step() >= 2">Administrador</li>
+    <li [class.current]="step() >= 3">Plan y acceso</li>
+  </ol>
+  <form [formGroup]="companyForm" (ngSubmit)="step() < 3 ? nextStep() : create()">
+    <div class="dialog-body">
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (step() === 1) {
+        <label
+          >Nombre comercial<input
+            formControlName="name"
+            autocomplete="organization"
+            placeholder="Ej. Urban Fit"
+            [attr.aria-invalid]="!!fieldError('name')"
+          /><small class="field-error">{{ fieldError('name') }}</small></label
+        >
+        <div class="link-preview">
+          <span>Su enlace de tienda</span
+          ><strong>{{ storeLink(companyForm.controls.slug.value || suggestedSlug()) }}</strong
+          ><small
+            >Se prepara a partir del nombre. Los clientes usarán su misma cuenta DrapeMind.</small
+          >
+        </div>
+        <details class="advanced">
+          <summary>Personalizar el enlace</summary>
+          <label
+            >Nombre en el enlace<input formControlName="slug" placeholder="urban-fit" /><small
+              class="field-error"
+              >{{ fieldError('slug') }}</small
+            ></label
+          >
+        </details>
+        <details class="advanced">
+          <summary>Contacto comercial para comprobantes (opcional)</summary>
+          <label>Dirección comercial<input formControlName="address" /></label>
+          <div class="two-columns">
+            <label>Teléfono de la empresa<input type="tel" formControlName="phone" /></label
+            ><label
+              >Correo de contacto<input type="email" formControlName="contact_email" /><small
+                class="field-error"
+                >{{ fieldError('contact_email') }}</small
+              ></label
+            >
+          </div>
+        </details>
+      }
+      @if (step() === 2) {
+        <p class="muted">
+          Esta persona gestionará los productos, sucursales y ventas de la empresa.
+        </p>
+        <label
+          >Nombre del administrador<input formControlName="admin_name" autocomplete="name" /><small
+            class="field-error"
+            >{{ fieldError('admin_name') }}</small
+          ></label
+        >
+        <label
+          >Correo para entrar<input
+            type="email"
+            formControlName="admin_email"
+            autocomplete="off"
+          /><small class="field-error">{{ fieldError('admin_email') }}</small></label
+        >
+        <label
+          >Contraseña inicial
+          <div class="password">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="admin_password"
+              autocomplete="new-password"
+            /><button type="button" class="quiet" (click)="showPassword.set(!showPassword())">
+              {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+          <small>Al menos 12 caracteres. Compártela únicamente con su administrador.</small
+          ><small class="field-error">{{ fieldError('admin_password') }}</small></label
+        ><button type="button" class="quiet text-link" (click)="generatePassword()">
+          Generar contraseña segura
+        </button>
+      }
+      @if (step() === 3) {
+        <fieldset class="plan-options">
+          <legend>Plan contratado</legend>
+          @for (plan of plans(); track plan.id) {
+            @if (plan.active) {
+              <label
+                class="plan-option"
+                [class.chosen]="companyForm.controls.plan_id.value === plan.id"
+                ><input type="radio" formControlName="plan_id" [value]="plan.id" />
+                <div>
+                  <strong>{{ plan.name }}</strong
+                  ><small
+                    >Hasta {{ plan.max_branches }} sucursales ·
+                    {{
+                      plan.features['ai_reports']
+                        ? 'Incluye reportes con IA'
+                        : 'Reportes convencionales'
+                    }}</small
+                  >
+                </div>
+                <span>{{ planPrice(plan) }}<small>/ mes</small></span></label
+              >
+            }
+          }
+        </fieldset>
+        <label
+          >Activar el acceso<select formControlName="activation">
+            <option value="CHECKOUT">El administrador contratará con Stripe</option>
+            <option value="ADMINISTRATIVE">Activar una licencia desde la plataforma</option>
+          </select></label
+        >
+        @if (companyForm.controls.activation.value === 'ADMINISTRATIVE') {
+          <label>Acceso habilitado hasta<input type="date" formControlName="ends_at" /></label>
+          <p class="muted">
+            La licencia permitirá configurar y vender hasta esta fecha. Esta opción no registra un
+            cobro en Stripe.
+          </p>
+        } @else {
+          <p class="muted">
+            El administrador podrá entrar y pagar su plan. Las ventas y el catálogo se habilitan al
+            confirmar la suscripción.
+          </p>
+        }
+        <div class="review">
+          <strong>{{ companyForm.controls.name.value }}</strong
+          ><span
+            >{{ companyForm.controls.admin_name.value }} ·
+            {{ companyForm.controls.admin_email.value }}</span
+          >
+        </div>
+      }
+    </div>
+    <footer class="dialog-foot">
+      <button
+        type="button"
+        class="secondary"
+        [disabled]="busy()"
+        (click)="step() === 1 ? companyDialog.close() : step.set(step() - 1)"
+      >
+        {{ step() === 1 ? 'Cancelar' : 'Atrás' }}</button
+      ><button class="primary" [disabled]="busy()">
+        {{ busy() ? 'Creando empresa…' : step() < 3 ? 'Continuar' : 'Crear empresa' }}
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog #detailsDialog aria-labelledby="details-title">
+  <header class="dialog-head">
+    <div>
+      <p class="eyebrow">Identidad de la tienda</p>
+      <h2 id="details-title">Datos comerciales</h2>
+    </div>
+    <button class="quiet" aria-label="Cerrar datos comerciales" (click)="detailsDialog.close()">
+      ×
+    </button>
+  </header>
+  <div class="dialog-body">
+    <p class="muted">
+      Estos datos aparecen en los comprobantes de esta empresa. El enlace de acceso se conserva.
+    </p>
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+    <form [formGroup]="detailsForm" (ngSubmit)="saveCompany()">
+      <label>Nombre comercial<input formControlName="name" /></label
+      ><label>Dirección comercial<input formControlName="address" /></label
+      ><label>Teléfono de contacto<input type="tel" formControlName="phone" /></label
+      ><label>Correo comercial<input type="email" formControlName="contact_email" /></label
+      ><button class="primary" [disabled]="detailsForm.invalid || busy()">
+        {{ busy() ? 'Guardando…' : 'Guardar datos comerciales' }}
+      </button>
+    </form>
+  </div>
+</dialog>
+
+<dialog #licenseDialog aria-labelledby="license-title">
+  <header class="dialog-head">
+    <div>
+      <p class="eyebrow">Plan y acceso</p>
+      <h2 id="license-title">{{ editingTenant()?.tenant?.name }}</h2>
+    </div>
+    <button class="quiet" aria-label="Cerrar suscripción" (click)="licenseDialog.close()">×</button>
+  </header>
+  @if (editingTenant(); as row) {
+    <div class="dialog-body">
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (row.subscription?.managed_by_stripe) {
+        <p class="notice">
+          Esta suscripción tiene cobros activos en Stripe. Su administrador puede cambiarla o
+          cancelarla desde Mi suscripción.
+        </p>
+      } @else {
+        <p class="muted">
+          Asigna un plan y un periodo de acceso. Los datos de la empresa se conservan cuando vence.
+        </p>
+        <form [formGroup]="licenseForm" (ngSubmit)="saveLicense()">
+          <label
+            >Plan<select formControlName="plan_id">
+              @for (plan of plans(); track plan.id) {
+                <option [ngValue]="plan.id">
+                  {{ plan.name }} · {{ plan.max_branches }} sucursales
+                </option>
+              }
+            </select></label
+          ><label
+            >Estado<select formControlName="status">
+              <option value="ACTIVE">Activa</option>
+              <option value="TRIALING">Prueba</option>
+              <option value="SUSPENDED">Suspendida</option>
+              <option value="EXPIRED">Vencida</option>
+              <option value="CANCELED">Cancelada</option>
+            </select></label
+          >
+          <div class="two-columns">
+            <label>Desde<input type="datetime-local" formControlName="starts_at" /></label
+            ><label>Hasta<input type="datetime-local" formControlName="ends_at" /></label>
+          </div>
+          <p class="muted">Esta asignación no registra un pago en Stripe.</p>
+          <button class="primary" [disabled]="busy() || licenseForm.invalid">
+            {{ busy() ? 'Guardando…' : 'Guardar suscripción' }}
+          </button>
+        </form>
+      }
+    </div>
+  }
+</dialog>

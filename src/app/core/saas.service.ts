@@ -21,13 +21,23 @@ export interface SaaSPlan {
   features: Record<string, boolean>;
 }
 export interface CompanySubscription {
-  tenant: { id: number; name: string; slug: string; active: boolean; is_demo: boolean };
+  tenant: {
+    id: number;
+    name: string;
+    slug: string;
+    active: boolean;
+    is_demo: boolean;
+    address?: string;
+    phone?: string;
+    contact_email?: string;
+  };
   subscription: {
     id: number;
     status: string;
     starts_at: string | null;
     ends_at: string | null;
     source: string;
+    managed_by_stripe?: boolean;
     cancel_at_period_end: boolean;
   } | null;
   plan: SaaSPlan | null;
@@ -37,7 +47,8 @@ export interface CompanySubscription {
 }
 export function saasError(error: any): string {
   const detail = error?.error?.detail;
-  if(Array.isArray(detail)) return detail.map(item=>item.msg||'Revisa los datos del formulario').join('. ');
+  if (Array.isArray(detail))
+    return detail.map((item) => item.msg || 'Revisa los datos del formulario').join('. ');
   return typeof detail === 'string'
     ? detail
     : detail?.message ||
@@ -85,6 +96,9 @@ export class SaaSService {
   }
   state(id: number, active: boolean) {
     return this.http.patch<CompanySubscription>(`${this.url}/tenants/${id}`, { active });
+  }
+  merchantDetails(id: number, data: unknown) {
+    return this.http.put<CompanySubscription>(`${this.url}/tenants/${id}/details`, data);
   }
   savePlan(id: number, data: unknown) {
     return this.http.put<SaaSPlan>(`${this.url}/plans/${id}`, data);

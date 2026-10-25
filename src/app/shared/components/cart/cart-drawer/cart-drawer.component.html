@@ -6,33 +6,69 @@
     <header class="cart-header">
       <div class="cart-header__title">
         <div class="cart-header__icon-box">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
           </svg>
         </div>
         <div>
           <h2>
             @switch (step()) {
-              @case ('CART') { Perchero de Compras }
-              @case ('CHECKOUT') { Finalizar Pedido }
-              @case ('SUCCESS') { Pedido Confirmado }
+              @case ('CART') {
+                Perchero de Compras
+              }
+              @case ('CHECKOUT') {
+                Finalizar Pedido
+              }
+              @case ('SUCCESS') {
+                Pedido Confirmado
+              }
             }
           </h2>
           <small>
+            {{ auth.user()?.tenant_name }} ·
             @switch (step()) {
-              @case ('CART') { {{ cart.totalItems() }} prendas seleccionadas }
-              @case ('CHECKOUT') { Selección de entrega y forma de pago }
-              @case ('SUCCESS') { Transacción registrada en el atelier }
+              @case ('CART') {
+                {{ cart.totalItems() }} prendas seleccionadas
+              }
+              @case ('CHECKOUT') {
+                Selección de entrega y forma de pago
+              }
+              @case ('SUCCESS') {
+                Transacción registrada en el atelier
+              }
             }
           </small>
         </div>
       </div>
-      <button class="cart-close-btn" type="button" (click)="cart.close()" aria-label="Cerrar perchero">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
+      <button
+        class="cart-close-btn"
+        type="button"
+        (click)="cart.close()"
+        aria-label="Cerrar perchero"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </header>
@@ -45,7 +81,10 @@
             @for (item of cart.items(); track item.id) {
               <article class="cart-item-card">
                 <div class="cart-item-card__visual">
-                  <app-product-media [src]="runtime.resolveImageUrl(item.imagen)" [label]="item.nombre" />
+                  <app-product-media
+                    [src]="runtime.resolveImageUrl(item.imagen)"
+                    [label]="item.nombre"
+                  />
                 </div>
 
                 <div class="cart-item-card__info">
@@ -60,9 +99,20 @@
                       (click)="cart.removeItem(item.id)"
                       title="Eliminar de la bolsa"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path
+                          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -107,10 +157,19 @@
         } @else {
           <div class="cart-empty-state">
             <div class="empty-icon-box">
-              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
+              <svg
+                width="42"
+                height="42"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
             </div>
             <h3>Tu perchero está vacío</h3>
@@ -127,8 +186,17 @@
           <!-- Banner hacia el apartado de optimización -->
           <div class="ai-optimizer-banner" (click)="goToOptimizer()" role="button" tabindex="0">
             <div class="ai-optimizer-banner__icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
               </svg>
             </div>
             <div class="ai-optimizer-banner__text">
@@ -145,7 +213,12 @@
               </div>
               <div class="promos-scroll-row">
                 @for (p of availablePromotions(); track p.id) {
-                  <div class="promo-quick-pill" (click)="quickApplyPromo(p.codigo)" role="button" tabindex="0">
+                  <div
+                    class="promo-quick-pill"
+                    (click)="quickApplyPromo(p.codigo)"
+                    role="button"
+                    tabindex="0"
+                  >
                     <div class="promo-pill-left">
                       <span class="promo-pill-code">{{ p.codigo }}</span>
                       <span class="promo-pill-benefit">
@@ -161,7 +234,12 @@
                         }
                       </span>
                     </div>
-                    <button type="button" class="btn-quick-apply" [disabled]="validatingPromo()" title="Aplicar cupón">
+                    <button
+                      type="button"
+                      class="btn-quick-apply"
+                      [disabled]="validatingPromo()"
+                      title="Aplicar cupón"
+                    >
                       Usar
                     </button>
                   </div>
@@ -176,8 +254,15 @@
               <div class="applied-coupon-card">
                 <div class="coupon-card-header">
                   <div class="coupon-check-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
                   <div class="coupon-card-details">
@@ -185,10 +270,18 @@
                       <span class="coupon-label-tag">CUPÓN APLICADO</span>
                       <strong class="coupon-name">{{ promo.codigo }}</strong>
                     </div>
-                    <span class="coupon-saving-text">Ahorro en este pedido: - Bs {{ promo.descuento_calculado | number: '1.2-2' }}</span>
+                    <span class="coupon-saving-text"
+                      >Ahorro en este pedido: - Bs
+                      {{ promo.descuento_calculado | number: '1.2-2' }}</span
+                    >
                   </div>
                 </div>
-                <button type="button" class="btn-remove-coupon" (click)="removePromo()" title="Quitar cupón de este pedido">
+                <button
+                  type="button"
+                  class="btn-remove-coupon"
+                  (click)="removePromo()"
+                  title="Quitar cupón de este pedido"
+                >
                   Quitar
                 </button>
               </div>
@@ -242,7 +335,9 @@
             (click)="goToCheckout()"
           >
             <span>Continuar al Checkout</span>
-            <span class="checkout-price">Bs {{ cart.totalWithDiscount() | number: '1.2-2' }} &rarr;</span>
+            <span class="checkout-price"
+              >Bs {{ cart.totalWithDiscount() | number: '1.2-2' }} &rarr;</span
+            >
           </button>
         </footer>
       }
@@ -256,12 +351,24 @@
           <section class="checkout-section">
             <p class="section-label">Modalidad de entrega</p>
             <div class="delivery-toggle">
-              <label class="delivery-option" [class.selected]="checkoutForm.get('tipo_entrega')?.value === 'RECOJO'">
+              <label
+                class="delivery-option"
+                [class.selected]="checkoutForm.get('tipo_entrega')?.value === 'RECOJO'"
+              >
                 <input type="radio" formControlName="tipo_entrega" value="RECOJO" />
                 <div class="option-icon-box">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
                   </svg>
                 </div>
                 <div class="delivery-option__content">
@@ -271,14 +378,26 @@
                 <span class="price-chip free">Gratis</span>
               </label>
 
-              <label class="delivery-option" [class.selected]="checkoutForm.get('tipo_entrega')?.value === 'DELIVERY'">
+              <label
+                class="delivery-option"
+                [class.selected]="checkoutForm.get('tipo_entrega')?.value === 'DELIVERY'"
+              >
                 <input type="radio" formControlName="tipo_entrega" value="DELIVERY" />
                 <div class="option-icon-box">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="16" height="13" x="1" y="3" rx="2"/>
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 8"/>
-                    <circle cx="5.5" cy="18.5" r="2.5"/>
-                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="16" height="13" x="1" y="3" rx="2" />
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
                   </svg>
                 </div>
                 <div class="delivery-option__content">
@@ -290,6 +409,27 @@
             </div>
           </section>
 
+          @if (checkoutForm.controls.tipo_entrega.value === 'RECOJO') {
+            <section class="checkout-section address-section">
+              <label class="section-label" for="pickup-branch">¿Dónde recogerás tu compra?</label>
+              <select id="pickup-branch" formControlName="sucursal_id">
+                <option [ngValue]="null">Elige una sucursal</option>
+                @for (branch of branches.branches(); track branch.id) {
+                  <option [ngValue]="branch.id">
+                    {{ branch.nombre }} · {{ branch.direccion }}
+                  </option>
+                }
+              </select>
+              <p>Confirmaremos todas las cantidades en esta sucursal antes de crear tu pedido.</p>
+              @if (!branches.loading() && !branches.branches().length) {
+                <p role="alert">Esta tienda todavía no tiene sucursales disponibles para recojo.</p>
+              }
+            </section>
+          } @else {
+            <p class="checkout-section">
+              La tienda asignará una sucursal que pueda preparar todas las prendas de tu envío.
+            </p>
+          }
           <!-- DIRECCION DE ENTREGA (SI DELIVERY) -->
           @if (checkoutForm.get('tipo_entrega')?.value === 'DELIVERY') {
             <section class="checkout-section address-section">
@@ -303,7 +443,11 @@
                       [class.selected]="selectedAddressId() === addr.id"
                       (click)="selectedAddressId.set(addr.id)"
                     >
-                      <input type="radio" name="saved_addr" [checked]="selectedAddressId() === addr.id" />
+                      <input
+                        type="radio"
+                        name="saved_addr"
+                        [checked]="selectedAddressId() === addr.id"
+                      />
                       <div>
                         <strong>{{ addr.alias }} ({{ addr.ciudad }})</strong>
                         <p>{{ addr.direccion }} - {{ addr.zona }}</p>
@@ -324,7 +468,10 @@
                   <div class="form-row">
                     <label>
                       Ciudad
-                      <input formControlName="ciudad" placeholder="Santa Cruz / La Paz / Cochabamba" />
+                      <input
+                        formControlName="ciudad"
+                        placeholder="Santa Cruz / La Paz / Cochabamba"
+                      />
                     </label>
                     <label>
                       Zona / Barrio
@@ -333,18 +480,20 @@
                   </div>
                   <label>
                     Dirección exacta
-                    <input formControlName="direccion" placeholder="Calle, Av, Número de casa o edificio" />
+                    <input
+                      formControlName="direccion"
+                      placeholder="Calle, Av, Número de casa o edificio"
+                    />
                   </label>
                   <label>
                     Teléfono de contacto
-                    <input formControlName="telefono_contacto" placeholder="Para coordinar la entrega" />
+                    <input
+                      formControlName="telefono_contacto"
+                      placeholder="Para coordinar la entrega"
+                    />
                   </label>
                   @if (addresses().length > 0) {
-                    <button
-                      type="button"
-                      class="text-link"
-                      (click)="showNewAddressForm.set(false)"
-                    >
+                    <button type="button" class="text-link" (click)="showNewAddressForm.set(false)">
                       &larr; Volver a direcciones guardadas
                     </button>
                   }
@@ -357,12 +506,24 @@
           <section class="checkout-section">
             <p class="section-label">Método de pago</p>
             <div class="payment-methods-grid">
-              <label class="payment-pill" [class.selected]="checkoutForm.get('metodo_pago')?.value === 'QR'">
+              <label
+                class="payment-pill"
+                [class.selected]="checkoutForm.get('metodo_pago')?.value === 'QR'"
+              >
                 <input type="radio" formControlName="metodo_pago" value="QR" />
                 <div class="pay-icon-box">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                    <path d="M12 18h.01"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                    <path d="M12 18h.01" />
                   </svg>
                 </div>
                 <div>
@@ -371,13 +532,25 @@
                 </div>
               </label>
 
-              <label class="payment-pill" [class.selected]="checkoutForm.get('metodo_pago')?.value === 'EFECTIVO'">
+              <label
+                class="payment-pill"
+                [class.selected]="checkoutForm.get('metodo_pago')?.value === 'EFECTIVO'"
+              >
                 <input type="radio" formControlName="metodo_pago" value="EFECTIVO" />
                 <div class="pay-icon-box">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="12" x="2" y="6" rx="2"/>
-                    <circle cx="12" cy="12" r="2"/>
-                    <path d="M6 12h.01M18 12h.01"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="20" height="12" x="2" y="6" rx="2" />
+                    <circle cx="12" cy="12" r="2" />
+                    <path d="M6 12h.01M18 12h.01" />
                   </svg>
                 </div>
                 <div>
@@ -386,12 +559,24 @@
                 </div>
               </label>
 
-              <label class="payment-pill" [class.selected]="checkoutForm.get('metodo_pago')?.value === 'TARJETA'">
+              <label
+                class="payment-pill"
+                [class.selected]="checkoutForm.get('metodo_pago')?.value === 'TARJETA'"
+              >
                 <input type="radio" formControlName="metodo_pago" value="TARJETA" />
                 <div class="pay-icon-box">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="14" x="2" y="5" rx="2"/>
-                    <line x1="2" x2="22" y1="10" y2="10"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
                   </svg>
                 </div>
                 <div>
@@ -406,7 +591,10 @@
           <section class="checkout-section">
             <label>
               Instrucciones adicionales para el atelier (opcional)
-              <input formControlName="observacion" placeholder="Ej: Empaque para regalo, horario preferido..." />
+              <input
+                formControlName="observacion"
+                placeholder="Ej: Empaque para regalo, horario preferido..."
+              />
             </label>
           </section>
         </form>
@@ -417,12 +605,29 @@
           @if (cart.appliedPromo(); as p) {
             <div class="checkout-applied-promo-badge">
               <div class="promo-badge-text">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>Cupón <strong>{{ p.codigo }}</strong> activo (-Bs {{ p.descuento_calculado | number: '1.2-2' }})</span>
+                <span
+                  >Cupón <strong>{{ p.codigo }}</strong> activo (-Bs
+                  {{ p.descuento_calculado | number: '1.2-2' }})</span
+                >
               </div>
-              <button type="button" class="btn-checkout-remove-promo" (click)="removePromo()" title="Quitar cupón">Quitar</button>
+              <button
+                type="button"
+                class="btn-checkout-remove-promo"
+                (click)="removePromo()"
+                title="Quitar cupón"
+              >
+                Quitar
+              </button>
             </div>
           } @else {
             <div class="checkout-quick-coupon">
@@ -434,7 +639,11 @@
                 (keydown.enter)="applyPromo()"
                 [disabled]="validatingPromo()"
               />
-              <button type="button" (click)="applyPromo()" [disabled]="validatingPromo() || !promoInput().trim()">
+              <button
+                type="button"
+                (click)="applyPromo()"
+                [disabled]="validatingPromo() || !promoInput().trim()"
+              >
                 Aplicar
               </button>
             </div>
@@ -452,7 +661,9 @@
           }
           <div class="pricing-row">
             <span>Costo de entrega</span>
-            <span>{{ shippingCost() > 0 ? ('Bs ' + (shippingCost() | number: '1.2-2')) : 'Gratis' }}</span>
+            <span>{{
+              shippingCost() > 0 ? 'Bs ' + (shippingCost() | number: '1.2-2') : 'Gratis'
+            }}</span>
           </div>
           <div class="pricing-row grand-total">
             <strong>Total a Pagar</strong>
@@ -461,7 +672,12 @@
         </div>
 
         <div class="checkout-actions">
-          <button class="button button--ghost btn-back-cart" type="button" (click)="backToCart()" [disabled]="processing()">
+          <button
+            class="button button--ghost btn-back-cart"
+            type="button"
+            (click)="backToCart()"
+            [disabled]="processing()"
+          >
             &larr; Volver
           </button>
           <button
@@ -485,9 +701,18 @@
       <div class="cart-content success-step">
         <div class="success-banner">
           <div class="success-icon-box">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
           <p class="eyebrow eyebrow--light">Transacción Registrada</p>
@@ -525,8 +750,17 @@
           <div class="payment-simulator-card">
             <div class="paid-confirmation">
               <div class="check-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div>
@@ -547,13 +781,22 @@
             <div class="payment-simulator-card">
               <div class="qr-box">
                 <div class="qr-icon-title">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                    <path d="M12 18h.01" />
                   </svg>
                   <strong>Pago con QR Simple Interoperable</strong>
                 </div>
                 <p class="qr-instruction">
-                  Escanea con tu banca móvil (BCP, BNB, Banco Unión) o aprueba la simulación en entorno de prueba.
+                  Escanea con tu banca móvil (BCP, BNB, Banco Unión) o aprueba la simulación en
+                  entorno de prueba.
                 </p>
               </div>
 
@@ -581,7 +824,8 @@
               <div class="qr-box">
                 <strong>Pago en Efectivo (Contra Entrega / Sucursal)</strong>
                 <p class="qr-instruction">
-                  Indica tu código de pedido <strong>#{{ order.id }}</strong> en el mostrador para abonar tus prendas.
+                  Indica tu código de pedido <strong>#{{ order.id }}</strong> en el mostrador para
+                  abonar tus prendas.
                 </p>
               </div>
               <div class="switch-payment-hint">
@@ -593,16 +837,33 @@
           }
         }
         <div class="success-actions">
-          <button class="button button--accent button--wide" type="button" (click)="openReceiptModal()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
+          <button
+            class="button button--accent button--wide"
+            type="button"
+            (click)="openReceiptModal()"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
             <span>Ver Comprobante Oficial (PDF / Imagen)</span>
           </button>
-          <button class="button button--primary button--wide" type="button" (click)="viewMyOrders()">
+          <button
+            class="button button--primary button--wide"
+            type="button"
+            (click)="viewMyOrders()"
+          >
             Ver en Mis Pedidos &rarr;
           </button>
           <button class="button button--ghost button--wide" type="button" (click)="cart.close()">

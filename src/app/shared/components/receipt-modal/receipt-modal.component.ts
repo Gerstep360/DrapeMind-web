@@ -12,7 +12,6 @@ import {
 
 import { CommonModule } from '@angular/common';
 
-
 import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ToastService } from '@core/toast.service';
 import { ReceiptData } from '@core/models';
@@ -88,9 +87,8 @@ export class ReceiptModalComponent {
           error: () => {
             this.loading.set(false);
             this.toast.show(
-              err?.error?.detail ||
-                'No se pudo cargar la información del comprobante',
-              'error'
+              err?.error?.detail || 'No se pudo cargar la información del comprobante',
+              'error',
             );
           },
         });
@@ -104,41 +102,30 @@ export class ReceiptModalComponent {
 
       const baseEl = document.querySelector('base');
 
-      const rawBaseHref =
-        baseEl?.getAttribute('href') || '/';
+      const rawBaseHref = baseEl?.getAttribute('href') || '/';
 
-      const baseHref =
-        rawBaseHref === '/'
-          ? ''
-          : rawBaseHref.replace(/\/$/, '');
+      const baseHref = rawBaseHref === '/' ? '' : rawBaseHref.replace(/\/$/, '');
 
-      const fullVerifyUrl =
-        `${origin}${baseHref}/receipt/${orderId}`;
+      const fullVerifyUrl = `${origin}${baseHref}/receipt/${orderId}?code=${encodeURIComponent(this.receipt()?.order.codigo_publico || '')}&store=${encodeURIComponent(this.receipt()?.empresa?.slug || '')}`;
 
       this.verificationUrl.set(fullVerifyUrl);
 
       const { default: QRCode } = await import('qrcode');
-      const qrDataUrl = await QRCode.toDataURL(
-        fullVerifyUrl,
-        {
-          width: 180,
-          margin: 1,
+      const qrDataUrl = await QRCode.toDataURL(fullVerifyUrl, {
+        width: 180,
+        margin: 1,
 
-          errorCorrectionLevel: 'M',
+        errorCorrectionLevel: 'M',
 
-          color: {
-            dark: '#10110F',
-            light: '#FFFFFF',
-          },
-        }
-      );
+        color: {
+          dark: '#10110F',
+          light: '#FFFFFF',
+        },
+      });
 
       this.qrCodeDataUrl.set(qrDataUrl);
     } catch (err) {
-      console.error(
-        'Error generating QR code:',
-        err
-      );
+      console.error('Error generating QR code:', err);
     }
   }
 
@@ -153,14 +140,10 @@ export class ReceiptModalComponent {
    * De esta forma PDF y PNG capturan el voucher completo.
    */
   private async captureVoucher(): Promise<HTMLCanvasElement> {
-    const el =
-      this.voucherCanvasRef?.nativeElement ||
-      document.getElementById('receipt-voucher');
+    const el = this.voucherCanvasRef?.nativeElement || document.getElementById('receipt-voucher');
 
     if (!el) {
-      throw new Error(
-        'No se encontró el comprobante para capturar'
-      );
+      throw new Error('No se encontró el comprobante para capturar');
     }
 
     /*
@@ -200,15 +183,9 @@ export class ReceiptModalComponent {
       width: naturalWidth,
       height: naturalHeight,
 
-      windowWidth: Math.max(
-        1000,
-        naturalWidth + 200
-      ),
+      windowWidth: Math.max(1000, naturalWidth + 200),
 
-      windowHeight: Math.max(
-        1200,
-        naturalHeight + 200
-      ),
+      windowHeight: Math.max(1200, naturalHeight + 200),
 
       onclone: (clonedDoc) => {
         /*
@@ -216,30 +193,15 @@ export class ReceiptModalComponent {
          * El modal visible para el usuario no cambia.
          */
 
-        const backdrop =
-          clonedDoc.querySelector<HTMLElement>(
-            '.receipt-modal-backdrop'
-          );
+        const backdrop = clonedDoc.querySelector<HTMLElement>('.receipt-modal-backdrop');
 
-        const dialog =
-          clonedDoc.querySelector<HTMLElement>(
-            '.receipt-modal-dialog'
-          );
+        const dialog = clonedDoc.querySelector<HTMLElement>('.receipt-modal-dialog');
 
-        const preview =
-          clonedDoc.querySelector<HTMLElement>(
-            '.receipt-preview-body'
-          );
+        const preview = clonedDoc.querySelector<HTMLElement>('.receipt-preview-body');
 
-        const wrapper =
-          clonedDoc.querySelector<HTMLElement>(
-            '.voucher-wrapper'
-          );
+        const wrapper = clonedDoc.querySelector<HTMLElement>('.voucher-wrapper');
 
-        const voucher =
-          clonedDoc.getElementById(
-            'receipt-voucher'
-          );
+        const voucher = clonedDoc.getElementById('receipt-voucher');
 
         if (backdrop) {
           backdrop.style.position = 'static';
@@ -252,11 +214,9 @@ export class ReceiptModalComponent {
 
           backdrop.style.padding = '0';
 
-          backdrop.style.background =
-            'transparent';
+          backdrop.style.background = 'transparent';
 
-          backdrop.style.backdropFilter =
-            'none';
+          backdrop.style.backdropFilter = 'none';
 
           (
             backdrop.style as CSSStyleDeclaration & {
@@ -298,8 +258,7 @@ export class ReceiptModalComponent {
 
           preview.style.padding = '0';
 
-          preview.style.background =
-            '#FFFFFF';
+          preview.style.background = '#FFFFFF';
         }
 
         if (wrapper) {
@@ -323,16 +282,14 @@ export class ReceiptModalComponent {
 
         if (voucher) {
           voucher.style.display = 'flex';
-          voucher.style.flexDirection =
-            'column';
+          voucher.style.flexDirection = 'column';
 
           voucher.style.width = '720px';
           voucher.style.minWidth = '720px';
           voucher.style.maxWidth = '720px';
 
           voucher.style.height = 'auto';
-          voucher.style.minHeight =
-            'max-content';
+          voucher.style.minHeight = 'max-content';
           voucher.style.maxHeight = 'none';
 
           voucher.style.overflow = 'visible';
@@ -341,8 +298,7 @@ export class ReceiptModalComponent {
 
           voucher.style.transform = 'none';
 
-          voucher.style.boxSizing =
-            'border-box';
+          voucher.style.boxSizing = 'border-box';
         }
       },
     });
@@ -351,24 +307,16 @@ export class ReceiptModalComponent {
   }
 
   async downloadPdf(): Promise<void> {
-    if (
-      this.generatingPdf() ||
-      this.generatingImage()
-    ) {
+    if (this.generatingPdf() || this.generatingImage()) {
       return;
     }
 
     this.generatingPdf.set(true);
 
     try {
-      const canvas =
-        await this.captureVoucher();
+      const canvas = await this.captureVoucher();
 
-      const imgData =
-        canvas.toDataURL(
-          'image/png',
-          1.0
-        );
+      const imgData = canvas.toDataURL('image/png', 1.0);
 
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({
@@ -378,11 +326,9 @@ export class ReceiptModalComponent {
         compress: true,
       });
 
-      const pageWidth =
-        pdf.internal.pageSize.getWidth();
+      const pageWidth = pdf.internal.pageSize.getWidth();
 
-      const pageHeight =
-        pdf.internal.pageSize.getHeight();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
       /*
        * Márgenes del comprobante dentro del A4.
@@ -390,22 +336,16 @@ export class ReceiptModalComponent {
       const marginX = 10;
       const marginY = 10;
 
-      const maxContentWidth =
-        pageWidth - marginX * 2;
+      const maxContentWidth = pageWidth - marginX * 2;
 
-      const maxContentHeight =
-        pageHeight - marginY * 2;
+      const maxContentHeight = pageHeight - marginY * 2;
 
       /*
        * Escalado proporcional.
        */
-      let renderWidth =
-        maxContentWidth;
+      let renderWidth = maxContentWidth;
 
-      let renderHeight =
-        (canvas.height *
-          renderWidth) /
-        canvas.width;
+      let renderHeight = (canvas.height * renderWidth) / canvas.width;
 
       /*
        * Si la altura supera la hoja A4,
@@ -414,116 +354,62 @@ export class ReceiptModalComponent {
        * Así el comprobante completo queda
        * en una sola página.
        */
-      if (
-        renderHeight >
-        maxContentHeight
-      ) {
-        renderHeight =
-          maxContentHeight;
+      if (renderHeight > maxContentHeight) {
+        renderHeight = maxContentHeight;
 
-        renderWidth =
-          (canvas.width *
-            renderHeight) /
-          canvas.height;
+        renderWidth = (canvas.width * renderHeight) / canvas.height;
       }
 
       /*
        * Centramos el voucher en la página.
        */
-      const xOffset =
-        (pageWidth -
-          renderWidth) /
-        2;
+      const xOffset = (pageWidth - renderWidth) / 2;
 
-      const yOffset =
-        (pageHeight -
-          renderHeight) /
-        2;
+      const yOffset = (pageHeight - renderHeight) / 2;
 
-      pdf.addImage(
-        imgData,
-        'PNG',
-        xOffset,
-        yOffset,
-        renderWidth,
-        renderHeight,
-        undefined,
-        'FAST'
-      );
+      pdf.addImage(imgData, 'PNG', xOffset, yOffset, renderWidth, renderHeight, undefined, 'FAST');
 
-      const filename =
-        `comprobante-DM-${
-          this.receipt()?.order.id ||
-          this.orderId()
-        }.pdf`;
+      const filename = `comprobante-DM-${this.receipt()?.order.id || this.orderId()}.pdf`;
 
       pdf.save(filename);
 
-      this.toast.show(
-        'Comprobante PDF generado y descargado con éxito',
-        'success'
-      );
+      this.toast.show('Comprobante PDF generado y descargado con éxito', 'success');
     } catch (err) {
-      console.error(
-        'Error generating PDF:',
-        err
-      );
+      console.error('Error generating PDF:', err);
 
-      this.toast.show(
-        'Error al generar el archivo PDF',
-        'error'
-      );
+      this.toast.show('Error al generar el archivo PDF', 'error');
     } finally {
       this.generatingPdf.set(false);
     }
   }
 
   async downloadImage(): Promise<void> {
-    if (
-      this.generatingImage() ||
-      this.generatingPdf()
-    ) {
+    if (this.generatingImage() || this.generatingPdf()) {
       return;
     }
 
     this.generatingImage.set(true);
 
     try {
-      const canvas =
-        await this.captureVoucher();
+      const canvas = await this.captureVoucher();
 
-      const filename =
-        `comprobante-DM-${
-          this.receipt()?.order.id ||
-          this.orderId()
-        }.png`;
+      const filename = `comprobante-DM-${this.receipt()?.order.id || this.orderId()}.png`;
 
       /*
        * Usamos Blob en vez de dataURL directo
        * para una descarga más estable.
        */
-      const blob =
-        await new Promise<Blob | null>(
-          (resolve) => {
-            canvas.toBlob(
-              resolve,
-              'image/png',
-              1.0
-            );
-          }
-        );
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/png', 1.0);
+      });
 
       if (!blob) {
-        throw new Error(
-          'No se pudo generar la imagen PNG'
-        );
+        throw new Error('No se pudo generar la imagen PNG');
       }
 
-      const objectUrl =
-        URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
 
-      const link =
-        document.createElement('a');
+      const link = document.createElement('a');
 
       link.download = filename;
       link.href = objectUrl;
@@ -534,24 +420,13 @@ export class ReceiptModalComponent {
 
       link.remove();
 
-      URL.revokeObjectURL(
-        objectUrl
-      );
+      URL.revokeObjectURL(objectUrl);
 
-      this.toast.show(
-        'Imagen PNG descargada en alta resolución completa',
-        'success'
-      );
+      this.toast.show('Imagen PNG descargada en alta resolución completa', 'success');
     } catch (err) {
-      console.error(
-        'Error exporting PNG:',
-        err
-      );
+      console.error('Error exporting PNG:', err);
 
-      this.toast.show(
-        'Error al exportar la imagen',
-        'error'
-      );
+      this.toast.show('Error al exportar la imagen', 'error');
     } finally {
       this.generatingImage.set(false);
     }

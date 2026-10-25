@@ -3311,6 +3311,13 @@ button {
   letter-spacing: -1.4px;
   text-decoration: none;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: clamp(140px, 25vw, 300px);
+}
+.storefront-brand__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .storefront-brand__mark {
   width: 33px;

@@ -5,13 +5,22 @@ import { packageRoutes } from './core/navigation/package-routes';
 
 export const routes: Routes = [
   {
+    path: 'tiendas',
+    title: 'Tiendas | DrapeMind',
+    loadComponent: () => import('./packages/saas/stores.component').then((m) => m.StoresComponent),
+  },
+  {
     path: 'tienda/:slug',
     title: 'Entrar a tu tienda | DrapeMind',
-    loadComponent: () => import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(m => m.LoginComponent),
+    loadComponent: () =>
+      import('./packages/saas/store-entry.component').then((m) => m.StoreEntryComponent),
   },
   {
     path: 'tienda/:slug/login',
-    loadComponent: () => import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(m => m.LoginComponent),
+    loadComponent: () =>
+      import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(
+        (m) => m.LoginComponent,
+      ),
   },
   {
     path: 'saas-platform',

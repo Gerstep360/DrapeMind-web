@@ -66,7 +66,11 @@ export class ReceiptViewComponent implements OnInit {
     // cae al endpoint autenticado como respaldo (mismo comportamiento
     // original, pero sin anidar subscribes).
     this.api
-      .publicReceiptData(orderId)
+      .publicReceiptData(
+        orderId,
+        this.route.snapshot.queryParamMap.get('code') || '',
+        this.route.snapshot.queryParamMap.get('store') || '',
+      )
       .pipe(
         catchError(() => this.api.receiptData(orderId)),
         takeUntilDestroyed(this.destroyRef),
@@ -167,7 +171,7 @@ export class ReceiptViewComponent implements OnInit {
       const folio = this.receipt()?.order?.id;
       const filenameCode =
         folio !== undefined && folio !== null ? String(folio).padStart(5, '0') : 'documento';
-      pdf.save(`comprobante-DrapeMind-DM-ORD-${filenameCode}.pdf`);
+      pdf.save(`comprobante-${this.receipt()?.empresa?.slug || 'tienda'}-${filenameCode}.pdf`);
     } catch (e) {
       console.error('No se pudo generar el PDF del comprobante', e);
       this.pdfError.set('No pudimos generar el PDF. Inténtalo nuevamente.');

@@ -4,6 +4,7 @@ export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO';
 export interface User {
   tenant_id?: number | null;
   is_platform_admin?: boolean;
+  is_universal_customer?: boolean;
   tenant_slug?: string | null;
   tenant_name?: string | null;
   id: number;
@@ -33,7 +34,6 @@ export interface AdminUserUpdatePayload {
   estado?: UserStatus | null;
   password?: string | null;
 }
-
 
 export interface UserStyleProfile {
   id?: number;

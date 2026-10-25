@@ -1,6 +1,8 @@
 # DrapeMind Web
 
-El acceso pide correo y contraseña; la API determina la empresa y el destino. Los enlaces `/tienda/<slug>` reconocen la tienda automáticamente. No hay selector de empresa ni casilla de administración.
+El acceso pide correo y contraseña; la API determina la empresa y el destino. Los enlaces `/tienda/<slug>` reconocen la tienda automáticamente. Los clientes tienen una cuenta universal y pueden elegir otra tienda desde `/tiendas`. El carrito, las compras y el stock se conservan por empresa y sucursal. No hay selector de rol en el acceso.
+
+El panel de empresas guía el alta en tres pasos y muestra validaciones junto a los campos. Permite preparar el enlace, asignar el plan y elegir contratación Stripe o licencia administrativa. Los comprobantes usan datos comerciales de cada empresa. [Contrato de identidad y compras](../backend/docs/COMPRAS_POR_TIENDA.md).
 
 Despliegue compartido en `https://167.86.106.105/DrapeMind/`: prepara ambos repositorios con `python3 instalar_vps.py` desde `/root/app/DrapeMind`. El gestor nativo compila con Node privado, publica por versiones y configura Nginx/API/WebSockets. [Guía del instalador](../backend/docs/INSTALACION_VPS.md).
 

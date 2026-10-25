@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { AuthService } from '@core/auth.service';
+import { BranchService } from '@core/branch.service';
 import { CartService } from '@core/cart.service';
 import { Address, Order, Payment, Promotion } from '@core/models';
 import { AccountApiService } from '@core/api/account-api.service';
@@ -21,7 +22,13 @@ import { CartDrawerStep } from './cart-drawer.models';
 
 @Component({
   selector: 'app-cart-drawer',
-  imports: [ProductMediaComponent, ReactiveFormsModule, DecimalPipe, ReceiptModalComponent, StripePaymentComponent],
+  imports: [
+    ProductMediaComponent,
+    ReactiveFormsModule,
+    DecimalPipe,
+    ReceiptModalComponent,
+    StripePaymentComponent,
+  ],
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +41,7 @@ export class CartDrawerComponent {
   }
   readonly cart = inject(CartService);
   readonly auth = inject(AuthService);
+  readonly branches = inject(BranchService);
   readonly runtime = inject(RuntimeConfigService);
   private readonly commerceApi = inject(CommerceApiService);
   private readonly accountApi = inject(AccountApiService);
@@ -55,6 +63,7 @@ export class CartDrawerComponent {
   readonly showReceiptModal = signal<boolean>(false);
 
   readonly checkoutForm = this.fb.nonNullable.group({
+    sucursal_id: [null as number | null],
     tipo_entrega: ['RECOJO' as 'DELIVERY' | 'RECOJO' | 'TIENDA', Validators.required],
     metodo_pago: ['QR' as 'QR' | 'TARJETA' | 'EFECTIVO' | 'TRANSFERENCIA', Validators.required],
     observacion: [''],
@@ -82,6 +91,7 @@ export class CartDrawerComponent {
   constructor() {
     effect(() => {
       if (this.cart.isOpen()) {
+        this.branches.loadBranches();
         this.loadAddresses();
         this.loadPromotions();
       } else {
@@ -137,7 +147,10 @@ export class CartDrawerComponent {
             );
             this.promoInput.set('');
           } else {
-            this.toast.show(res.mensaje || 'El cupón no es válido para los productos o montos de este pedido', 'error');
+            this.toast.show(
+              res.mensaje || 'El cupón no es válido para los productos o montos de este pedido',
+              'error',
+            );
           }
         },
         error: (err) => {
@@ -205,6 +218,13 @@ export class CartDrawerComponent {
 
   confirmOrder(): void {
     if (this.processing()) return;
+    if (
+      this.checkoutForm.controls.tipo_entrega.value === 'RECOJO' &&
+      !this.checkoutForm.controls.sucursal_id.value
+    ) {
+      this.toast.show('Elige la sucursal donde recogerás tu compra.', 'info');
+      return;
+    }
     this.processing.set(true);
 
     const formVal = this.checkoutForm.getRawValue();
@@ -247,6 +267,8 @@ export class CartDrawerComponent {
     this.lastPaymentMethod.set(formVal.metodo_pago);
     this.commerceApi
       .checkout({
+        sucursal_id: formVal.tipo_entrega === 'RECOJO' ? formVal.sucursal_id : null,
+        canal: 'WEB',
         tipo_entrega: formVal.tipo_entrega,
         direccion_id: addressId,
         costo_envio: this.shippingCost(),

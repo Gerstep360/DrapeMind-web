@@ -1,7 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, firstValueFrom, of, switchMap, tap, timeout, catchError, throwError } from 'rxjs';
+import {
+  Observable,
+  firstValueFrom,
+  of,
+  switchMap,
+  tap,
+  timeout,
+  catchError,
+  throwError,
+} from 'rxjs';
 import { OnboardingGreeting, TokenResponse, User, UserStyleProfile } from './models';
 import { RuntimeConfigService } from './runtime-config.service';
 import { TenantService } from './tenant.service';
@@ -37,7 +46,9 @@ export class AuthService {
     this.logout(false);
     return this.http
       .post<TokenResponse>(`${this.runtime.apiUrl}/auth/login`, {
-        email, password, ...(this.tenant.entrySlug() ? { tenant_slug: this.tenant.entrySlug() } : {}),
+        email,
+        password,
+        ...(this.tenant.entrySlug() ? { tenant_slug: this.tenant.entrySlug() } : {}),
       })
       .pipe(
         tap((response) => {
@@ -45,31 +56,72 @@ export class AuthService {
           sessionStorage.setItem(TOKEN_KEY, response.access_token);
           this.tokenState.set(response.access_token);
           this.scheduleExpiry(response.access_token);
-          this.tenant.useAccount(response.tenant?.slug ?? response.user?.tenant_slug, response.tenant?.name ?? response.user?.tenant_name);
-          const allowed = ['/saas-platform','/subscription','/onboarding','/catalog','/pos','/dashboard'];
-          this.destination.set(allowed.includes(response.redirect_path || '') ? response.redirect_path! : '/dashboard');
+          this.tenant.useAccount(
+            response.tenant?.slug ?? response.user?.tenant_slug,
+            response.tenant?.name ?? response.user?.tenant_name,
+          );
+          const allowed = [
+            '/saas-platform',
+            '/subscription',
+            '/onboarding',
+            '/catalog',
+            '/pos',
+            '/dashboard',
+            '/tiendas',
+          ];
+          this.destination.set(
+            allowed.includes(response.redirect_path || '') ? response.redirect_path! : '/dashboard',
+          );
         }),
-        switchMap((response) => response.user ? of(this.storeUser(response.user)) : this.loadMe()),
-        catchError(error => { this.logout(false); return throwError(() => error); }),
+        switchMap((response) =>
+          response.user ? of(this.storeUser(response.user)) : this.loadMe(),
+        ),
+        catchError((error) => {
+          this.logout(false);
+          return throwError(() => error);
+        }),
       );
   }
 
-  register(payload: { nombre: string; email: string; password: string; telefono?: string }): Observable<User> {
+  register(payload: {
+    nombre: string;
+    email: string;
+    password: string;
+    telefono?: string;
+  }): Observable<User> {
     return this.http
       .post<User>(`${this.runtime.apiUrl}/auth/register`, payload)
-      .pipe(
-        switchMap(() => this.login(payload.email, payload.password)),
-      );
+      .pipe(switchMap(() => this.login(payload.email, payload.password)));
   }
 
-  forgotPassword(payload: { email: string; new_password: string }): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.runtime.apiUrl}/auth/forgot-password`, payload);
+  enterStore(slug: string): Observable<User> {
+    return this.http.post<TokenResponse>(`${this.runtime.apiUrl}/auth/store`, { slug }).pipe(
+      tap((response) => {
+        localStorage.setItem(TOKEN_KEY, response.access_token);
+        sessionStorage.setItem(TOKEN_KEY, response.access_token);
+        this.tokenState.set(response.access_token);
+        this.scheduleExpiry(response.access_token);
+        this.tenant.useAccount(response.tenant?.slug, response.tenant?.name);
+        this.destination.set(response.redirect_path || '/catalog');
+      }),
+      switchMap((response) => (response.user ? of(this.storeUser(response.user)) : this.loadMe())),
+    );
+  }
+
+  forgotPassword(payload: {
+    email: string;
+    new_password: string;
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.runtime.apiUrl}/auth/forgot-password`,
+      payload,
+    );
   }
 
   loadMe(): Observable<User> {
-    return this.http.get<User>(`${this.runtime.apiUrl}/auth/me`).pipe(
-      tap((user) => this.storeUser(user)),
-    );
+    return this.http
+      .get<User>(`${this.runtime.apiUrl}/auth/me`)
+      .pipe(tap((user) => this.storeUser(user)));
   }
 
   private storeUser(user: User): User {
@@ -98,12 +150,16 @@ export class AuthService {
     }
   }
 
-  saveStyleProfile(payload: Partial<UserStyleProfile> & { infer_outfit?: boolean }): Observable<UserStyleProfile> {
-    return this.http.post<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`, payload).pipe(
-      tap(() => {
-        this.markStyleProfileDoneLocally();
-      }),
-    );
+  saveStyleProfile(
+    payload: Partial<UserStyleProfile> & { infer_outfit?: boolean },
+  ): Observable<UserStyleProfile> {
+    return this.http
+      .post<UserStyleProfile>(`${this.runtime.apiUrl}/users/me/style-profile`, payload)
+      .pipe(
+        tap(() => {
+          this.markStyleProfileDoneLocally();
+        }),
+      );
   }
 
   logout(redirect = true): void {
@@ -172,23 +228,33 @@ export class AuthService {
   private renewSession(): Promise<void> {
     if (this.refreshPending) return this.refreshPending;
     const previous = this.tokenState();
-    if (!previous || (this.tokenExpiryMs(previous) > 0 && this.tokenExpiryMs(previous) <= Date.now() + 5_000)) {
+    if (
+      !previous ||
+      (this.tokenExpiryMs(previous) > 0 && this.tokenExpiryMs(previous) <= Date.now() + 5_000)
+    ) {
       this.logout();
       return Promise.resolve();
     }
     this.refreshPending = firstValueFrom(
-      this.http.post<TokenResponse>(this.runtime.apiUrl + '/auth/refresh', {}).pipe(timeout(10_000)),
-    ).then((response) => {
-      if (this.tokenState() !== previous) return;
-      localStorage.setItem(TOKEN_KEY, response.access_token);
-      sessionStorage.setItem(TOKEN_KEY, response.access_token);
-      this.tokenState.set(response.access_token);
-      this.scheduleExpiry(response.access_token);
-    }).catch(() => {
-      if (this.tokenState() !== previous) return;
-      this.clearExpiryTimer();
-      this.expiryTimer = window.setTimeout(() => void this.renewSession(), 5_000);
-    }).finally(() => { this.refreshPending = null; });
+      this.http
+        .post<TokenResponse>(this.runtime.apiUrl + '/auth/refresh', {})
+        .pipe(timeout(10_000)),
+    )
+      .then((response) => {
+        if (this.tokenState() !== previous) return;
+        localStorage.setItem(TOKEN_KEY, response.access_token);
+        sessionStorage.setItem(TOKEN_KEY, response.access_token);
+        this.tokenState.set(response.access_token);
+        this.scheduleExpiry(response.access_token);
+      })
+      .catch(() => {
+        if (this.tokenState() !== previous) return;
+        this.clearExpiryTimer();
+        this.expiryTimer = window.setTimeout(() => void this.renewSession(), 5_000);
+      })
+      .finally(() => {
+        this.refreshPending = null;
+      });
     return this.refreshPending;
   }
 
