@@ -29,6 +29,9 @@ build() {
     npm ci --no-audit --no-fund --engine-strict
     feedback Angular 'Compilando la aplicación para producción'
     npm exec -- ng build --configuration production --base-href "$DRAPE_PREFIX/"
+    feedback PWA 'Preparando catálogo sin conexión y versión del shell'
+    printf '{"backendUrl":"","apiPrefix":"%s/api/v1"}\n' "$DRAPE_PREFIX" > dist/web/browser/config.json
+    node scripts/offline-manifest.mjs
     feedback Web 'Preparando la nueva versión; se conserva la publicada hasta terminar'
     [[ -f dist/web/browser/index.html ]] || return 1
     local release temporary previous=''

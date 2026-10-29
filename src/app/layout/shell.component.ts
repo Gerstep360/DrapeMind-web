@@ -15,6 +15,7 @@ import { navigationForRole } from '@core/navigation/package-navigation';
 import { NotificationService } from '@core/notification.service';
 import { NavIconComponent } from '@shared/components/navigation/nav-icon/nav-icon.component';
 import { NotificationsDrawerComponent } from '@shared/components/notifications/notifications-drawer.component';
+import { OfflineService } from '../incrementos/incremento-ii/offline/offline.service';
 
 @Component({
   selector: 'app-shell',
@@ -24,6 +25,7 @@ import { NotificationsDrawerComponent } from '@shared/components/notifications/n
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShellComponent {
+  readonly offline = inject(OfflineService);
   readonly saas=inject(SaaSService);
   readonly auth = inject(AuthService);
   readonly cart = inject(CartService);
@@ -46,6 +48,7 @@ export class ShellComponent {
     { label: 'Mis pedidos', route: '/orders' },
     { label: 'Reservas', route: '/reservations' },
     { label: 'Con Altair', route: '/ai-studio' },
+    { label: 'Sin conexión', route: '/offline' },
   ];
   readonly isBranchDropdownOpen = signal(false);
 
@@ -73,7 +76,7 @@ export class ShellComponent {
     // Si el usuario aún no calibra su ADN de estilo, redirigir a la experiencia de onboarding
     const user = this.auth.user();
     if (
-      user?.rol==='CLIENTE' && !this.router.url.startsWith('/subscription') &&
+      user?.rol==='CLIENTE' && !this.router.url.startsWith('/subscription') && !this.router.url.startsWith('/offline') &&
       user.has_style_profile === false &&
       this.auth.onboardingSkippedForUser() !== user.id
     ) {

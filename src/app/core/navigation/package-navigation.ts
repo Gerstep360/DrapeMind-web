@@ -38,6 +38,7 @@ const everyone: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIEN
 const staff: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'];
 
 export const PACKAGE_NAVIGATION: PackageNavigation[] = [
+  {label:'Sin conexión',description:'Tu tienda guardada en este dispositivo',items:[{label:'Catálogo y reservas offline',description:'Descargar prendas y enviar solicitudes pendientes',icon:'catalog',route:'/offline',roles:staff.concat('CLIENTE')}]},
   {
     label: 'Acceso y gestión de usuarios',
     description: 'Perfil y preferencias',
@@ -200,8 +201,8 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         roles: ['ADMIN'],
       },
       {
-        label: 'Proveedores textiles',
-        description: 'Agenda de fabricantes e insumos',
+        label: 'Proveedores y abastecimiento',
+        description: 'Ofertas, pedidos y recepción por sucursal',
         icon: 'suppliers',
         route: '/suppliers-admin',
         roles: ['ADMIN', 'PROVEEDOR'],
@@ -221,8 +222,8 @@ export function navigationForRole(role: UserRole | undefined): PackageNavigation
         if (role === 'PROVEEDOR' && item.route === '/suppliers-admin') {
           return {
             ...item,
-            label: 'Mis Prendas y Catálogo',
-            description: 'Gestión de prendas, telas y stock',
+            label: 'Mis ofertas y pedidos',
+            description: 'Disponibilidad y pedidos de la tienda',
           };
         }
         return item;

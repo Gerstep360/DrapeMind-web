@@ -5,6 +5,9 @@
   [class.storefront-shell--chat]="isCustomer() && chatRoute()"
   [class.app-shell--menu-open]="menuOpen()"
 >
+  @if (!offline.online()) {
+    <a class="offline-access" routerLink="/offline" style="display:block;padding:12px 20px;background:#fff0c7;color:#1b1b1b;text-align:center;font-weight:700">Sin señal · Abrir el catálogo guardado y tus solicitudes</a>
+  }
   @if (isCustomer()) {
     <header class="storefront-header">
       <div class="storefront-topline">

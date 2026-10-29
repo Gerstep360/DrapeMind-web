@@ -1,0 +1,228 @@
+<main class="feature-page">
+  <header class="feature-heading">
+    <div>
+      <p class="eyebrow">Tu tienda contigo</p>
+      <h1>Sin conexión</h1>
+      <p>Guarda la colección y elige tus prendas aunque no tengas señal.</p>
+    </div>
+    <span class="connection" [class.connection--off]="!offline.online()">{{
+      offline.online() ? 'Con conexión' : 'Sin señal'
+    }}</span>
+  </header>
+  <section class="download-strip" aria-label="Descarga de la tienda">
+    <div>
+      <h2>{{ offline.bundle()?.tenant_name || 'Prepara tu próxima visita' }}</h2>
+      @if (offline.bundle(); as bundle) {
+        <p>
+          {{ bundle.products.length }} prendas guardadas · Actualizado
+          {{ bundle.downloaded_at | date: 'dd/MM, HH:mm' }}
+        </p>
+        <p class="muted">
+          Disponible hasta {{ bundle.valid_until | date: 'dd/MM, HH:mm' }}. El precio y el stock se
+          vuelven a comprobar al enviar.
+        </p>
+      } @else {
+        <p>Descarga prendas, tallas, colores y disponibilidad de las sucursales de esta tienda.</p>
+      }
+    </div>
+    <button
+      type="button"
+      class="primary"
+      [disabled]="offline.downloading() || !offline.online()"
+      (click)="offline.download()"
+    >
+      {{
+        offline.downloading()
+          ? offline.phase()
+          : offline.bundle()
+            ? 'Actualizar descarga'
+            : 'Guardar catálogo'
+      }}
+    </button>
+  </section>
+  @if (offline.downloading()) {
+    <progress aria-label="Descargando catálogo"></progress>
+  }
+  @if (offline.message()) {
+    <p class="notice" role="status">{{ offline.message() }}</p>
+  }
+  @if (offline.bundle() && !offline.usable()) {
+    <p class="notice">
+      Esta descarga venció o tu sesión necesita renovarse. Conéctate para actualizarla antes de
+      seguir operando.
+    </p>
+  }
+  @if (offline.usable()) {
+    <section aria-label="Catálogo guardado">
+      <div class="section-heading">
+        <h2>Tu colección guardada</h2>
+        <span>{{ products().length }} prendas</span>
+      </div>
+      <div class="filters">
+        <label
+          >Buscar<input
+            type="search"
+            placeholder="Nombre de la prenda"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+        /></label>
+        <label
+          >Talla<select [ngModel]="size()" (ngModelChange)="size.set($event)">
+            <option value="">Todas</option>
+            @for (s of sizes(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select></label
+        >
+        <label
+          >Color<select [ngModel]="color()" (ngModelChange)="color.set($event)">
+            <option value="">Todos</option>
+            @for (c of colors(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select></label
+        >
+        <label
+          >Sucursal<select [ngModel]="branch()" (ngModelChange)="branch.set(+$event)">
+            <option [ngValue]="0">Todas</option>
+            @for (b of offline.bundle()!.branches; track b.id) {
+              <option [ngValue]="b.id">{{ b.nombre }} · {{ b.ciudad }}</option>
+            }
+          </select></label
+        >
+      </div>
+      <div class="product-grid">
+        @for (product of products(); track product.id) {
+          <article class="offline-product">
+            <div class="product-photo">
+              @if (image(product)) {
+                <img
+                  [src]="image(product)"
+                  [alt]="product.nombre"
+                  loading="lazy"
+                  (error)="$any($event.target).style.display = 'none'"
+                />
+              }
+              <span aria-hidden="true">{{ product.nombre.slice(0, 1) }}</span>
+            </div>
+            <div class="product-copy">
+              <h3>{{ product.nombre }}</h3>
+              <strong>{{ product.precio | currency: 'BOB' : 'Bs ' : '1.2-2' }}</strong>
+              <p class="muted">{{ variants(product.id).length }} opciones de talla y color</p>
+              <button type="button" (click)="open(product)">Elegir y reservar</button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">No hay prendas con esos filtros. Prueba otra talla o sucursal.</p>
+        }
+      </div>
+    </section>
+  }
+  <section class="requests" aria-label="Solicitudes de reserva">
+    <div class="section-heading">
+      <div>
+        <h2>Tus solicitudes</h2>
+        <p class="muted">
+          Una solicitud guardada no garantiza stock y no tiene QR hasta que la tienda la reciba.
+        </p>
+      </div>
+      <button
+        type="button"
+        [disabled]="offline.syncing() || !offline.online() || !offline.pending()"
+        (click)="offline.sync()"
+      >
+        {{ offline.syncing() ? 'Comprobando solicitudes…' : 'Enviar pendientes' }}
+      </button>
+    </div>
+    @for (record of offline.queue(); track record.key) {
+      <article class="request-row" [class.has-conflict]="record.state === 'CONFLICT'">
+        <div>
+          <span class="state">{{ state(record) }}</span>
+          <h3>{{ record.name }}</h3>
+          <p>{{ record.branch }} · {{ record.body.items[0].cantidad }} unidad(es)</p>
+          @if (record.message) {
+            <p class="muted">{{ record.message }}</p>
+          }
+          @if (record.reservation) {
+            <p>
+              Código {{ record.reservation.codigo_publico.slice(0, 8) }} ·
+              {{ record.reservation.estado }} · Vence
+              {{ record.reservation.vence_at | date: 'dd/MM, HH:mm' }}
+            </p>
+          }
+        </div>
+        <div class="row-actions">
+          @if (record.state === 'CONFIRMED') {
+            <a routerLink="/reservations">Ver reserva y QR</a>
+          }
+          @if (record.state === 'CONFLICT') {
+            <button
+              type="button"
+              [disabled]="offline.syncing() || !offline.online()"
+              (click)="offline.retry(record)"
+            >
+              Volver a intentar
+            </button>
+          }
+          @if (record.state === 'PENDING' || record.state === 'CONFLICT') {
+            <button type="button" [disabled]="offline.syncing()" (click)="offline.cancel(record)">
+              Cancelar solicitud
+            </button>
+          }
+        </div>
+      </article>
+    } @empty {
+      <p class="empty">
+        Tus próximas reservas aparecerán aquí. Empieza eligiendo una prenda del catálogo guardado.
+      </p>
+    }
+  </section>
+</main>
+<dialog #reservationDialog (close)="draft.set(null)">
+  @if (draft(); as product) {
+    <form (ngSubmit)="reserve()">
+      <div class="section-heading">
+        <h2>{{ product.nombre }}</h2>
+        <button type="button" aria-label="Cerrar" (click)="reservationDialog.close()">
+          Cerrar
+        </button>
+      </div>
+      <label
+        >Talla y color<select name="variant" [(ngModel)]="variant" required>
+          @for (v of variants(product.id); track v.id) {
+            <option [ngValue]="v.id">{{ v.talla }} · {{ v.color }}</option>
+          }
+        </select></label
+      >
+      <label
+        >Sucursal<select name="branch" [(ngModel)]="reserveBranch" required>
+          @for (b of offline.bundle()!.branches; track b.id) {
+            <option [ngValue]="b.id">{{ b.nombre }} · {{ b.ciudad }}</option>
+          }
+        </select></label
+      >
+      <label
+        >Cantidad<input
+          type="number"
+          name="quantity"
+          [(ngModel)]="quantity"
+          min="1"
+          max="100"
+          required
+      /></label>
+      <p class="muted">
+        {{ offline.available(+variant, +reserveBranch) }} unidades en la copia guardada.
+      </p>
+      <p>
+        Guardaremos la solicitud en este dispositivo. La tienda confirmará la disponibilidad cuando
+        se envíe.
+      </p>
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <button class="primary" type="submit" [disabled]="saving() || !reserveBranch">
+        {{ saving() ? 'Guardando…' : 'Guardar solicitud' }}
+      </button>
+    </form>
+  }
+</dialog>

@@ -1,0 +1,13 @@
+{
+  "id":"./",
+  "name":"DrapeMind",
+  "short_name":"DrapeMind",
+  "description":"Tu tienda, colección y solicitudes de reserva sin conexión.",
+  "start_url":"./offline",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f8f7f2",
+  "theme_color":"#f8f7f2",
+  "lang":"es",
+  "icons":[{"src":"app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

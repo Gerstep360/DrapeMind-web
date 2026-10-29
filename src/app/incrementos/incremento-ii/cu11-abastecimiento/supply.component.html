@@ -1,0 +1,362 @@
+<main class="feature-page">
+  <header class="feature-heading">
+    <div>
+      <p class="eyebrow">{{ admin ? 'De la fábrica a tu tienda' : 'Tu espacio de proveedor' }}</p>
+      <h1>Proveedores y abastecimiento</h1>
+      <p>
+        {{
+          admin
+            ? 'Organiza tus compras, confirma los lotes y recibe prendas en cada sucursal.'
+            : 'Actualiza tus ofertas y confirma los pedidos que te envía la tienda.'
+        }}
+      </p>
+    </div>
+    @if (admin) {
+      <button class="primary" type="button" (click)="editSupplier()">Registrar proveedor</button>
+    }
+  </header>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p class="notice" role="status">{{ message() }}</p>
+  }
+  @if (busy()) {
+    <progress aria-label="Actualizando abastecimiento"></progress>
+  }
+  <div class="workspace">
+    <aside class="supplier-list" aria-label="Proveedores">
+      @for (supplier of suppliers(); track supplier.id) {
+        <button
+          type="button"
+          [class.active]="selected()?.id === supplier.id"
+          [disabled]="busy()"
+          (click)="select(supplier)"
+        >
+          {{ supplier.nombre_empresa
+          }}<small>{{ supplier.ciudad }} · {{ supplier.activo ? 'Activo' : 'Inactivo' }}</small>
+        </button>
+      } @empty {
+        <p class="empty">
+          {{
+            admin
+              ? 'Registra el primer proveedor para comenzar.'
+              : 'Tu cuenta aún no está vinculada a un proveedor. Contacta con la administración de la tienda.'
+          }}
+        </p>
+      }
+    </aside>
+    <section class="stack">
+      @if (selected(); as supplier) {
+        <div class="section-heading">
+          <div>
+            <h2>{{ supplier.nombre_empresa }}</h2>
+            <p class="muted">
+              {{ supplier.contacto_nombre }} {{ supplier.telefono }} · {{ supplier.email }}
+            </p>
+          </div>
+          @if (admin) {
+            <div class="button-group">
+              <button type="button" (click)="editSupplier(supplier)">Editar proveedor</button>
+              @if (!supplier.usuario_id) {
+                <button type="button" (click)="openAccount()">Crear acceso del proveedor</button>
+              }
+            </div>
+          }
+        </div>
+        <div class="section-heading">
+          <h2>Ofertas disponibles</h2>
+          <button type="button" [disabled]="busy() || !supplier.activo" (click)="editOffer()">
+            Nueva oferta
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th>Suministro</th>
+                <th>Costo por unidad</th>
+                <th>Disponible</th>
+                <th>Entrega</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (offer of offers(); track offer.id) {
+                <tr>
+                  <td>
+                    {{ offer.nombre_suministro }}
+                    <p class="muted">{{ offer.activo ? offer.estado : 'Inactivo' }}</p>
+                  </td>
+                  <td>{{ offer.costo_unitario | currency: 'BOB' : 'Bs ' }}</td>
+                  <td>{{ offer.cantidad_disponible }} {{ offer.unidad_medida }}</td>
+                  <td>{{ offer.tiempo_entrega_dias }} días</td>
+                  <td><button type="button" (click)="editOffer(offer)">Editar</button></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5">Todavía no hay ofertas para este proveedor.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (admin && supplier.activo) {
+          <form class="order-form" (ngSubmit)="createOrder()">
+            <h2>Solicitar abastecimiento</h2>
+            <label
+              >Sucursal que recibirá el pedido<select
+                name="branch"
+                [(ngModel)]="orderBranch"
+                required
+              >
+                @for (b of branches; track b.id) {
+                  <option [ngValue]="b.id">{{ b.nombre }}</option>
+                }
+              </select></label
+            >
+            @for (line of lines; track $index; let i = $index) {
+              <div class="order-line">
+                <label
+                  >Suministro<select [name]="'offer' + i" [(ngModel)]="line.suministro_id" required>
+                    @for (o of offers(); track o.id) {
+                      @if (o.activo) {
+                        <option [ngValue]="o.id">{{ o.nombre_suministro }}</option>
+                      }
+                    }
+                  </select></label
+                ><label
+                  >Cantidad<input
+                    type="number"
+                    [name]="'quantity' + i"
+                    [(ngModel)]="line.cantidad"
+                    min="1"
+                    required /></label
+                ><label
+                  >Prenda de destino<select [name]="'variant' + i" [(ngModel)]="line.variante_id">
+                    <option [ngValue]="null">Material sin variante de venta</option>
+                    @for (v of variants; track v.id) {
+                      <option [ngValue]="v.id">{{ v.nombre }}</option>
+                    }
+                  </select></label
+                ><button type="button" (click)="lines.splice(i, 1)">Quitar</button>
+              </div>
+            }
+            <div class="button-group">
+              <button
+                type="button"
+                [disabled]="lines.length >= offers().length"
+                (click)="addLine()"
+              >
+                Añadir suministro</button
+              ><strong>Total {{ total() | currency: 'BOB' : 'Bs ' }}</strong>
+            </div>
+            <p class="muted">
+              Vincula una variante para que la recepción aumente el inventario de la sucursal. Los
+              materiales quedan registrados en el pedido.
+            </p>
+            <label
+              >Observación<textarea
+                name="note"
+                [(ngModel)]="orderNote"
+                maxlength="300"
+              ></textarea></label
+            ><button
+              class="primary"
+              type="submit"
+              [disabled]="busy() || !lines.length || !orderBranch"
+            >
+              Solicitar pedido
+            </button>
+          </form>
+        }
+      }
+    </section>
+  </div>
+  <section>
+    <div class="section-heading">
+      <h2>Pedidos de abastecimiento</h2>
+      <button type="button" [disabled]="busy()" (click)="load()">Actualizar</button>
+    </div>
+    @for (order of orders(); track order.id) {
+      <article class="request-row">
+        <div>
+          <span class="state">{{ order.estado }}</span>
+          <h3>Pedido {{ order.id }} · {{ order.proveedor }}</h3>
+          <p>
+            {{ order.sucursal }} · {{ order.created_at | date: 'dd/MM/yyyy' }} ·
+            {{ order.total | currency: 'BOB' : 'Bs ' }}
+          </p>
+          @for (item of order.items; track $index) {
+            <p class="muted">{{ item.cantidad }} × {{ item.nombre }}</p>
+          }
+        </div>
+        <div class="row-actions">
+          @if (order.estado === 'SOLICITADO') {
+            <button type="button" [disabled]="busy()" (click)="act(order, 'confirm')">
+              Confirmar unidades
+            </button>
+          }
+          @if (admin && order.estado === 'CONFIRMADO') {
+            <button
+              class="primary"
+              type="button"
+              [disabled]="busy()"
+              (click)="act(order, 'receive')"
+            >
+              Registrar recepción
+            </button>
+          }
+          @if (order.estado === 'SOLICITADO' || order.estado === 'CONFIRMADO') {
+            <button type="button" [disabled]="busy()" (click)="act(order, 'cancel')">
+              Cancelar pedido
+            </button>
+          }
+        </div>
+      </article>
+    } @empty {
+      <p class="empty">Los pedidos solicitados aparecerán aquí.</p>
+    }
+  </section>
+</main>
+<dialog #editor>
+  <form (ngSubmit)="saveSupplier()">
+    <h2>{{ supplierDraft.id ? 'Editar proveedor' : 'Registrar proveedor' }}</h2>
+    <div class="form-grid">
+      <label class="full"
+        >Empresa<input
+          name="company"
+          [(ngModel)]="supplierDraft.nombre_empresa"
+          minlength="2"
+          maxlength="150"
+          required /></label
+      ><label>NIT<input name="nit" [(ngModel)]="supplierDraft.nit" maxlength="50" /></label
+      ><label>Ciudad<input name="city" [(ngModel)]="supplierDraft.ciudad" required /></label
+      ><label
+        >Contacto<input
+          name="contact"
+          [(ngModel)]="supplierDraft.contacto_nombre"
+          maxlength="120" /></label
+      ><label
+        >Teléfono<input name="phone" [(ngModel)]="supplierDraft.telefono" maxlength="50" /></label
+      ><label class="full"
+        >Correo<input
+          type="email"
+          name="email"
+          [(ngModel)]="supplierDraft.email"
+          maxlength="150" /></label
+      ><label class="full"
+        >Dirección<input
+          name="address"
+          [(ngModel)]="supplierDraft.direccion"
+          maxlength="250" /></label
+      ><label
+        >Tipo de suministro<input
+          name="category"
+          [(ngModel)]="supplierDraft.categoria_suministro"
+          required /></label
+      ><label
+        >Proveedor activo<input type="checkbox" name="active" [(ngModel)]="supplierDraft.activo"
+      /></label>
+    </div>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <div class="button-group">
+      <button class="primary" [disabled]="busy()" type="submit">Guardar proveedor</button
+      ><button type="button" (click)="editor.close()">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+<dialog #offerEditor>
+  <form (ngSubmit)="saveOffer()">
+    <h2>{{ editingOffer ? 'Editar oferta' : 'Nueva oferta' }}</h2>
+    <div class="form-grid">
+      <label class="full"
+        >Nombre del suministro<input
+          name="name"
+          [(ngModel)]="offerDraft.nombre_suministro"
+          minlength="2"
+          maxlength="150"
+          required /></label
+      ><label
+        >Código del proveedor<input
+          name="sku"
+          [(ngModel)]="offerDraft.sku_proveedor"
+          maxlength="60" /></label
+      ><label>Categoría<input name="category" [(ngModel)]="offerDraft.categoria" required /></label
+      ><label
+        >Unidad de medida<input
+          name="unit"
+          [(ngModel)]="offerDraft.unidad_medida"
+          required /></label
+      ><label
+        >Costo por unidad (Bs)<input
+          type="number"
+          name="cost"
+          [(ngModel)]="offerDraft.costo_unitario"
+          min="0.01"
+          step="0.01"
+          required /></label
+      ><label
+        >Cantidad disponible<input
+          type="number"
+          name="quantity"
+          [(ngModel)]="offerDraft.cantidad_disponible"
+          min="0"
+          required /></label
+      ><label
+        >Entrega estimada en días<input
+          type="number"
+          name="delivery"
+          [(ngModel)]="offerDraft.tiempo_entrega_dias"
+          min="1"
+          required /></label
+      ><label
+        >Disponibilidad<select name="status" [(ngModel)]="offerDraft.estado">
+          <option>DISPONIBLE</option>
+          <option>BAJO_PEDIDO</option>
+          <option>AGOTADO</option>
+        </select></label
+      ><label
+        >Oferta activa<input type="checkbox" name="active" [(ngModel)]="offerDraft.activo"
+      /></label>
+    </div>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <div class="button-group">
+      <button class="primary" type="submit" [disabled]="busy()">Guardar oferta</button
+      ><button type="button" (click)="offerEditor.close()">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+<dialog #accountEditor>
+  <form (ngSubmit)="saveAccount()">
+    <h2>Acceso del proveedor</h2>
+    <p>Esta cuenta solo podrá gestionar sus ofertas y los pedidos que reciba en esta empresa.</p>
+    <label
+      >Nombre<input name="name" [(ngModel)]="accountDraft.nombre" minlength="2" required /></label
+    ><label
+      >Correo<input type="email" name="email" [(ngModel)]="accountDraft.email" required /></label
+    ><label
+      >Contraseña inicial<input
+        type="password"
+        name="password"
+        [(ngModel)]="accountDraft.password"
+        minlength="8"
+        maxlength="72"
+        autocomplete="new-password"
+        required
+    /></label>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <div class="button-group">
+      <button class="primary" type="submit" [disabled]="busy()">Crear acceso</button
+      ><button type="button" (click)="accountDraft.password = ''; accountEditor.close()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</dialog>

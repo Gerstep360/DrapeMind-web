@@ -1,0 +1,12 @@
+{
+  "viewports": [
+    1440,
+    390
+  ],
+  "pwaReloadOffline": true,
+  "queueSurvivesReload": true,
+  "lostResponseRetried": true,
+  "serverReservations": 1,
+  "tenantIsolation": true,
+  "pageErrors": []
+}
