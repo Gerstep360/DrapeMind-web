@@ -7,6 +7,13 @@
   "queueSurvivesReload": true,
   "lostResponseRetried": true,
   "serverReservations": 1,
+  "serverCashSales": 1,
+  "serverPickups": 1,
+  "provisionalCashReceipt": true,
+  "cashLostResponseReconciled": true,
+  "conflictReview": true,
+  "exchangeCompleted": true,
+  "exchangeLostResponseRecovered": true,
   "tenantIsolation": true,
   "pageErrors": []
 }

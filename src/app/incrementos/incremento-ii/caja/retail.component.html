@@ -1,0 +1,288 @@
+<main class="feature-page">
+  <header class="feature-heading">
+    <div>
+      <p class="eyebrow">La atención continúa</p>
+      <h1>Caja y reservas</h1>
+      <p>Cobra en efectivo, atiende retiros y comprueba cada operación, incluso sin señal.</p>
+    </div>
+    <span class="connection" [class.connection--off]="!offline.online()">{{
+      offline.online() ? 'Con señal' : 'Sin señal'
+    }}</span>
+  </header>
+  @if (!offline.canSell()) {
+    <p class="error">Este espacio requiere una cuenta de caja autorizada.</p>
+  } @else {
+    <nav class="button-group" aria-label="Secciones de caja">
+      <button type="button" [class.primary]="tab === 'sale'" (click)="tab = 'sale'; search = ''">
+        Nueva venta</button
+      ><button
+        type="button"
+        [class.primary]="tab === 'reservations'"
+        (click)="tab = 'reservations'; search = ''; refresh()"
+      >
+        Atender reservas</button
+      ><button type="button" [class.primary]="tab === 'operations'" (click)="tab = 'operations'">
+        Operaciones y resultados</button
+      ><a class="action" routerLink="/offline">Catálogo guardado</a>
+    </nav>
+    @if (error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+    @if (success) {
+      <p class="notice" role="status">{{ success }}</p>
+    }
+    @if (!offline.usable()) {
+      <div class="empty">
+        Actualiza el catálogo antes de guardar otra venta. Tus operaciones pendientes se conservan.
+      </div>
+      <button type="button" [disabled]="offline.downloading()" (click)="offline.download()">
+        Guardar catálogo de la sucursal
+      </button>
+    }
+    @if (data; as bundle) {
+      <div class="section-heading">
+        <label
+          >Sucursal<select
+            aria-label="Sucursal"
+            [ngModel]="branchId"
+            (ngModelChange)="branch = $event; lines = []; selectedVariant = 0"
+          >
+            @for (b of bundle.branches; track b.id) {
+              <option [ngValue]="b.id">{{ b.nombre }} · {{ b.ciudad }}</option>
+            }
+          </select></label
+        >
+        <p class="muted">Datos guardados: {{ bundle.downloaded_at | date: 'dd/MM, HH:mm' }}</p>
+      </div>
+      @if (tab === 'sale') {
+        <div class="workspace retail-workspace">
+          <section class="stack">
+            <h2>Prendas para esta venta</h2>
+            <label
+              >Buscar nombre o código<input [(ngModel)]="search" placeholder="Camisa, talla o SKU"
+            /></label>
+            <div class="form-grid">
+              <label
+                >Prenda, talla y color<select
+                  aria-label="Prenda, talla y color"
+                  [(ngModel)]="selectedVariant"
+                >
+                  <option [ngValue]="0">Elige una variante</option>
+                  @for (v of variants; track v.id) {
+                    <option [ngValue]="v.id">
+                      {{ variantName(v.id) }} · {{ offline.available(v.id, branchId) }} disponibles
+                    </option>
+                  }
+                </select></label
+              ><label
+                >Cantidad<input type="number" min="1" max="100" [(ngModel)]="quantity"
+              /></label>
+            </div>
+            <button type="button" (click)="add()">Añadir a la venta</button>
+            @for (line of lines; track line.variante_id) {
+              <article class="request-row">
+                <div>
+                  <h3>{{ variantName(line.variante_id) }}</h3>
+                  <p>
+                    {{ line.cantidad }} × {{ price(line.variante_id) | currency: 'BOB' : 'Bs ' }}
+                  </p>
+                </div>
+                <button type="button" (click)="lines.splice($index, 1)">Quitar</button>
+              </article>
+            }
+            @if (!lines.length) {
+              <p class="empty">Añade las prendas que el cliente llevará.</p>
+            }
+          </section>
+          <form class="order-form" (ngSubmit)="saveSale()">
+            <h2>Contado en efectivo</h2>
+            <p class="cash-total">{{ total | currency: 'BOB' : 'Bs ' }}</p>
+            <label
+              >Efectivo recibido<input
+                type="number"
+                min="0"
+                step="0.01"
+                name="received"
+                [(ngModel)]="received"
+                required
+            /></label>
+            <p>
+              Cambio:
+              <strong>{{
+                (+received - total > 0 ? +received - total : 0) | currency: 'BOB' : 'Bs '
+              }}</strong>
+            </p>
+            <p class="muted">
+              Confirma cuando hayas recibido el dinero y entregado las prendas. Sin conexión se
+              emitirá un comprobante provisional.
+            </p>
+            <button
+              class="primary"
+              type="submit"
+              [disabled]="busy || !lines.length || !offline.usable()"
+            >
+              Guardar venta de contado
+            </button>
+          </form>
+        </div>
+      }
+      @if (tab === 'reservations') {
+        <div class="section-heading">
+          <h2>Reservas por atender</h2>
+          <button type="button" [disabled]="busy || !offline.online()" (click)="refresh()">
+            Actualizar reservas
+          </button>
+        </div>
+        <label
+          >Buscar número o código de reserva<input
+            [(ngModel)]="search"
+            placeholder="Número o código del cliente"
+        /></label>
+        @for (r of reservations; track r.id) {
+          <article class="request-row">
+            <div>
+              <span class="state">{{ r.estado }}</span>
+              <h3>Reserva {{ r.id }} · {{ r.codigo_publico.slice(0, 8) }}</h3>
+              @for (i of r.items; track i.variante_id) {
+                <p>{{ i.cantidad }} × {{ variantName(i.variante_id) }}</p>
+              }
+              <p>
+                {{ reservationTotal(r) | currency: 'BOB' : 'Bs ' }} · Vence
+                {{ r.vence_at | date: 'dd/MM, HH:mm' }}
+              </p>
+            </div>
+            <div class="row-actions">
+              <button
+                type="button"
+                [disabled]="
+                  busy || !offline.online() || r.estado === 'LISTA' || r.estado === 'RETIRADA'
+                "
+                (click)="prepare(r, 'LISTA')"
+              >
+                Marcar lista</button
+              ><button
+                class="primary"
+                type="button"
+                [disabled]="busy || !offline.usable()"
+                (click)="pickupTarget = r; pickupCash = ''; error = ''"
+              >
+                Cobrar y entregar
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">No hay reservas en esta sucursal con ese código.</p>
+        }
+        @if (pickupTarget; as r) {
+          <form class="order-form" (ngSubmit)="collect()">
+            <h2>Cobrar reserva {{ r.id }}</h2>
+            <p>Total {{ reservationTotal(r) | currency: 'BOB' : 'Bs ' }}</p>
+            <label
+              >Efectivo recibido<input
+                type="number"
+                step="0.01"
+                min="0"
+                name="pickupCash"
+                [(ngModel)]="pickupCash"
+                required
+            /></label>
+            <p class="muted">
+              Al guardar registras el dinero recibido y la entrega. El servidor validará la reserva
+              al sincronizar.
+            </p>
+            <div class="button-group">
+              <button class="primary" [disabled]="busy">Confirmar cobro y entrega</button
+              ><button type="button" [disabled]="busy" (click)="pickupTarget = null">Volver</button>
+            </div>
+          </form>
+        }
+      }
+    }
+    @if (tab === 'operations') {
+      <div class="section-heading">
+        <div>
+          <h2>Operaciones y resultados</h2>
+          <p>{{ offline.pending() }} por comprobar o resolver</p>
+        </div>
+        <button
+          type="button"
+          [disabled]="offline.syncing() || !offline.online()"
+          (click)="offline.sync()"
+        >
+          Sincronizar y consultar resultados
+        </button>
+      </div>
+      <div class="form-grid">
+        <label
+          >Estado<select [(ngModel)]="stateFilter">
+            <option value="">Todos</option>
+            <option value="PENDING">Guardadas</option>
+            <option value="UNCERTAIN">Por comprobar</option>
+            <option value="CONFLICT">En revisión</option>
+            <option value="CONFIRMED">Confirmadas</option>
+            <option value="REJECTED">Anuladas</option>
+          </select></label
+        ><label
+          >Operación<select [(ngModel)]="kindFilter">
+            <option value="">Todas</option>
+            <option value="SALE">Ventas</option>
+            <option value="PICKUP">Retiros</option>
+            <option value="RESERVATION">Reservas</option>
+          </select></label
+        >
+      </div>
+      @for (r of operations; track r.key) {
+        <article class="request-row" [class.has-conflict]="r.state === 'CONFLICT'">
+          <div>
+            <span class="state">{{ state(r) }}</span>
+            <h3>{{ r.name }}</h3>
+            <p>
+              {{ r.branch }} · {{ r.body.creado_at | date: 'dd/MM, HH:mm' }} ·
+              {{ r.attempts }} intentos
+            </p>
+            @for (i of r.body.items; track i.variante_id) {
+              <p class="muted">
+                {{ i.cantidad }} × {{ variantName(i.variante_id) }}
+                @if (i.precio_unitario) {
+                  · Bs {{ i.precio_unitario }}
+                }
+              </p>
+            }
+            <p>{{ r.message }}</p>
+            @if (r.sale) {
+              <p>
+                Pedido {{ r.sale.pedido_id }} · Total Bs {{ r.sale.total }} · Cambio Bs
+                {{ r.sale.cambio }}
+              </p>
+            }
+          </div>
+          <div class="row-actions">
+            @if (r.tipo === 'SALE' || r.tipo === 'PICKUP') {
+              <button type="button" (click)="receipt(r)">
+                Descargar comprobante {{ r.sale ? '' : 'provisional' }}
+              </button>
+            }
+            @if (r.sale && offline.online()) {
+              <a
+                [routerLink]="['/receipt', r.sale.pedido_id]"
+                [queryParams]="{ code: r.sale.codigo_publico, store: auth.user()?.tenant_slug }"
+                >Ver comprobante de la tienda</a
+              >
+            }
+            @if (r.state === 'CONFLICT') {
+              <button
+                type="button"
+                [disabled]="offline.syncing() || !offline.online()"
+                (click)="offline.retry(r)"
+              >
+                Volver a comprobar
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        <p class="empty">Las ventas y reservas guardadas aparecerán aquí con su resultado.</p>
+      }
+    }
+  }
+</main>

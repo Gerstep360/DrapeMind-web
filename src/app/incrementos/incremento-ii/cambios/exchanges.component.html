@@ -1,0 +1,131 @@
+<main class="feature-page">
+  <header class="feature-heading">
+    <div>
+      <p class="eyebrow">Otra talla, el mismo cuidado</p>
+      <h1>Cambios de prendas</h1>
+      <p>Recupera la venta original, selecciona las prendas devueltas y calcula la diferencia.</p>
+    </div>
+  </header>
+  @if (error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+  @if (pending) {
+    <section class="notice">
+      <h2>Un cambio necesita comprobarse</h2>
+      <p>La respuesta no llegó. Conservamos la misma operación para comprobarla sin duplicarla.</p>
+      <button type="button" [disabled]="busy || !offline.online()" (click)="checkPending()">
+        Comprobar cambio anterior
+      </button>
+    </section>
+  }
+  @if (result) {
+    <section class="download-strip">
+      <div>
+        <h2>Cambio {{ result.id }} registrado</h2>
+        <p>
+          Crédito aplicado: Bs {{ result.credito }} · Prendas nuevas: Bs {{ result.total_nuevo }} ·
+          Diferencia: Bs {{ result.diferencia }}
+        </p>
+        <p>El inventario de la sucursal ya está actualizado.</p>
+      </div>
+      <a
+        class="action"
+        [routerLink]="['/receipt', result.sale.pedido_id]"
+        [queryParams]="{ code: result.sale.codigo_publico, store: auth.user()?.tenant_slug }"
+        >Ver nuevo comprobante</a
+      >
+    </section>
+  }
+  <form class="order-form" (ngSubmit)="find()">
+    <label
+      >Número de pedido o código del comprobante<input
+        name="code"
+        [(ngModel)]="code"
+        required
+        maxlength="40"
+        placeholder="Ej. 125 o código del comprobante" /></label
+    ><button class="primary" [disabled]="busy || !!pending">Buscar venta</button>
+  </form>
+  @if (order && !pending) {
+    <section class="stack">
+      <div class="section-heading">
+        <h2>Pedido {{ order.pedido_id }} · Sucursal {{ order.sucursal_id }}</h2>
+        <p>Total original Bs {{ order.total }}</p>
+      </div>
+      <div class="workspace retail-workspace">
+        <section class="stack">
+          <h2>Prendas que devuelve</h2>
+          @for (item of order.items; track item.id) {
+            <label
+              >{{ item.nombre }} · {{ item.talla }} · {{ item.color
+              }}<span class="muted"
+                >Crédito por unidad Bs {{ item.credito_unitario }} ·
+                {{ item.disponible_cambio }} disponibles para cambio</span
+              ><input
+                type="number"
+                min="0"
+                [max]="item.disponible_cambio"
+                [(ngModel)]="returns[item.id]"
+                (ngModelChange)="quote = null"
+                placeholder="0"
+            /></label>
+          }
+        </section>
+        <section class="order-form">
+          <h2>Prendas que lleva</h2>
+          <label
+            >Nueva talla o prenda<select aria-label="Nueva talla o prenda" [(ngModel)]="variant">
+              <option [ngValue]="0">Elige una variante</option>
+              @for (v of offline.bundle()?.variants ?? []; track v.id) {
+                <option [ngValue]="v.id">{{ variantName(v.id) }}</option>
+              }
+            </select></label
+          ><label>Cantidad<input type="number" min="1" max="100" [(ngModel)]="quantity" /></label
+          ><button type="button" (click)="add()">Añadir prenda nueva</button>
+          @for (line of lines; track line.variante_id) {
+            <div class="request-row">
+              <span>{{ line.cantidad }} × {{ variantName(line.variante_id) }}</span
+              ><button type="button" (click)="lines.splice($index, 1); quote = null">Quitar</button>
+            </div>
+          }
+        </section>
+      </div>
+      <label
+        >Motivo del cambio<textarea
+          [(ngModel)]="note"
+          minlength="5"
+          maxlength="300"
+          (ngModelChange)="quote = null"
+          placeholder="Talla, color, acuerdo con el cliente…"
+        ></textarea></label
+      ><button type="button" [disabled]="busy || !lines.length" (click)="calculate()">
+        Calcular diferencia con precios actuales
+      </button>
+      @if (quote) {
+        <section class="download-strip">
+          <div>
+            <h2>Diferencia {{ quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
+            <p>
+              Crédito de devolución {{ quote.credito | currency: 'BOB' : 'Bs ' }} · Prendas nuevas
+              {{ quote.total_nuevo | currency: 'BOB' : 'Bs ' }}
+            </p>
+            <div class="form-grid">
+              <label
+                >Efectivo recibido<input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [(ngModel)]="received" /></label
+              ><label
+                >Efectivo devuelto<input type="number" min="0" step="0.01" [(ngModel)]="refunded"
+              /></label>
+            </div>
+          </div>
+          <button class="primary" type="button" [disabled]="busy" (click)="save()">
+            Confirmar cambio y efectivo
+          </button>
+        </section>
+      }
+    </section>
+  }
+</main>

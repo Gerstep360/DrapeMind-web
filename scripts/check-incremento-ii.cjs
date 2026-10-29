@@ -73,7 +73,7 @@ const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === prefix + '/config.json') {
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({backendUrl:base,apiPrefix:'/api/v1'}));
+    res.end(JSON.stringify({ backendUrl: base, apiPrefix: '/api/v1' }));
     return;
   }
   const local = path.resolve(root, '.' + pathname.slice(prefix.length));
@@ -101,6 +101,43 @@ const server = http.createServer((req, res) => {
   let calls = 0;
   const receipts = new Map();
   let loseResponse = true;
+  let loseSaleResponse = true;
+  let exchangeReceipt=null,exchangeCount=0,loseExchangeResponse=true;
+  snapshot.variants.push({ id: 2, producto_id: 1, sku: 'CAM-L', talla: 'L', color: 'Negro' });
+  snapshot.stock.push({ sucursal_id: 1, variante_id: 2, disponible: 5 });
+  snapshot.reservations = [
+    {
+      id: 41,
+      codigo_publico: 'b1234567-1111-4222-8333-123456789012',
+      sucursal_id: 1,
+      usuario_id: 4,
+      estado: 'LISTA',
+      vence_at: expiry,
+      items: [{ variante_id: 1, cantidad: 1, precio_unitario: '175.00' }],
+    },
+  ];
+  const conflict = {
+    usuario_nombre:'Ana Pérez',sucursal_nombre:'Centro',
+    detalle_prendas:[{variante_id:1,nombre:'Camisa de algodón · M · Negro',cantidad:1,precio_unitario:'150.00',precio_actual:'175.00'}],
+    id: 900,
+    usuario_id: 6,
+    operacion_id: 'd1234567-1111-4222-8333-123456789012',
+    tipo: 'SALE',
+    estado: 'CONFLICT',
+    intentos: 1,
+    payload: {
+      operacion_id: 'd1234567-1111-4222-8333-123456789012',
+      sucursal_id: 1,
+      snapshot_version: 'qa-version',
+      creado_at: now.toISOString(),
+      items: [{ variante_id: 1, cantidad: 1, precio_unitario: '150.00' }],
+      efectivo_recibido: '150.00',
+    },
+    error: {
+      code: 'PRICE_CHANGED',
+      message: 'El precio cambió. Un encargado debe revisar el importe cobrado.',
+    },
+  };
   try {
     const context = await browser.newContext();
     await context.route('**/*', (route) => {
@@ -112,25 +149,119 @@ const server = http.createServer((req, res) => {
         });
       if (!url.pathname.startsWith(prefix + '/api/')) return route.continue();
       const endpoint = url.pathname.replace(prefix + '/api/v1', '');
-      if (endpoint === '/offline/bundle') return route.fulfill({ json: snapshot });
-      if (endpoint === '/offline/reservations') {
+      const owner = JSON.parse(
+        Buffer.from(
+          (route.request().headers()['authorization'] || '').split('.')[1] || 'e30',
+          'base64url',
+        ).toString(),
+      ).sub;
+      if (endpoint === '/offline/bundle')
+        return route.fulfill({ json: { ...snapshot, owner: `1:${owner}`, user_id: +owner } });
+      if (endpoint === '/offline/operations' && route.request().method() === 'GET')
+        return route.fulfill({
+          json: [...receipts.values()].filter((o) => String(o.usuario_id) === owner),
+        });
+      if (endpoint === '/offline/operations') {
         calls++;
-        const body = route.request().postDataJSON();
-        if (!receipts.has(body.operacion_id))
-          receipts.set(body.operacion_id, {
+        const envelope = route.request().postDataJSON(),
+          body = envelope.payload;
+        if (!receipts.has(body.operacion_id)) {
+          const reservation = {
             id: 31,
             codigo_publico: 'a1234567-1111-4222-8333-123456789012',
             estado: 'PENDIENTE',
             vence_at: expiry,
             sucursal_id: 1,
+          };
+          const total = body.items.reduce(
+            (n, i) => n + Number(i.precio_unitario || 0) * i.cantidad,
+            0,
+          );
+          receipts.set(body.operacion_id, {
+            id: receipts.size + 1,
+            usuario_id: +owner,
+            operacion_id: body.operacion_id,
+            tipo: envelope.tipo,
+            payload: body,
+            estado: 'CONFIRMED',
+            intentos: 1,
+            resultado:
+              envelope.tipo === 'RESERVATION'
+                ? { reservation }
+                : {
+                    sale: {
+                      pedido_id: envelope.tipo === 'PICKUP' ? 502 : 501,
+                      codigo_publico: reservation.codigo_publico,
+                      total: total.toFixed(2),
+                      estado: 'ENTREGADO',
+                      cambio: (+body.efectivo_recibido - total).toFixed(2),
+                    },
+                  },
           });
-        if (loseResponse) {
+        }
+        if (loseResponse && envelope.tipo === 'RESERVATION') {
           loseResponse = false;
           return route.abort('connectionreset');
         }
+        if (loseSaleResponse && envelope.tipo === 'SALE') {
+          loseSaleResponse = false;
+          return route.abort('connectionreset');
+        }
         return route.fulfill({
-          json: { reservation: receipts.get(body.operacion_id), status: 'CONFIRMED' },
+          json: receipts.get(body.operacion_id),
         });
+      }
+      if (endpoint === '/retail/reservations')
+        return route.fulfill({ json: snapshot.reservations });
+      if (endpoint.startsWith('/retail/reservations/') && endpoint.endsWith('/prepare'))
+        return route.fulfill({ json: snapshot.reservations[0] });
+      if (endpoint === '/retail/conflicts')
+        return route.fulfill({ json: conflict.estado === 'CONFIRMED' ? [] : [conflict] });
+      if (endpoint === '/retail/operations/900/audit')
+        return route.fulfill({
+          json: [
+            {
+              id: 1,
+              actor_id: 6,
+              accion: 'SYNC',
+              created_at: now.toISOString(),
+              detalle: { estado: 'CONFLICT' },
+            },
+          ],
+        });
+      if (endpoint === '/retail/operations/900/resolve') {
+        conflict.estado =
+          route.request().postDataJSON().accion === 'REJECT' ? 'REJECTED' : 'CONFIRMED';
+        return route.fulfill({ json: conflict });
+      }
+      if (endpoint === '/retail/orders/find')
+        return route.fulfill({
+          json: {
+            pedido_id: 501,
+            sucursal_id: 1,
+            total: '350.00',
+            items: [
+              {
+                id: 1001,
+                variante_id: 1,
+                nombre: product.nombre,
+                talla: 'M',
+                color: 'Negro',
+                cantidad: 2,
+                disponible_cambio: 2,
+                precio_unitario: '175.00',
+                credito_unitario: '175.00',
+              },
+            ],
+          },
+        });
+      if (endpoint === '/retail/exchanges'){
+        if(url.searchParams.get('preview')==='true')return route.fulfill({json:{credito:'175.00',total_nuevo:'175.00',diferencia:'0.00'}});
+        if(!exchangeReceipt){exchangeCount++;exchangeReceipt={id:1,credito:'175.00',total_nuevo:'175.00',diferencia:'0.00',
+          operacion_id:route.request().postDataJSON().operacion_id,sale:{pedido_id:701,codigo_publico:'c1234567-1111-4222-8333-123456789012'}};}
+        assert.equal(route.request().postDataJSON().operacion_id,exchangeReceipt.operacion_id);
+        if(loseExchangeResponse){loseExchangeResponse=false;return route.abort('connectionreset');}
+        return route.fulfill({json:exchangeReceipt});
       }
       if (endpoint === '/saas/me')
         return route.fulfill({
@@ -235,7 +366,7 @@ const server = http.createServer((req, res) => {
     await page.getByRole('button', { name: 'Enviar pendientes', exact: true }).click();
     await page.getByText('Recibida por la tienda', { exact: true }).waitFor();
     assert.equal(receipts.size, 1);
-    assert.equal(calls, 2);
+    assert.equal(calls, 1);
     await page.screenshot({
       path: path.join(out, 'offline-confirmed.png'),
       fullPage: true,
@@ -309,6 +440,130 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       'Horizontal overflow in supply at 390px',
     );
+    const retailOut = path.join(out, 'cu15-cu20');
+    fs.mkdirSync(retailOut, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(base + '/retail');
+    await page
+      .getByRole('button', { name: 'Guardar catálogo de la sucursal', exact: true })
+      .click();
+    await page.getByLabel('Prenda, talla y color', { exact: true }).waitFor();
+    await context.setOffline(true);
+    await page.getByLabel('Prenda, talla y color', { exact: true }).selectOption({ index: 1 });
+    await page.getByLabel('Cantidad', { exact: true }).fill('2');
+    await page.getByRole('button', { name: 'Añadir a la venta', exact: true }).click();
+    await page.getByLabel('Efectivo recibido', { exact: true }).fill('400');
+    await page.screenshot({
+      path: path.join(retailOut, 'cash-desktop.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({
+      path: path.join(retailOut, 'cash-narrow.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      'Cash desk overflow',
+    );
+    await page.getByRole('button', { name: 'Guardar venta de contado', exact: true }).click();
+    await page.getByText('Guardada en el dispositivo', { exact: true }).waitFor();
+    const downloadPromise = page.waitForEvent('download');
+    await page
+      .getByRole('button', { name: 'Descargar comprobante provisional', exact: true })
+      .click();
+    const download = await downloadPromise;
+    const receiptText = fs.readFileSync(await download.path(), 'utf8');
+    assert.ok(
+      receiptText.includes('PROVISIONAL') &&
+        receiptText.includes('350.00') &&
+        receiptText.includes('50.00'),
+    );
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Operaciones y resultados', exact: true }).click();
+    await page.getByText('Guardada en el dispositivo', { exact: true }).waitFor();
+    await context.setOffline(false);
+    await page.getByText('Por comprobar al conectar', { exact: true }).waitFor();
+    await page
+      .getByRole('button', { name: 'Sincronizar y consultar resultados', exact: true })
+      .click();
+    await page.getByText('Confirmada', { exact: true }).waitFor();
+    assert.equal([...receipts.values()].filter((r) => r.tipo === 'SALE').length, 1);
+    assert.equal(
+      calls,
+      2,
+      'One POST each for the reservation and cash sale; lost responses reconciled through GET',
+    );
+    await page.screenshot({
+      path: path.join(retailOut, 'operations-confirmed.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    await page.getByRole('button', { name: 'Atender reservas', exact: true }).click();
+    await page.getByRole('button', { name: 'Cobrar y entregar', exact: true }).click();
+    await page.getByLabel('Efectivo recibido', { exact: true }).fill('200');
+    await page.getByRole('button', { name: 'Confirmar cobro y entrega', exact: true }).click();
+    await page.getByText('Retiro de reserva 41', { exact: true }).waitFor();
+    await page.getByText('Pedido 502', { exact: false }).waitFor();
+    assert.equal([...receipts.values()].filter((r) => r.tipo === 'PICKUP').length, 1);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(base + '/sync-conflicts');
+    await page.getByRole('button', { name: 'Revisar detalle', exact: true }).click();
+    await page
+      .getByLabel('Motivo y acuerdo con el cliente', { exact: true })
+      .fill('Se respeta el precio cobrado en caja.');
+    await page
+      .getByLabel('Autorizar el precio que se cobró y quedó guardado', { exact: true })
+      .check();
+    await page.screenshot({
+      path: path.join(retailOut, 'conflict-review.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    await page.getByRole('button', { name: 'Volver a validar', exact: true }).click();
+    await page
+      .getByText('Todo al día. No hay operaciones pendientes de revisión en tus sucursales.', {
+        exact: true,
+      })
+      .waitFor();
+    await page.goto(base + '/exchanges');
+    await page.getByLabel('Número de pedido o código del comprobante', { exact: true }).fill('501');
+    await page.getByRole('button', { name: 'Buscar venta', exact: true }).click();
+    await page.getByRole('spinbutton').first().fill('1');
+    await page.getByLabel('Nueva talla o prenda', { exact: true }).selectOption({ index: 2 });
+    await page.getByLabel('Cantidad', { exact: true }).fill('1');
+    await page.getByRole('button', { name: 'Añadir prenda nueva', exact: true }).click();
+    await page
+      .getByLabel('Motivo del cambio', { exact: true })
+      .fill('El cliente solicita talla L.');
+    await page
+      .getByRole('button', { name: 'Calcular diferencia con precios actuales', exact: true })
+      .click();
+    await page.getByRole('button', { name: 'Confirmar cambio y efectivo', exact: true }).waitFor();
+    await page.screenshot({
+      path: path.join(retailOut, 'exchange-preview.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.screenshot({
+      path: path.join(retailOut, 'exchange-narrow.png'),
+      fullPage: true,
+      animations: 'disabled',
+    });
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      'Exchange overflow',
+    );
+    await page.getByRole('button', { name: 'Confirmar cambio y efectivo', exact: true }).click();
+    await page.getByRole('heading',{name:'Un cambio necesita comprobarse',exact:true}).waitFor();
+    await page.reload();
+    await page.getByRole('button',{name:'Comprobar cambio anterior',exact:true}).click();
+    await page.getByRole('heading', { name: 'Cambio 1 registrado', exact: true }).waitFor();
+    assert.equal(exchangeCount,1);
     assert.deepEqual(errors, []);
     fs.writeFileSync(
       path.join(out, 'verification.json'),
@@ -318,7 +573,11 @@ const server = http.createServer((req, res) => {
           pwaReloadOffline: true,
           queueSurvivesReload: true,
           lostResponseRetried: true,
-          serverReservations: receipts.size,
+          serverReservations: [...receipts.values()].filter(r=>r.tipo==='RESERVATION').length,
+          serverCashSales: [...receipts.values()].filter(r=>r.tipo==='SALE').length,
+          serverPickups: [...receipts.values()].filter(r=>r.tipo==='PICKUP').length,
+          provisionalCashReceipt:true, cashLostResponseReconciled:true,
+          conflictReview:true, exchangeCompleted:true,exchangeLostResponseRecovered:true,
           tenantIsolation: true,
           pageErrors: errors,
         },
@@ -330,15 +589,33 @@ const server = http.createServer((req, res) => {
       'Incremento II browser checks passed: PWA offline reload, durable queue, lost-response retry, tenant isolation and responsive screens.',
     );
   } catch (error) {
-    const page = browser.contexts().flatMap(context => context.pages())[0];
+    const page = browser.contexts().flatMap((context) => context.pages())[0];
     if (page) {
-      await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});
-      console.error('QA failure context', await page.evaluate(async () => ({
-        url:location.href, online:navigator.onLine, text:document.body.innerText.slice(0,2200),
-        config:await (await caches.match(new URL('config.json',document.baseURI)))?.text(),
-        worker:navigator.serviceWorker.controller?.scriptURL,
-        cacheKeys:await caches.keys()
-      })));
+      await page.screenshot({ path: path.join(out, 'failure.png'), fullPage: true });
+      console.error(
+        'QA failure context',
+        await page.evaluate(async () => ({
+          url: location.href,
+          online: navigator.onLine,
+          text: document.body.innerText.slice(0, 2200),
+          config: await (await caches.match(new URL('config.json', document.baseURI)))?.text(),
+          worker: navigator.serviceWorker.controller?.scriptURL,
+          cacheKeys: await caches.keys(),
+          forms: [...document.forms].map((f) => ({
+            valid: f.checkValidity(),
+            inputs: [...f.querySelectorAll('input')].map((i) => ({
+              name: i.name,
+              value: i.value,
+              validation: i.validationMessage,
+            })),
+            buttons: [...f.querySelectorAll('button')].map((b) => ({
+              text: b.innerText,
+              type: b.type,
+              disabled: b.disabled,
+            })),
+          })),
+        })),
+      );
     }
     throw error;
   } finally {

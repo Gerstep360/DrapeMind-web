@@ -128,7 +128,7 @@
       </div>
       <button
         type="button"
-        [disabled]="offline.syncing() || !offline.online() || !offline.pending()"
+        [disabled]="offline.syncing() || !offline.online()"
         (click)="offline.sync()"
       >
         {{ offline.syncing() ? 'Comprobando solicitudes…' : 'Enviar pendientes' }}
@@ -152,7 +152,7 @@
           }
         </div>
         <div class="row-actions">
-          @if (record.state === 'CONFIRMED') {
+          @if (record.state === 'CONFIRMED' && !record.sale) {
             <a routerLink="/reservations">Ver reserva y QR</a>
           }
           @if (record.state === 'CONFLICT') {
@@ -164,7 +164,10 @@
               Volver a intentar
             </button>
           }
-          @if (record.state === 'PENDING' || record.state === 'CONFLICT') {
+          @if (
+            (!record.tipo || record.tipo === 'RESERVATION') &&
+            (record.state === 'PENDING' || record.state === 'CONFLICT')
+          ) {
             <button type="button" [disabled]="offline.syncing()" (click)="offline.cancel(record)">
               Cancelar solicitud
             </button>

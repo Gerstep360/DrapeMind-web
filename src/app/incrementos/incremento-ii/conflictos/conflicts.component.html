@@ -1,0 +1,113 @@
+<main class="feature-page">
+  <header class="feature-heading">
+    <div>
+      <p class="eyebrow">Ningún cobro se pierde</p>
+      <h1>Operaciones por revisar</h1>
+      <p>
+        Revisa qué cambió y deja constancia de cada decisión. El inventario nunca se fuerza a quedar
+        negativo.
+      </p>
+    </div>
+    <button type="button" [disabled]="busy" (click)="load()">Actualizar</button>
+  </header>
+  @if (error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+  <label class="checkbox-line"
+    ><input type="checkbox" [(ngModel)]="showResolved" />Incluir operaciones anuladas</label
+  >
+  @for (row of visible; track row.id) {
+    <article class="request-row">
+      <div>
+        <span class="state">{{ row.estado === 'CONFLICT' ? 'Necesita revisión' : 'Anulada' }}</span>
+        <h2>
+          {{
+            row.tipo === 'SALE'
+              ? 'Venta de contado'
+              : row.tipo === 'PICKUP'
+                ? 'Retiro de reserva'
+                : 'Reserva'
+          }}
+          · Operación {{ row.id }}
+        </h2>
+        <p>
+          {{ row.sucursal_nombre || 'Sucursal de la tienda' }} ·
+          {{ row.usuario_nombre || 'Colaborador de la tienda' }} · {{ row.intentos }} intentos
+        </p>
+        <p>{{ row.error?.message }}</p>
+        @if (row.tipo !== 'RESERVATION') {
+          <p>Importe cobrado: {{ total(row) | currency: 'BOB' : 'Bs ' }}</p>
+        }
+      </div>
+      <button type="button" [disabled]="busy" (click)="open(row)">Revisar detalle</button>
+    </article>
+  } @empty {
+    <p class="empty">Todo al día. No hay operaciones pendientes de revisión en tus sucursales.</p>
+  }
+  @if (selected; as row) {
+    <section class="order-form">
+      <h2>Revisar operación {{ row.id }}</h2>
+      <p>{{ row.error?.message }}</p>
+      @for (i of row.detalle_prendas || []; track i.variante_id) {
+        <p>
+          {{ i.nombre }} · {{ i.cantidad }} unidades
+          @if (i.precio_unitario) {
+            · Bs {{ i.precio_unitario }} por unidad
+          }
+          @if (i.precio_actual) {
+            · Catálogo actual: Bs {{ i.precio_actual }}
+          }
+        </p>
+      }
+      @if (row.estado === 'CONFLICT') {
+        <label
+          >Motivo y acuerdo con el cliente<textarea
+            [(ngModel)]="note"
+            minlength="5"
+            maxlength="300"
+            required
+          ></textarea>
+        </label>
+        @if (row.tipo !== 'RESERVATION') {
+          <label class="checkbox-line"
+            ><input type="checkbox" [(ngModel)]="acceptPrice" />Autorizar el precio que se cobró y
+            quedó guardado</label
+          ><label class="checkbox-line"
+            ><input type="checkbox" [(ngModel)]="refunded" />Confirmo que se devolvió el efectivo al
+            comprador si se anula la venta</label
+          >
+        }
+        <p class="muted">
+          Para volver a comprobar falta de stock, registra primero la corrección real del
+          inventario. Autorizar el precio no permite vender unidades inexistentes.
+        </p>
+        <div class="button-group">
+          <button class="primary" type="button" [disabled]="busy" (click)="resolve('RETRY')">
+            Volver a validar</button
+          ><button type="button" [disabled]="busy" (click)="resolve('REJECT')">
+            Anular operación</button
+          ><button type="button" [disabled]="busy" (click)="selected = null">Cerrar</button>
+        </div>
+      }
+      <h3>Historial de revisión</h3>
+      @for (a of audit; track a.id) {
+        <p class="muted">
+          {{ a.created_at | date: 'dd/MM, HH:mm' }} · Usuario {{ a.actor_id }} ·
+          {{
+            a.accion === 'SYNC'
+              ? 'Sincronización'
+              : a.accion === 'REJECT'
+                ? 'Anulación'
+                : 'Revisión'
+          }}
+          · {{ a.detalle.estado }} {{ a.detalle.motivo }}
+        </p>
+      }
+    </section>
+  }
+  @if (hasMore) {
+    <button type="button" [disabled]="busy" (click)="load(true)">
+      Cargar operaciones anteriores
+    </button>
+  }
+</main>

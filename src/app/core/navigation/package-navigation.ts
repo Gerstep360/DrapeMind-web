@@ -38,6 +38,11 @@ const everyone: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO', 'CLIEN
 const staff: UserRole[] = ['ADMIN', 'VENDEDOR', 'ENCARGADO', 'CAJERO'];
 
 export const PACKAGE_NAVIGATION: PackageNavigation[] = [
+  {label:'Operación en tienda',description:'Caja, retiros y cambios',items:[
+    {label:'Caja y reservas',description:'Cobros de contado y retiros, con o sin señal',icon:'pos',route:'/retail',roles:['ADMIN','ENCARGADO','CAJERO']},
+    {label:'Operaciones por revisar',description:'Resolver conflictos y dejar constancia',icon:'inventory',route:'/sync-conflicts',roles:['ADMIN','ENCARGADO']},
+    {label:'Cambios de prendas',description:'Devoluciones, nuevas tallas y diferencias',icon:'orders',route:'/exchanges',roles:['ADMIN','ENCARGADO','CAJERO']}
+  ]},
   {label:'Sin conexión',description:'Tu tienda guardada en este dispositivo',items:[{label:'Catálogo y reservas offline',description:'Descargar prendas y enviar solicitudes pendientes',icon:'catalog',route:'/offline',roles:staff.concat('CLIENTE')}]},
   {
     label: 'Acceso y gestión de usuarios',

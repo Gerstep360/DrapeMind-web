@@ -2,6 +2,28 @@
   display: block;
   color: var(--dm-ink, #1b1b1b);
 }
+.workspace.retail-workspace {
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  align-items: start;
+}
+.cash-total {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  margin: 12px 0;
+}
+.checkbox-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .workspace.retail-workspace {
+    grid-template-columns: 1fr;
+  }
+}
 .feature-page {
   max-width: 1280px;
   margin: auto;

@@ -83,6 +83,7 @@ export class OfflineComponent {
       CONFLICT: 'Necesita tu atención',
       CONFIRMED: 'Recibida por la tienda',
       CANCELLED: 'Cancelada',
+      REJECTED: 'Anulada por el encargado',
     }[record.state];
   }
 }
