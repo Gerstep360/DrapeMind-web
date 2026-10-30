@@ -237,7 +237,15 @@ export class OfflineService {
     if (this.online()) void this.sync();
   }
   async cancel(record: QueuedReservation): Promise<void> {
-    record = this.queue().find((r) => r.key === record.key) ?? record;
+    const current = this.queue().find((r) => r.key === record.key);
+    if (
+      !current ||
+      this.syncing() ||
+      current.owner !== this.owner() ||
+      !['PENDING', 'CONFLICT'].includes(current.state)
+    )
+      return;
+    record = current;
     if (record.tipo && record.tipo !== 'RESERVATION') return;
     if (record.state === 'CONFLICT') {
       if (!this.online()) {
@@ -254,6 +262,7 @@ export class OfflineService {
             .pipe(timeout(15000)),
         );
       } catch (e) {
+        if (record.owner !== this.owner()) return;
         if ((e as HttpErrorResponse).status !== 404) {
           this.message.set(offlineMessage(e));
           await this.sync();

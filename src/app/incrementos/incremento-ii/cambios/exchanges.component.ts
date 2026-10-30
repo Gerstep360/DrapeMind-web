@@ -122,14 +122,30 @@ export class ExchangesComponent {
   async checkPending() {
     await this.action(async () => {
       const owner = this.offline.owner();
-      if (owner) await this.sendPending(owner);
+      if (owner) await this.sendPending(owner, true);
     });
   }
-  private async sendPending(owner: string) {
+  private async sendPending(owner: string, recover = false) {
+    const payload = this.pending;
     try {
-      const result = await firstValueFrom(
-        this.http.post<any>(`${this.base}/exchanges`, this.pending).pipe(timeout(25000)),
-      );
+      let result: any;
+      if (recover) {
+        try {
+          result = await firstValueFrom(
+            this.http
+              .get<any>(`${this.base}/exchanges/operations/${payload.operacion_id}`)
+              .pipe(timeout(15000)),
+          );
+        } catch (e) {
+          if ((e as { status?: number }).status !== 404) throw e;
+        }
+      }
+      if (!result) {
+        if (owner !== this.offline.owner()) return;
+        result = await firstValueFrom(
+          this.http.post<any>(`${this.base}/exchanges`, payload).pipe(timeout(25000)),
+        );
+      }
       localStorage.removeItem(`drapemind.exchange.pending|${owner}`);
       if (owner !== this.offline.owner()) return;
       this.result = result;
@@ -139,7 +155,7 @@ export class ExchangesComponent {
       void this.offline.download();
     } catch (e) {
       const status = (e as { status?: number }).status;
-      if (status && status >= 400 && status < 500) {
+      if (!recover && (status === 409 || status === 422)) {
         localStorage.removeItem(`drapemind.exchange.pending|${owner}`);
         if (owner === this.offline.owner()) this.pending = null;
       }

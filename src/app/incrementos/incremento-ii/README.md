@@ -27,3 +27,6 @@ Prueba de navegador reproducible: scripts/check-incremento-ii.cjs. Evidencias: q
 La venta offline genera un comprobante provisional descargable. Al confirmarse aparece el comprobante de la empresa. Las ventas cobradas no se cancelan localmente como una solicitud de reserva. Una respuesta perdida se concilia por UUID, incluso si no aparece en los últimos 200 resultados.
 
 CU-20 conserva en local la solicitud enviada hasta conocer su resultado. Si se recarga la página o se pierde la respuesta, se comprueba el mismo cambio antes de iniciar otro. Los precios del cálculo previo y la confirmación se validan en el backend.
+## Recuperación de cambios de prendas
+
+Un cambio pendiente se conserva por servidor, empresa y usuario. Al comprobarlo se consulta `GET /retail/exchanges/operations/{uuid}` antes de reenviar el mismo cuerpo. Un error de autenticación mantiene la solicitud guardada. La cancelación de reservas verifica el propietario y el estado antes de cualquier petición.

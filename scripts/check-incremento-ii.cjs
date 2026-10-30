@@ -102,7 +102,9 @@ const server = http.createServer((req, res) => {
   const receipts = new Map();
   let loseResponse = true;
   let loseSaleResponse = true;
-  let exchangeReceipt=null,exchangeCount=0,loseExchangeResponse=true;
+  let exchangeReceipt = null,
+    exchangeCount = 0,
+    loseExchangeResponse = true;
   snapshot.variants.push({ id: 2, producto_id: 1, sku: 'CAM-L', talla: 'L', color: 'Negro' });
   snapshot.stock.push({ sucursal_id: 1, variante_id: 2, disponible: 5 });
   snapshot.reservations = [
@@ -117,8 +119,17 @@ const server = http.createServer((req, res) => {
     },
   ];
   const conflict = {
-    usuario_nombre:'Ana Pérez',sucursal_nombre:'Centro',
-    detalle_prendas:[{variante_id:1,nombre:'Camisa de algodón · M · Negro',cantidad:1,precio_unitario:'150.00',precio_actual:'175.00'}],
+    usuario_nombre: 'Ana Pérez',
+    sucursal_nombre: 'Centro',
+    detalle_prendas: [
+      {
+        variante_id: 1,
+        nombre: 'Camisa de algodón · M · Negro',
+        cantidad: 1,
+        precio_unitario: '150.00',
+        precio_actual: '175.00',
+      },
+    ],
     id: 900,
     usuario_id: 6,
     operacion_id: 'd1234567-1111-4222-8333-123456789012',
@@ -255,13 +266,33 @@ const server = http.createServer((req, res) => {
             ],
           },
         });
-      if (endpoint === '/retail/exchanges'){
-        if(url.searchParams.get('preview')==='true')return route.fulfill({json:{credito:'175.00',total_nuevo:'175.00',diferencia:'0.00'}});
-        if(!exchangeReceipt){exchangeCount++;exchangeReceipt={id:1,credito:'175.00',total_nuevo:'175.00',diferencia:'0.00',
-          operacion_id:route.request().postDataJSON().operacion_id,sale:{pedido_id:701,codigo_publico:'c1234567-1111-4222-8333-123456789012'}};}
-        assert.equal(route.request().postDataJSON().operacion_id,exchangeReceipt.operacion_id);
-        if(loseExchangeResponse){loseExchangeResponse=false;return route.abort('connectionreset');}
-        return route.fulfill({json:exchangeReceipt});
+      if (endpoint.startsWith('/retail/exchanges/operations/')) {
+        return exchangeReceipt && endpoint.endsWith(exchangeReceipt.operacion_id)
+          ? route.fulfill({ json: exchangeReceipt })
+          : route.fulfill({ status: 404, json: { detail: 'Cambio no encontrado' } });
+      }
+      if (endpoint === '/retail/exchanges') {
+        if (url.searchParams.get('preview') === 'true')
+          return route.fulfill({
+            json: { credito: '175.00', total_nuevo: '175.00', diferencia: '0.00' },
+          });
+        if (!exchangeReceipt) {
+          exchangeCount++;
+          exchangeReceipt = {
+            id: 1,
+            credito: '175.00',
+            total_nuevo: '175.00',
+            diferencia: '0.00',
+            operacion_id: route.request().postDataJSON().operacion_id,
+            sale: { pedido_id: 701, codigo_publico: 'c1234567-1111-4222-8333-123456789012' },
+          };
+        }
+        assert.equal(route.request().postDataJSON().operacion_id, exchangeReceipt.operacion_id);
+        if (loseExchangeResponse) {
+          loseExchangeResponse = false;
+          return route.abort('connectionreset');
+        }
+        return route.fulfill({ json: exchangeReceipt });
       }
       if (endpoint === '/saas/me')
         return route.fulfill({
@@ -273,9 +304,41 @@ const server = http.createServer((req, res) => {
             active_branches: 1,
           },
         });
-      if (endpoint === '/supply/suppliers') return route.fulfill({ json: [supplier] });
+      if (endpoint === '/supply/suppliers') {
+        if (route.request().method() === 'POST') {
+          Object.assign(supplier, route.request().postDataJSON());
+          return route.fulfill({ status: 201, json: supplier });
+        }
+        return route.fulfill({ json: [supplier] });
+      }
       if (endpoint === '/supply/suppliers/1/offers') return route.fulfill({ json: [offer] });
-      if (endpoint === '/supply/orders') return route.fulfill({ json: orders });
+      if (endpoint === '/supply/orders') {
+        if (route.request().method() === 'POST') {
+          const body = route.request().postDataJSON();
+          assert.equal(body.sucursal_id, 1);
+          assert.equal(body.items[0].variante_id, 1);
+          orders.push({
+            id: 22,
+            proveedor_id: 1,
+            proveedor: supplier.nombre_empresa,
+            sucursal: 'Centro',
+            estado: 'SOLICITADO',
+            total: '65.00',
+            created_at: now.toISOString(),
+            items: [{ nombre: offer.nombre_suministro, cantidad: 1 }],
+          });
+          return route.fulfill({ status: 201, json: orders.at(-1) });
+        }
+        return route.fulfill({ json: orders });
+      }
+      if (endpoint.startsWith('/supply/orders/')) {
+        const parts = endpoint.split('/'),
+          order = orders.find((o) => o.id === +parts[3]);
+        if (!order) return route.fulfill({ status: 404, json: { detail: 'No existe' } });
+        order.estado =
+          parts[4] === 'confirm' ? 'CONFIRMADO' : parts[4] === 'receive' ? 'RECIBIDO' : 'CANCELADO';
+        return route.fulfill({ json: order });
+      }
       if (endpoint === '/supply/destinations')
         return route.fulfill({
           json: {
@@ -429,7 +492,19 @@ const server = http.createServer((req, res) => {
     await page.getByRole('button', { name: 'Registrar proveedor', exact: true }).click();
     await page.getByRole('textbox', { name: 'Empresa', exact: true }).fill('Nuevo proveedor');
     await page.screenshot({ path: path.join(out, 'supplier-form.png'), animations: 'disabled' });
-    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Guardar proveedor', exact: true }).click();
+    await page.getByRole('heading', { name: 'Nuevo proveedor', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Añadir suministro', exact: true }).click();
+    await page.locator('form.order-form select').nth(2).selectOption({ index: 1 });
+    await page.getByRole('button', { name: 'Solicitar pedido', exact: true }).click();
+    const newOrder = page
+      .locator('article.request-row')
+      .filter({
+        has: page.getByRole('heading', { name: 'Pedido 22 · Nuevo proveedor', exact: true }),
+      });
+    await newOrder.getByRole('button', { name: 'Confirmar unidades', exact: true }).click();
+    await newOrder.getByRole('button', { name: 'Registrar recepción', exact: true }).click();
+    await newOrder.locator('.state').filter({ hasText: 'RECIBIDO' }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({
       path: path.join(out, 'supply-narrow.png'),
@@ -548,7 +623,7 @@ const server = http.createServer((req, res) => {
       animations: 'disabled',
     });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: path.join(retailOut, 'exchange-narrow.png'),
       fullPage: true,
@@ -559,11 +634,13 @@ const server = http.createServer((req, res) => {
       'Exchange overflow',
     );
     await page.getByRole('button', { name: 'Confirmar cambio y efectivo', exact: true }).click();
-    await page.getByRole('heading',{name:'Un cambio necesita comprobarse',exact:true}).waitFor();
+    await page
+      .getByRole('heading', { name: 'Un cambio necesita comprobarse', exact: true })
+      .waitFor();
     await page.reload();
-    await page.getByRole('button',{name:'Comprobar cambio anterior',exact:true}).click();
+    await page.getByRole('button', { name: 'Comprobar cambio anterior', exact: true }).click();
     await page.getByRole('heading', { name: 'Cambio 1 registrado', exact: true }).waitFor();
-    assert.equal(exchangeCount,1);
+    assert.equal(exchangeCount, 1);
     assert.deepEqual(errors, []);
     fs.writeFileSync(
       path.join(out, 'verification.json'),
@@ -573,11 +650,15 @@ const server = http.createServer((req, res) => {
           pwaReloadOffline: true,
           queueSurvivesReload: true,
           lostResponseRetried: true,
-          serverReservations: [...receipts.values()].filter(r=>r.tipo==='RESERVATION').length,
-          serverCashSales: [...receipts.values()].filter(r=>r.tipo==='SALE').length,
-          serverPickups: [...receipts.values()].filter(r=>r.tipo==='PICKUP').length,
-          provisionalCashReceipt:true, cashLostResponseReconciled:true,
-          conflictReview:true, exchangeCompleted:true,exchangeLostResponseRecovered:true,
+          serverReservations: [...receipts.values()].filter((r) => r.tipo === 'RESERVATION').length,
+          serverCashSales: [...receipts.values()].filter((r) => r.tipo === 'SALE').length,
+          serverPickups: [...receipts.values()].filter((r) => r.tipo === 'PICKUP').length,
+          provisionalCashReceipt: true,
+          cashLostResponseReconciled: true,
+          conflictReview: true,
+          exchangeCompleted: true,
+          exchangeLostResponseRecovered: true,
+          supplierRegistrationAndReceiving: true,
           tenantIsolation: true,
           pageErrors: errors,
         },
