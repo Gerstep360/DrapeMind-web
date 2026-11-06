@@ -9,6 +9,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { RuntimeConfigService } from '@core/runtime-config.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
 
 export interface ProductColorChoice {
   nombre: string;
@@ -29,6 +30,20 @@ export class ProductsManagementComponent implements OnInit {
   private readonly toasts = inject(ToastService);
   private readonly runtime = inject(RuntimeConfigService);
   private readonly route = inject(ActivatedRoute);
+  private readonly http = inject(HttpClient);
+  readonly bodyAssetUploading = signal(false);
+
+  uploadBodyAsset(event:Event):void {
+    const input=event.target as HTMLInputElement;
+    const file=input.files?.[0], product=this.editingProduct();
+    if(!file || !product || this.bodyAssetUploading())return;
+    const form=new FormData();form.append('file',file);
+    this.bodyAssetUploading.set(true);
+    this.http.post<{ar_asset:string;ar_category:string}>(`${this.runtime.apiUrl}/ar/products/${product.id}/body-asset`,form).subscribe({
+      next:asset=>{this.bodyAssetUploading.set(false);this.editingProduct.set({...product,imagenes:[...(product.imagenes||[]).filter(item=>!(typeof item==='object'&&item&&'ar_asset' in item)),asset]});this.toasts.show('Imagen del vestidor guardada para esta prenda','success');},
+      error:e=>{this.bodyAssetUploading.set(false);this.toasts.show(typeof e.error?.detail==='string'?e.error.detail:'No se pudo guardar la imagen del vestidor','error');}
+    });input.value='';
+  }
 
   readonly products = signal<Product[]>([]);
   readonly categories = signal<Category[]>([]);
@@ -500,7 +515,7 @@ export class ProductsManagementComponent implements OnInit {
     }
     this.savingProduct.set(true);
     const val = { ...this.productForm.value };
-    val.imagenes = this.imagesList();
+    val.imagenes = [...this.imagesList(),...(this.editingProduct()?.imagenes||[]).filter(item=>typeof item==='object'&&item&&'ar_asset' in item)];
 
     const editing = this.editingProduct();
 

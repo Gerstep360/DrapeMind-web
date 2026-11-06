@@ -11,7 +11,7 @@
  </form>
  @if(report();as r){
  <article class="stack report-result" aria-live="polite">
-  <header class="section-heading"><div><p class="eyebrow">{{r.datos.empresa}} · {{r.datos.sucursal}}</p><h2>{{r.titulo}}</h2><p>{{r.datos.desde}} — {{r.datos.hasta}}</p></div><button type="button" (click)="download()">Descargar PDF</button></header>
+  <header class="section-heading"><div><p class="eyebrow">{{r.datos.empresa}} · {{r.datos.sucursal}}</p><h2>{{r.titulo}}</h2><p>{{r.datos.desde}} — {{r.datos.hasta}}</p></div><div class="button-group"><button type="button" (click)="download()">Descargar PDF</button><button type="button" (click)="download('xlsx')">Descargar Excel</button></div></header>
   <dl class="report-metrics"><div><dt>Ingreso neto cobrado</dt><dd>Bs {{r.datos.ingreso_neto_cobrado|number:'1.2-2'}}</dd></div><div><dt>Pedidos pagados</dt><dd>{{r.datos.pedidos_pagados}}</dd></div><div><dt>Unidades disponibles ahora</dt><dd>{{r.datos.inventario_actual.unidades_disponibles}}</dd></div></dl>
   <p class="report-analysis">{{r.analisis}}</p>
   @if(r.datos.prendas_vendidas.length){<div class="table-wrap"><table class="list-table"><thead><tr><th>Prenda en pedidos pagados</th><th>Unidades</th></tr></thead><tbody>@for(item of r.datos.prendas_vendidas;track item.nombre){<tr><td>{{item.nombre}}</td><td>{{item.cantidad}}</td></tr>}</tbody></table></div>}

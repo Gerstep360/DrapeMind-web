@@ -40,9 +40,9 @@ export class BusinessReportsComponent implements OnInit,OnDestroy{
   r.onend=()=>this.listening.set(false);this.recognition=r;
   try{this.listening.set(true);r.start();}catch{this.error.set('No se pudo iniciar el micrófono.');}
  }
- async download(){
+ async download(format:'pdf'|'xlsx'='pdf'){
   const row=this.report();if(!row)return;this.error.set('');
-  try{const blob=await firstValueFrom(this.http.get(`${this.base}/business-reports/${row.id}/pdf`,{responseType:'blob'}));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`reporte-${row.id}.pdf`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){this.error.set(offlineMessage(e));}
+  try{const blob=await firstValueFrom(this.http.get(`${this.base}/business-reports/${row.id}/${format}`,{responseType:'blob'}));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`reporte-${row.id}.${format}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){this.error.set(offlineMessage(e));}
  }
  ngOnDestroy(){this.recognition?.abort();}
 }

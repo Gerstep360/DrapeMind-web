@@ -10,6 +10,7 @@
 </section>
 
 @if (auth.user()?.rol === 'ADMIN') {
+  <a class="tab-pill" routerLink="/business-insights">Indicadores por periodo y predicciones</a>
   <nav class="dashboard-tabs" aria-label="Vistas del panel">
     <button
       type="button"

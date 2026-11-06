@@ -1,0 +1,10 @@
+{
+  "responsive": [
+    1440,
+    390
+  ],
+  "voice": true,
+  "pdf": true,
+  "providerError": true,
+  "pageErrors": []
+}

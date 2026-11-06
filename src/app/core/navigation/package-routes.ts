@@ -5,6 +5,7 @@ import { incrementoIIRoutes } from '../../incrementos/incremento-ii/routes';
 
 /** Feature routes grouped by the same business packages used by navigation. */
 export const packageRoutes: Routes = [
+  {path:'business-insights',title:'Indicadores y tendencias | DrapeMind',loadComponent:()=>import('../../incrementos/incremento-iv/insights.component').then(m=>m.InsightsComponent)},
   ...incrementoIRoutes,
   ...incrementoIIRoutes,
   {

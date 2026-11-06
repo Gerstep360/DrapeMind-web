@@ -256,6 +256,9 @@
               <span class="section-sub">{{ imagesList().length }} imagen(es) registrada(s)</span>
             </div>
 
+            @if(editingProduct()){
+              <div class="gallery-uploader-row"><label class="upload-file-chip"><span>{{bodyAssetUploading()?'Preparando vestidor…':'Imagen para probar con cámara'}}</span><input type="file" accept="image/png,image/webp" (change)="uploadBodyAsset($event)" [disabled]="bodyAssetUploading()" /></label><p>Para poleras, camisas y prendas superiores. Sube la prenda de frente con fondo transparente, en PNG o WebP, hasta 8 MB. Se guarda en esta prenda.</p></div>
+            }
             <div class="gallery-uploader-row">
               <label class="upload-file-chip">
                 <span>{{ imageUploading() ? 'Subiendo...' : '+ Subir Archivo Local' }}</span>
