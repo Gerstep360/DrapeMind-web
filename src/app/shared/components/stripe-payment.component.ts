@@ -94,7 +94,8 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
       this.paymentId = intent.payment_id;
       const pubKey = (intent.publishable_key || '').trim();
       const isRealKey = pubKey.startsWith('pk_test_') || pubKey.startsWith('pk_live_');
-      const isSandboxMode = intent.sandbox === true || !isRealKey;
+      const isSandboxMode = intent.sandbox === true;
+      if(!isSandboxMode && !isRealKey)throw new Error('Stripe no está configurado para este pedido.');
 
       this.isSandbox.set(isSandboxMode);
 
@@ -123,8 +124,9 @@ export class StripePaymentComponent implements OnInit, OnDestroy {
       }
     } catch {
       if (!this.destroyed) {
-        this.isSandbox.set(true);
-        this.ready.set(true);
+        this.isSandbox.set(false);
+        this.ready.set(false);
+        this.error.set('No se pudo preparar el pago. Reintenta cuando tengas conexión; el pedido conserva su estado.');
       }
     } finally {
       if (!this.destroyed) this.busy.set(false);

@@ -50,6 +50,7 @@ export class CartDrawerComponent {
   private readonly router = inject(Router);
 
   readonly step = signal<CartDrawerStep>('CART');
+  readonly deliveryFee=signal<number|null>(null);
   readonly processing = signal<boolean>(false);
   readonly addresses = signal<Address[]>([]);
   readonly selectedAddressId = signal<number | null>(null);
@@ -91,6 +92,7 @@ export class CartDrawerComponent {
   constructor() {
     effect(() => {
       if (this.cart.isOpen()) {
+        this.commerceApi.shippingConfiguration().subscribe({next:config=>this.deliveryFee.set(+config.costo_delivery),error:()=>this.deliveryFee.set(null)});
         this.branches.loadBranches();
         this.loadAddresses();
         this.loadPromotions();
@@ -209,7 +211,7 @@ export class CartDrawerComponent {
   }
 
   shippingCost(): number {
-    return this.checkoutForm.get('tipo_entrega')?.value === 'DELIVERY' ? 15.0 : 0.0;
+    return this.checkoutForm.get('tipo_entrega')?.value === 'DELIVERY' ? (this.deliveryFee()??0) : 0.0;
   }
 
   grandTotal(): number {
@@ -217,6 +219,7 @@ export class CartDrawerComponent {
   }
 
   confirmOrder(): void {
+    if(this.checkoutForm.get('tipo_entrega')?.value==='DELIVERY' && this.deliveryFee()===null){this.toast.show('No pudimos consultar la tarifa de envío. Reabre el carrito para reintentar.','error');return;}
     if (this.processing()) return;
     if (
       this.checkoutForm.controls.tipo_entrega.value === 'RECOJO' &&

@@ -1,0 +1,22 @@
+<main class="feature-page report-page">
+ <header class="feature-heading"><div><p class="eyebrow">Decisiones para tu tienda</p><h1>Reportes de tu negocio</h1><p>Pregunta por tus ventas o inventario. Revisa la consulta antes de generar el análisis.</p></div></header>
+ @if(error()){<p class="error" role="alert">{{error()}}</p>}
+ <form class="stack report-form" (ngSubmit)="generate()">
+  <label>¿Qué necesitas conocer?<textarea name="query" [(ngModel)]="query" (ngModelChange)="entry='TEXTO'" required minlength="5" maxlength="1000" rows="3" placeholder="Por ejemplo: ¿cómo van las ventas de este mes?"></textarea></label>
+  <div class="button-group"><button type="button" (click)="selectExample('¿Cómo van las ventas de este mes?')">Ventas del mes</button><button type="button" (click)="selectExample('Revisa el inventario actual y el stock bajo')">Disponibilidad actual</button><button type="button" [disabled]="!voiceSupported || busy()" (click)="dictate()" [attr.aria-pressed]="listening()">{{listening()?'Detener dictado':'Dictar consulta'}}</button></div>
+  @if(!voiceSupported){<p class="muted">Puedes escribir tu consulta; el dictado no está disponible en este navegador.</p>}
+  <div class="filters"><label>Desde (opcional)<input type="date" name="from" [(ngModel)]="from"></label><label>Hasta (opcional)<input type="date" name="to" [(ngModel)]="to"></label><label>Sucursal<select name="branch" [(ngModel)]="branch"><option value="">Todas mis sucursales</option>@for(b of branches();track b.id){<option [value]="b.id">{{b.nombre}}</option>}</select></label></div>
+  <p class="muted">Sin fechas manuales se interpreta hoy, ayer, esta semana, este mes o últimos N días; por defecto, últimos 30 días. El inventario corresponde al momento de la consulta.</p>
+  <button class="primary" type="submit" [disabled]="busy() || query.trim().length<5">{{busy()?'Analizando los datos de tu tienda…':'Generar reporte'}}</button>
+ </form>
+ @if(report();as r){
+ <article class="stack report-result" aria-live="polite">
+  <header class="section-heading"><div><p class="eyebrow">{{r.datos.empresa}} · {{r.datos.sucursal}}</p><h2>{{r.titulo}}</h2><p>{{r.datos.desde}} — {{r.datos.hasta}}</p></div><button type="button" (click)="download()">Descargar PDF</button></header>
+  <dl class="report-metrics"><div><dt>Ingreso neto cobrado</dt><dd>Bs {{r.datos.ingreso_neto_cobrado|number:'1.2-2'}}</dd></div><div><dt>Pedidos pagados</dt><dd>{{r.datos.pedidos_pagados}}</dd></div><div><dt>Unidades disponibles ahora</dt><dd>{{r.datos.inventario_actual.unidades_disponibles}}</dd></div></dl>
+  <p class="report-analysis">{{r.analisis}}</p>
+  @if(r.datos.prendas_vendidas.length){<div class="table-wrap"><table class="list-table"><thead><tr><th>Prenda en pedidos pagados</th><th>Unidades</th></tr></thead><tbody>@for(item of r.datos.prendas_vendidas;track item.nombre){<tr><td>{{item.nombre}}</td><td>{{item.cantidad}}</td></tr>}</tbody></table></div>}
+  <h3>Acciones sugeridas</h3><ul>@for(action of r.recomendaciones;track $index){<li>{{action}}</li>}</ul><p class="muted">{{r.datos.alcance}}</p>
+ </article>
+ }
+ @if(history().length){<section class="stack"><h2>Reportes guardados</h2>@for(row of history();track row.id){<button class="history-report" type="button" (click)="report.set(row)"><strong>{{row.titulo}}</strong><span>{{row.datos.desde}} — {{row.datos.hasta}} · {{row.datos.sucursal}}</span></button>}</section>}
+</main>

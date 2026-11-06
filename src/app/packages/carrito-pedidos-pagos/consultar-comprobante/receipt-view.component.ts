@@ -12,7 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError } from 'rxjs';
+import { catchError,firstValueFrom } from 'rxjs';
 import { CommerceApiService } from '@core/api/commerce-api.service';
 import { ReceiptData } from '@core/models';
 import { RECEIPT_STATUS_META, ReceiptStatusMeta } from './receipt-view.models';
@@ -90,96 +90,16 @@ export class ReceiptViewComponent implements OnInit {
   }
 
   async downloadPdf(): Promise<void> {
-    const el = this.printableCardRef?.nativeElement;
-    if (!el || this.generatingPdf()) return;
-
-    this.generatingPdf.set(true);
-    this.pdfError.set('');
-
+    const id=this.receipt()?.order.id;
+    if(!id || this.generatingPdf())return;
+    this.generatingPdf.set(true);this.pdfError.set('');
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#FFFFFF',
-        scrollY: 0,
-        scrollX: 0,
-      });
-
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const printWidth = pageWidth - margin * 2;
-      const usablePageHeight = pageHeight - margin * 2;
-      const printHeight = (canvas.height * printWidth) / canvas.width;
-
-      if (printHeight <= usablePageHeight) {
-        // Cabe en una sola hoja: comportamiento original.
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin, printWidth, printHeight);
-      } else {
-        // El comprobante no entra en una sola página (pedidos con muchos
-        // ítems): lo partimos en tantas hojas A4 como haga falta en vez
-        // de recortarlo silenciosamente.
-        const pageHeightInCanvasPx = (usablePageHeight * canvas.width) / printWidth;
-        let renderedHeight = 0;
-        let isFirstPage = true;
-
-        while (renderedHeight < canvas.height) {
-          const sliceHeight = Math.min(pageHeightInCanvasPx, canvas.height - renderedHeight);
-
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sliceHeight;
-
-          const ctx = pageCanvas.getContext('2d');
-          ctx?.drawImage(
-            canvas,
-            0,
-            renderedHeight,
-            canvas.width,
-            sliceHeight,
-            0,
-            0,
-            canvas.width,
-            sliceHeight,
-          );
-
-          const sliceHeightMm = (sliceHeight * printWidth) / canvas.width;
-
-          if (!isFirstPage) pdf.addPage();
-          pdf.addImage(
-            pageCanvas.toDataURL('image/png'),
-            'PNG',
-            margin,
-            margin,
-            printWidth,
-            sliceHeightMm,
-          );
-
-          renderedHeight += sliceHeight;
-          isFirstPage = false;
-        }
-      }
-
-      const folio = this.receipt()?.order?.id;
-      const filenameCode =
-        folio !== undefined && folio !== null ? String(folio).padStart(5, '0') : 'documento';
-      pdf.save(`comprobante-${this.receipt()?.empresa?.slug || 'tienda'}-${filenameCode}.pdf`);
-    } catch (e) {
-      console.error('No se pudo generar el PDF del comprobante', e);
-      this.pdfError.set('No pudimos generar el PDF. Inténtalo nuevamente.');
-      clearTimeout(this.pdfErrorTimeout);
-      this.pdfErrorTimeout = setTimeout(() => this.pdfError.set(''), 4000);
-    } finally {
-      this.generatingPdf.set(false);
-    }
+      const blob=await firstValueFrom(this.api.receiptPdf(id));
+      const url=URL.createObjectURL(blob);const anchor=document.createElement('a');
+      anchor.href=url;anchor.download=`comprobante-${id}.pdf`;anchor.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(e){this.pdfError.set('No se pudo descargar el comprobante. Inicia sesión en la tienda y comprueba que el pago esté confirmado.');}
+    finally{this.generatingPdf.set(false);}
   }
 
   print(): void {

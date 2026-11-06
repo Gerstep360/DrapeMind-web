@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable,defer,from } from 'rxjs';
+import { confirmCheckout } from '../../incrementos/incremento-iii/checkout';
 import {
   Cart,
   CheckoutRequest,
@@ -35,6 +36,9 @@ export class CommerceApiService {
 
   paymentConfiguration(): Observable<{ provider: string }> {
     return this.http.get<{ provider: string }>(`${this.runtime.apiUrl}/payments/config`);
+  }
+  shippingConfiguration():Observable<{moneda:string;costo_delivery:string;costo_recojo:string}>{
+    return this.http.get<any>(`${this.runtime.apiUrl}/commerce/config`);
   }
   stripeIntent(
     orderId: number,
@@ -83,6 +87,9 @@ export class CommerceApiService {
       `${this.runtime.apiUrl}/orders/${orderId}/receipt?format=json`,
     );
   }
+  receiptPdf(orderId:number):Observable<Blob>{
+    return this.http.get(`${this.runtime.apiUrl}/orders/${orderId}/receipt.pdf`,{responseType:'blob'});
+  }
   publicReceiptData(orderId: number, code = '', slug = ''): Observable<ReceiptData> {
     return this.http.get<ReceiptData>(`${this.runtime.apiUrl}/orders/${orderId}/public-receipt`, {
       params: { code },
@@ -121,7 +128,7 @@ export class CommerceApiService {
     return this.http.delete<Cart>(`${this.runtime.apiUrl}/cart/items/${item_id}`);
   }
   checkout(payload: CheckoutRequest): Observable<Order> {
-    return this.http.post<Order>(`${this.runtime.apiUrl}/orders/checkout`, payload);
+    return defer(()=>from(confirmCheckout(this.http,this.runtime.apiUrl,payload)));
   }
   initiatePayment(payload: PaymentCreate, idempotencyKey?: string): Observable<Payment> {
     return this.http.post<Payment>(`${this.runtime.apiUrl}/payments`, payload, {
