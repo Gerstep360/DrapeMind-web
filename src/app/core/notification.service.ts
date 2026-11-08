@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { RuntimeConfigService } from './runtime-config.service';
 import { ToastService } from './toast.service';
+import { BrowserPushService } from './browser-push.service';
 
 export interface AppNotification {
   id: string;
@@ -23,6 +24,9 @@ export class NotificationService {
   private readonly runtime = inject(RuntimeConfigService);
   private readonly toasts = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly push = inject(BrowserPushService);
+  private ownerToken: string | null = null;
+  private ownerIdentity = '';
 
   readonly notifications = signal<AppNotification[]>([]);
   readonly isPanelOpen = signal<boolean>(false);
@@ -39,18 +43,21 @@ export class NotificationService {
   private isDestroyed = false;
 
   constructor() {
-    this.loadFromStorage();
-
     effect(() => {
       const token = this.auth.token();
-      if (token) {
-        this.connect();
-        this.fetchNotifications();
-        this.startPolling();
-      } else {
+      const user = this.auth.user();
+      untracked(() => {
+        const identity = user ? `${user.tenant_id}:${user.id}` : '';
+        if (token === this.ownerToken && identity === this.ownerIdentity) return;
+        this.ownerToken = token;
+        this.ownerIdentity = identity;
         this.disconnect();
         this.stopPolling();
-      }
+        this.notifications.set([]);
+        if (token && user) {
+          this.loadFromStorage(); this.connect(); this.fetchNotifications(); this.startPolling();
+        }
+      });
     });
   }
 
@@ -112,6 +119,7 @@ export class NotificationService {
       this.reconnectTimer = null;
     }
     if (this.socket) {
+      this.socket.onclose = null; this.socket.onmessage = null; this.socket.onopen = null;
       try {
         this.socket.close();
       } catch {}
@@ -377,6 +385,7 @@ export class NotificationService {
   }
 
   private showBrowserNotification(item: AppNotification): void {
+    if (this.push.active()) return;
     if (typeof window === 'undefined' || !('Notification' in window)) return;
 
     if (Notification.permission === 'granted') {
@@ -394,19 +403,15 @@ export class NotificationService {
           }
         };
       } catch {}
-    } else if (Notification.permission === 'default') {
-      Notification.requestPermission().then((perm) => {
-        if (perm === 'granted') {
-          this.showBrowserNotification(item);
-        }
-      });
     }
   }
 
   fetchNotifications(): void {
-    if (!this.auth.token()) return;
+    const owner = this.auth.token();
+    if (!owner) return;
     this.http.get<any>(`${this.runtime.apiUrl}/notifications?limit=50`).subscribe({
       next: (res) => {
+        if (owner !== this.auth.token()) return;
         if (res && Array.isArray(res.items)) {
           const mapped: AppNotification[] = res.items.map((item: any) => {
             const payloadData = item.data_payload || {};
@@ -510,7 +515,7 @@ export class NotificationService {
   }
 
   private getStorageKey(): string {
-    const uid = this.auth.user()?.id || 'guest';
+    const uid = `${this.auth.user()?.tenant_id || 'none'}_${this.auth.user()?.id || 'guest'}`;
     return `drapemind_notifications_${uid}`;
   }
 
@@ -527,17 +532,7 @@ export class NotificationService {
       }
     } catch {}
 
-    // Semilla inicial informativa si no hay registros previos
-    this.notifications.set([
-      {
-        id: 'seed_init_1',
-        tipo: 'SISTEMA',
-        titulo: 'Canal de Notificaciones en Vivo Activo',
-        mensaje: 'Conexión WebSocket sincronizada para eventos de pedidos, reservas y novedades sastreras.',
-        leido: true,
-        fecha: new Date().toISOString(),
-      },
-    ]);
+    this.notifications.set([]);
   }
 
   private saveToStorage(): void {

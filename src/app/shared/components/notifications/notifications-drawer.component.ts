@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppNotification, NotificationService } from '@core/notification.service';
+import { BrowserPushService } from '@core/browser-push.service';
 
 @Component({
   selector: 'app-notifications-drawer',
@@ -11,6 +12,7 @@ import { AppNotification, NotificationService } from '@core/notification.service
   styleUrls: ['./notifications-drawer.component.scss'],
 })
 export class NotificationsDrawerComponent {
+  readonly push = inject(BrowserPushService);
   readonly notifService = inject(NotificationService);
   private readonly router = inject(Router);
 

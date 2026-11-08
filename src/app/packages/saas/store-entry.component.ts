@@ -41,15 +41,18 @@ export class StoreEntryComponent implements OnInit {
   readonly error = signal('');
   ngOnInit() {
     const slug = this.route.snapshot.paramMap.get('slug')!;
+    const requested = this.route.snapshot.queryParamMap.get('next');
+    const next = requested && ['/catalog', '/orders', '/reservations', '/ai-studio'].includes(requested) ? requested : null;
+    if (next) sessionStorage.setItem('dm_notice_destination_' + slug, next);
     if (this.auth.hasValidToken() && this.auth.user()?.is_universal_customer) {
       this.auth
         .enterStore(slug)
         .subscribe({
-          next: () => void this.router.navigateByUrl(this.auth.destination(), { replaceUrl: true }),
+          next: () => void this.router.navigateByUrl(next || this.auth.destination(), { replaceUrl: true }),
           error: (e) => this.error.set(saasError(e)),
         });
     } else if (this.auth.hasValidToken() && this.auth.user()?.tenant_slug === slug) {
-      void this.router.navigateByUrl(this.auth.isStaff() ? '/dashboard' : '/catalog', {
+      void this.router.navigateByUrl(next || (this.auth.isStaff() ? '/dashboard' : '/catalog'), {
         replaceUrl: true,
       });
     } else {

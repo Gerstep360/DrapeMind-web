@@ -5,11 +5,12 @@ import { AdminApiService } from '@core/api/admin-api.service';
 import { ToastService } from '@core/toast.service';
 import { User, UserRole, UserStatus } from '@core/models';
 import { saasError } from '@core/saas.service';
+import { TeamAccessComponent } from './team-access.component';
 
 @Component({
   selector: 'app-users-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TeamAccessComponent],
   templateUrl: './users-management.component.html',
   styleUrl: './users-management.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

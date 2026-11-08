@@ -1,0 +1,10 @@
+{
+  "viewports": [
+    1440,
+    390
+  ],
+  "roleCreation": true,
+  "individualDeny": true,
+  "storeNotice": true,
+  "errors": []
+}

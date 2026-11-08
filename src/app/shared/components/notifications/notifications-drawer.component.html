@@ -9,11 +9,11 @@
           <h2>Notificaciones</h2>
           <span class="live-pill" [class.connected]="notifService.isConnected()">
             <span class="live-dot"></span>
-            {{ notifService.isConnected() ? 'Sockets En Vivo' : 'Conectando...' }}
+            {{ notifService.isConnected() ? 'Actualizado' : 'Reconectando…' }}
           </span>
         </div>
         <p class="drawer-sub">
-          Eventos en tiempo real de tus pedidos, reservas y novedades del atelier.
+          Pedidos, reservas y novedades de tu tienda actual.
         </p>
       </div>
 
@@ -30,6 +30,9 @@
       </button>
     </div>
 
+    <div class="filter-bar"><p>{{ push.message() }}</p>
+      @if (!push.active()) { <button class="action-text-btn" type="button" (click)="push.enable()" [disabled]="push.busy() || !push.supported">{{ push.busy() ? 'Activando…' : 'Activar avisos en este dispositivo' }}</button> }
+    </div>
     <!-- ACCIONES RÁPIDAS Y FILTROS -->
     <div class="filter-bar">
       <div class="filter-pills" role="tablist">
@@ -153,7 +156,8 @@
                   <time class="notif-time">{{ formatTime(item.fecha) }}</time>
                 </div>
 
-                <p class="notif-text">{{ item.mensaje }}</p>
+                  @if (item.metadata?.tenant_name) { <small>{{ item.metadata.tenant_name }}</small> }
+                  <p class="notif-text">{{ item.mensaje }}</p>
 
                 <div class="card-footer-row">
                   @if (item.enlace) {

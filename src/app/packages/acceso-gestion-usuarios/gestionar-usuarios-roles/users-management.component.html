@@ -1,9 +1,9 @@
 <section class="page-heading page-heading--split">
   <div>
-    <p class="eyebrow">Control de Acceso y Personal</p>
-    <h1>Usuarios, Roles y Empleados</h1>
+    <p class="eyebrow">Personas de tu tienda</p>
+    <h1>Tu equipo y tus clientes</h1>
     <p class="page-lead">
-      Administración central de cuentas, asignación de privilegios de personal y credenciales del personal del atelier.
+      Organiza el equipo, define lo que puede hacer cada persona y mantén a tus clientes al día.
     </p>
   </div>
   <div class="actions">
@@ -12,6 +12,7 @@
     </button>
   </div>
 </section>
+<app-team-access #accessEditor (changed)="loadUsers()" />
 
 <!-- Resumen de Métricas -->
 <section class="metrics-grid">
@@ -146,8 +147,9 @@
             </td>
             <td>
               <span class="role-badge role-badge--{{ user.rol.toLowerCase() }}">
-                {{ user.rol }}
+                {{ user.rol_empresa?.nombre || user.rol }}
               </span>
+              @if (user.rol_empresa) { <small>{{ user.rol | titlecase }} · {{ user.rol_empresa.activo ? 'Rol activo' : 'Rol pausado' }}</small> }
             </td>
             <td>
               <span class="status-pill" [class.status-pill--active]="user.estado === 'ACTIVO'">
@@ -158,6 +160,10 @@
               <span class="date-text">{{ user.created_at | date:'mediumDate' }}</span>
             </td>
             <td class="text-right">
+              @if (user.rol !== 'ADMIN') {
+                <button class="button-pill button-pill--ghost" type="button" (click)="accessEditor.openUser(user)">Permisos</button>
+              }
+              <button class="button-pill button-pill--ghost" type="button" [disabled]="user.estado !== 'ACTIVO'" (click)="accessEditor.openNotice(user)">Enviar aviso</button>
               <button class="button-pill button-pill--ghost" type="button" (click)="openEditUserModal(user)">
                 Editar / Clave
               </button>

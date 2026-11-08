@@ -217,12 +217,22 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
 ];
 
 
-export function navigationForRole(role: UserRole | undefined): PackageNavigation[] {
+export const ROUTE_PERMISSIONS: Record<string, string> = {
+  '/users-admin': 'team.manage', '/products-admin': 'catalog.manage', '/categories-admin': 'catalog.manage',
+  '/collections-admin': 'catalog.manage', '/promotions-admin': 'pricing.manage', '/branches-admin': 'branches.manage',
+  '/seasons-admin': 'catalog.manage', '/ai-product-assist': 'catalog.manage',
+  '/inventory': 'inventory.manage', '/inventory-admin': 'inventory.manage', '/suppliers-admin': 'suppliers.manage',
+  '/retail': 'sales.manage', '/pos': 'sales.manage', '/sync-conflicts': 'sync.review', '/exchanges': 'exchanges.manage',
+  '/offline': 'offline.use', '/ai-reports': 'reports.ai', '/business-insights': 'reports.view',
+  '/catalog': 'catalog.read', '/dashboard': 'reports.view',
+};
+
+export function navigationForRole(role: UserRole | undefined, permissions?: string[]): PackageNavigation[] {
   if (!role) return [];
   return PACKAGE_NAVIGATION.map((group) => ({
     ...group,
     items: group.items
-      .filter((item) => item.roles.includes(role))
+      .filter((item) => { const needed = ROUTE_PERMISSIONS[item.route]; return role === "ADMIN" || (permissions && needed ? permissions.includes(needed) : item.roles.includes(role)); })
       .map((item) => {
         if (role === 'PROVEEDOR' && item.route === '/suppliers-admin') {
           return {

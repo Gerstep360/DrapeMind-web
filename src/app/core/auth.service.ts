@@ -20,6 +20,7 @@ const USER_KEY = 'drapemind_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  readonly beforeLogout = new Set<() => void>();
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly runtime = inject(RuntimeConfigService);
@@ -129,6 +130,11 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     sessionStorage.setItem(USER_KEY, JSON.stringify(user));
     this.user.set(user);
+    const pendingKey = 'dm_notice_destination_' + user.tenant_slug;
+    const pending = sessionStorage.getItem(pendingKey);
+    if (pending && ['/orders', '/reservations', '/catalog', '/ai-studio'].includes(pending)) {
+      this.destination.set(pending); sessionStorage.removeItem(pendingKey);
+    }
     return user;
   }
 
@@ -163,6 +169,7 @@ export class AuthService {
   }
 
   logout(redirect = true): void {
+    for (const cleanup of this.beforeLogout) { try { cleanup(); } catch {} }
     this.clearExpiryTimer();
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

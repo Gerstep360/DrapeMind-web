@@ -1,0 +1,31 @@
+:host { display: block; color: var(--dm-ink, #181818); }
+.team-roles { border-block: 2px solid currentColor; padding: 24px 0; margin-block: 24px; }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+h2 { margin: 4px 0 8px; font-size: clamp(1.25rem, 2vw, 1.7rem); line-height: 1.18; letter-spacing: -.035em; }
+p { line-height: 1.55; margin-block: 8px 16px; }
+.role-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.role-ticket { min-width: 180px; max-width: 100%; background: var(--dm-paper, #fffdf6); border: 2px solid currentColor; border-left-width: 7px; padding: 15px 20px; display: grid; gap: 7px; text-align: left; cursor: pointer; transition: transform .16s, box-shadow .16s; }
+.role-ticket:hover { transform: translateY(-3px); box-shadow: 3px 4px 0 currentColor; }
+.role-ticket span, small { font-size: .75rem; opacity: .8; }
+.role-ticket strong { font-size: 1.05rem; }
+.feedback { background: var(--dm-lime, #dfff00); padding: 12px 16px; border: 1px solid currentColor; }
+dialog { border: 2px solid currentColor; background: var(--dm-paper, #fffdf6); color: inherit; width: min(690px, calc(100vw - 28px)); max-height: calc(100dvh - 36px); padding: 0; box-shadow: 7px 7px 0 #181818; }
+dialog::backdrop { background: #18181890; backdrop-filter: blur(3px); }
+form { padding: clamp(18px, 3vw, 30px); }
+label { display: grid; gap: 7px; font-weight: 600; font-size: .9rem; margin-block: 14px; }
+input:not([type=checkbox]), select, textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: inherit; background: #fffdf6; border: 1px solid #777; padding: 11px 12px; border-radius: 0; }
+input[type=checkbox] { accent-color: #181818; width: 22px; height: 22px; flex-shrink: 0; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.check { display: flex; align-items: center; flex-wrap: wrap; }
+.check small { flex-basis: 100%; font-weight: 400; }
+.permission-list { border-top: 2px solid; margin-top: 24px; }
+.permission { display: flex; gap: 20px; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid #18181830; }
+.permission label { margin: 3px 0 0; line-height: 1.4; }
+.permission select { width: 185px; flex-shrink: 0; font-size: .8rem; }
+.hint, .empty-hint { font-size: .84rem; color: #555; }
+footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; }
+.close { width: 40px; height: 40px; font-size: 26px; background: transparent; border: 1px solid; cursor: pointer; flex-shrink: 0; }
+.error { color: #a51b1b; font-weight: 600; }
+:focus-visible { outline: 3px solid #769c00; outline-offset: 3px; }
+@media(max-width: 560px) { header { flex-wrap: wrap; } .fields { grid-template-columns: 1fr; gap: 0; } .permission { gap: 10px; } .permission select { width: 140px; } .role-ticket { flex: 1; } }
+@media(prefers-reduced-motion: reduce) { .role-ticket { transition: none; } }

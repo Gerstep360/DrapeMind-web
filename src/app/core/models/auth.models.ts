@@ -2,6 +2,8 @@ export type UserRole = 'CLIENTE' | 'ADMIN' | 'VENDEDOR' | 'ENCARGADO' | 'CAJERO'
 export type UserStatus = 'ACTIVO' | 'BLOQUEADO' | 'INACTIVO';
 
 export interface User {
+  permisos?: string[];
+  rol_empresa?: { id: number; nombre: string; activo: boolean } | null;
   tenant_id?: number | null;
   is_platform_admin?: boolean;
   is_universal_customer?: boolean;

@@ -1,0 +1,59 @@
+<section class="team-roles" aria-labelledby="roles-heading">
+  <header><div><p class="eyebrow">{{ auth.user()?.tenant_name || 'Tu tienda' }} · Equipo</p><h2 id="roles-heading">Cada persona, con el acceso que necesita.</h2>
+    <p>Crea un rol para varias personas o ajusta permisos desde su ficha.</p></div>
+    <button class="button button--primary" type="button" (click)="openRole()" [disabled]="loading()">Crear rol</button></header>
+  @if (loading()) { <p role="status">Cargando roles…</p> }
+  <div class="role-strip">
+    @for (item of roles(); track item.id) {
+      <button type="button" class="role-ticket" (click)="openRole(item)"><span>{{ item.activo ? 'Disponible' : 'Pausado' }}</span><strong>{{ item.nombre }}</strong><small>{{ item.permisos.length }} permisos · Editar rol</small></button>
+    } @empty { @if (!loading()) { <p class="empty-hint">Aún no tienes roles propios. Los permisos habituales de cada puesto siguen activos.</p> } }
+  </div>
+  @if (feedback()) { <p class="feedback" role="status">{{ feedback() }}</p> }
+  @if (error() && !editor.open && !notice.open) { <p role="alert" class="error">{{ error() }}</p><button type="button" (click)="reload()">Reintentar</button> }
+</section>
+
+<dialog #editor aria-labelledby="access-heading" (cancel)="saving() && $event.preventDefault()">
+  <form (ngSubmit)="save()">
+    <header><div><p class="eyebrow">Acceso a tu tienda</p><h2 id="access-heading">{{ mode() === 'role' ? (role.id ? 'Editar rol' : 'Crear rol') : target()?.nombre }}</h2></div>
+      <button class="close" type="button" aria-label="Cerrar permisos" [disabled]="saving()" (click)="editor.close()">×</button></header>
+    @if (mode() === 'role') {
+      <div class="fields"><label>Nombre del rol<input name="name" [(ngModel)]="role.nombre" required maxlength="80" placeholder="Por ejemplo, Asesor de colección" /></label>
+        <label>Puesto de trabajo<select name="base" [(ngModel)]="role.base_role" (ngModelChange)="changeBase()">@for (base of baseRoles; track base) { <option [value]="base">{{ base | titlecase }}</option> }</select></label></div>
+      <label>Descripción breve<input name="description" [(ngModel)]="role.descripcion" maxlength="300" placeholder="Qué hace este equipo en la tienda" /></label>
+      <label class="check"><input type="checkbox" name="active" [(ngModel)]="role.activo" /> Rol disponible <small>Al pausarlo, se suspende el acceso de quienes lo tienen asignado.</small></label>
+    } @else {
+      <label>Rol para esta persona<select name="profile" [(ngModel)]="profile" (ngModelChange)="changeProfile()"><option [ngValue]="null">Permisos habituales de {{ target()?.rol | titlecase }}</option>
+        @for (item of availableRoles(); track item.id) { <option [ngValue]="item.id">{{ item.nombre }}</option> }
+      </select></label>
+      <p class="hint">“Del rol” sigue los cambios del perfil. Permitir o bloquear crea una excepción solo para esta persona.</p>
+    }
+    <div class="permission-list">
+      @for (permission of permissions(); track permission.key) {
+        <div class="permission"><div><small>{{ permission.group }}</small><label [for]="'perm-' + permission.key">{{ permission.label }}</label></div>
+          @if (mode() === 'role') {
+            <input [id]="'perm-' + permission.key" type="checkbox" [checked]="role.permisos.includes(permission.key)" (change)="togglePermission(permission.key, $any($event.target).checked)" />
+          } @else {
+            <select [id]="'perm-' + permission.key" [value]="overrides[permission.key] === true ? 'allow' : overrides[permission.key] === false ? 'deny' : 'inherit'" (change)="override(permission.key, $any($event.target).value)">
+              <option value="inherit">Del rol: {{ inherited(permission.key) ? 'sí' : 'no' }}</option><option value="allow">Permitir</option><option value="deny">Bloquear</option>
+            </select>
+          }
+        </div>
+      }
+    </div>
+    <p class="hint">La sucursal asignada y las funciones de tu plan también se respetan. Los administradores conservan acceso completo.</p>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    <footer><button class="button" type="button" [disabled]="saving()" (click)="editor.close()">Cancelar</button><button class="button button--primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar permisos' }}</button></footer>
+  </form>
+</dialog>
+
+<dialog #notice aria-labelledby="notice-heading" (cancel)="saving() && $event.preventDefault()">
+  <form (ngSubmit)="sendNotice()"><header><div><p class="eyebrow">{{ auth.user()?.tenant_name }}</p><h2 id="notice-heading">Avisar a {{ target()?.nombre }}</h2></div><button class="close" type="button" aria-label="Cerrar aviso" [disabled]="saving()" (click)="notice.close()">×</button></header>
+    <p>El aviso identifica tu tienda y abre su catálogo o el pedido correspondiente.</p>
+    <label>Asunto<input name="subject" [(ngModel)]="subject" minlength="2" maxlength="150" required placeholder="Tu pedido está listo" /></label>
+    <label>Mensaje<textarea name="message" [(ngModel)]="message" minlength="2" maxlength="1500" rows="4" required></textarea></label>
+    <label>Al abrir el aviso<select name="destination" [(ngModel)]="destination"><option value="/catalog">Catálogo de esta tienda</option><option value="/orders">Sus pedidos</option><option value="/reservations">Sus reservas</option></select></label>
+    <p class="hint">Queda guardado en su bandeja. La recepción push requiere que la persona haya activado los avisos en su dispositivo.</p>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    <footer><button class="button" type="button" [disabled]="saving()" (click)="notice.close()">Cancelar</button><button class="button button--primary" type="submit" [disabled]="saving() || subject.trim().length < 2 || message.trim().length < 2">{{ saving() ? 'Enviando…' : 'Enviar aviso' }}</button></footer>
+  </form>
+</dialog>

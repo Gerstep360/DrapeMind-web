@@ -53,7 +53,7 @@ export class ShellComponent {
   readonly isBranchDropdownOpen = signal(false);
 
   readonly navigation = computed(() => {
-    return navigationForRole(this.auth.user()?.rol).map(group=>({...group,items:group.items.filter(item=>item.route!=='/ai-reports'||this.saas.current()?.plan?.features['ai_reports'])})).filter(group=>group.items.length>0);
+    return navigationForRole(this.auth.user()?.rol, this.auth.user()?.permisos).map(group=>({...group,items:group.items.filter(item=>item.route!=='/ai-reports'||this.saas.current()?.plan?.features['ai_reports'])})).filter(group=>group.items.length>0);
   });
   readonly expandedPackages = signal<Set<string>>(new Set());
 
