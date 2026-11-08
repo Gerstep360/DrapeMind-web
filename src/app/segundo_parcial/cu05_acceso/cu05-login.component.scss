@@ -1,0 +1,348 @@
+@use '../../../styles/_fashion.scss' as fashion;
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.login-page {
+  display: grid;
+  width: 100%;
+  min-height: 100dvh;
+  grid-template-columns: minmax(390px, 1.05fr) minmax(430px, 0.95fr);
+  background: var(--dm-bg, var(--dm-canvas));
+}
+
+.login-story {
+  position: relative;
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(1.75rem, 4vw, 4rem);
+  color: #FFFFFF;
+  background: var(--dm-ink);
+}
+
+.story-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 37rem;
+  margin-top: auto;
+  margin-bottom: clamp(10rem, 24vh, 18rem);
+}
+
+.story-copy h1 {
+  margin: 0.7rem 0 1.25rem;
+  color: #FFFFFF;
+  font-family: var(--font-display, 'Manrope', sans-serif);
+  font-size: clamp(3.2rem, 6.5vw, 6.8rem);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.story-copy > p:last-child {
+  max-width: 32rem;
+  color: #CDD0C5;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.story-foot {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.garment-study {
+  position: absolute;
+  right: -3rem;
+  bottom: -4rem;
+  width: min(34vw, 32rem);
+  height: 32rem;
+  transform: rotate(-4deg);
+}
+
+.garment {
+  position: absolute;
+  border-radius: 48% 48% 14% 14% / 24% 24% 8% 8%;
+}
+
+.garment--one {
+  inset: 4rem 5rem 0 2rem;
+  background: var(--dm-lime);
+  box-shadow: none;
+  clip-path: polygon(
+    22% 0,
+    38% 10%,
+    62% 10%,
+    78% 0,
+    100% 22%,
+    82% 35%,
+    76% 100%,
+    24% 100%,
+    18% 35%,
+    0 22%
+  );
+}
+
+.garment--two {
+  inset: 0 0 6rem 12rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  clip-path: polygon(
+    25% 0,
+    42% 9%,
+    58% 9%,
+    75% 0,
+    100% 25%,
+    81% 38%,
+    77% 100%,
+    23% 100%,
+    19% 38%,
+    0 25%
+  );
+}
+
+.garment-label {
+  position: absolute;
+  right: 4rem;
+  bottom: 5rem;
+  color: var(--dm-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: #FFFFFF;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--dm-radius-sm, 999px);
+}
+
+.login-form-wrap {
+  display: grid;
+  min-width: 0;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(2rem, 6vw, 7rem);
+}
+
+.login-form {
+  width: 100%;
+  max-width: 30rem;
+  min-width: 0;
+}
+
+.login-form h2 {
+  margin: 0.5rem 0 0.65rem;
+  font-family: var(--font-display, 'Manrope', sans-serif);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--dm-ink);
+}
+
+.form-intro {
+  margin: 0 0 2.25rem;
+  color: var(--dm-text-muted, var(--dm-muted));
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+form input {
+  width: 100%;
+  min-width: 0;
+}
+
+form label {
+  margin-top: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--dm-ink);
+}
+
+.password-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.65rem;
+
+  label {
+    margin-top: 0;
+  }
+}
+
+.forgot-password-link {
+  border: 0;
+  background: transparent;
+  color: var(--dm-text-muted, var(--dm-muted));
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--dm-ink);
+    text-decoration: underline;
+  }
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 4.8rem;
+}
+
+.text-button {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  min-height: 2.2rem;
+  transform: translateY(-50%);
+  border: 0;
+  color: var(--dm-ink);
+  background: transparent;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.field-error {
+  color: var(--dm-danger, #E85D5D);
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+
+.form-alert {
+  margin-top: 0.75rem;
+  border-radius: var(--dm-radius-md, 20px);
+  padding: 0.85rem 1.15rem;
+  color: var(--dm-danger, #E85D5D);
+  background: var(--dm-danger-soft, #FDE8E8);
+  border: 1px solid var(--dm-danger, #E85D5D);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.form-success {
+  margin-top: 0.75rem;
+  border-radius: var(--dm-radius-md, 20px);
+  padding: 0.85rem 1.15rem;
+  color: #1A542D;
+  background: var(--dm-success-soft, #E4F4EA);
+  border: 1px solid #A3DDB3;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.8rem 0 1.25rem;
+  padding: 0.3rem;
+  border-radius: var(--dm-radius-sm, 999px);
+  background: var(--dm-surface, #FFFFFF);
+  border: 1px solid var(--dm-border);
+  width: fit-content;
+  box-shadow: var(--dm-shadow-xs);
+}
+
+.mode-tab {
+  border: 0;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--dm-radius-sm, 999px);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--dm-text-muted, var(--dm-muted));
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--active {
+    color: #FFFFFF;
+    background: var(--dm-ink);
+    box-shadow: none;
+  }
+}
+
+.toggle-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.35rem;
+  font-size: 0.85rem;
+  color: var(--dm-text-muted, var(--dm-muted));
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--dm-ink);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.privacy-note {
+  margin-top: 1.5rem;
+  color: var(--dm-text-muted, var(--dm-muted));
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 840px) {
+  .login-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login-story {
+    min-height: 18rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .story-copy {
+    margin: auto 0 0;
+  }
+
+  .story-copy h1 {
+    font-size: clamp(2.8rem, 12vw, 3.8rem);
+  }
+
+  .story-copy > p:last-child,
+  .story-foot,
+  .garment-study {
+    display: none;
+  }
+
+  .login-form-wrap {
+    display: block;
+    min-height: auto;
+    padding: 3rem 1.5rem;
+  }
+}
+
+.login-story { background:var(--dm-coral); color:var(--dm-ink); border-right:2px solid var(--dm-ink); }.login-story .brand--light,.story-copy h1,.story-copy > p:last-child,.story-foot,.login-story .eyebrow--light { color:var(--dm-ink); }
+.story-copy h1 { font-weight:800; }.garment--one { box-shadow:none; }.garment--two { border-color:var(--dm-ink); }.garment-label { border:2px solid var(--dm-ink); background:var(--dm-paper); box-shadow:4px 4px 0 var(--dm-ink); }
+.login-form-wrap { background:var(--dm-canvas); }.login-form input { border:2px solid var(--dm-ink); }.login-form .button--primary { background:var(--dm-lime); color:var(--dm-ink); border:2px solid var(--dm-ink); box-shadow:4px 4px 0 var(--dm-ink); }
+@media(max-width:900px) { .login-story { border-right:0; border-bottom:2px solid var(--dm-ink); } }
+
+// Shared primitives own visual identity; this component owns layout.
+@include fashion.page;

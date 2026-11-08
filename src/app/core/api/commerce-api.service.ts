@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable,defer,from } from 'rxjs';
-import { confirmCheckout } from '../../incrementos/incremento-iii/checkout';
+import { confirmCheckout } from '../../segundo_parcial/cu22_carrito_checkout/cu22-checkout';
 import {
   Cart,
   CheckoutRequest,
@@ -34,6 +34,7 @@ export class CommerceApiService {
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(RuntimeConfigService);
 
+  checkoutOptions():Observable<{carrito_id:number|null;vacio:boolean;compra_pendiente:string|null;sucursales:{id:number;nombre:string;disponible:boolean}[]}>{return this.http.get<any>(this.runtime.apiUrl+'/orders/checkout-options');}
   paymentConfiguration(): Observable<{ provider: string }> {
     return this.http.get<{ provider: string }>(`${this.runtime.apiUrl}/payments/config`);
   }

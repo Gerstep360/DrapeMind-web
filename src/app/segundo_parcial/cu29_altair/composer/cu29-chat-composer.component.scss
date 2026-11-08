@@ -1,0 +1,424 @@
+@use '../../../../styles/_fashion.scss' as fashion;
+:host {
+  display: block;
+  width: 100%;
+}
+.composer-wrap {
+  position: relative;
+}
+.composer-card {
+  background: var(--dm-paper);
+  border: 1px solid var(--dm-border);
+  border-radius: 4px;
+  padding: 18px 18px 12px;
+  box-shadow: none;
+  transition:
+    box-shadow 0.3s,
+    border-color 0.3s,
+    transform 0.3s;
+}
+.composer-card:focus-within,
+.composer-card.is-focused {
+  border-color: var(--dm-muted);
+  box-shadow:
+    0 0 0 4px transparent,
+    0 20px 55px transparent;
+  transform: translateY(-2px);
+}
+textarea {
+  display: block;
+  border: 0;
+  resize: none;
+  outline: none;
+  width: 100%;
+  min-height: 58px;
+  max-height: 180px;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--dm-ink);
+  padding: 1px 4px 8px;
+}
+.composer-card textarea::placeholder {
+  color: var(--dm-muted);
+}
+textarea:disabled {
+  opacity: 0.55;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+button:focus-visible {
+  outline: 3px solid var(--dm-muted);
+  outline-offset: 3px;
+}
+.composer-toolbar,
+.composer-toolbar__left,
+.composer-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.composer-toolbar {
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.composer-tools-button {
+  border: 1px solid var(--dm-canvas);
+  border-radius: 4px;
+  padding: 9px 11px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--dm-paper);
+  color: var(--dm-ink);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.22s;
+}
+.composer-tools-button:hover,
+.composer-tools-button.is-active {
+  background: var(--dm-canvas);
+  border-color: var(--dm-border);
+  transform: translateY(-1px);
+}
+.tools-key {
+  margin-left: 8px;
+  color: var(--dm-muted);
+  background: white;
+  width: 17px;
+  height: 19px;
+  border-radius: 4px;
+  border: 1px solid var(--dm-border);
+  display: grid;
+  place-items: center;
+}
+.composer-tools-button svg {
+  width: 15px;
+  height: 15px;
+}
+.composer-look {
+  border: 0;
+  padding: 10px 6px;
+  min-height: 42px;
+  color: var(--dm-muted);
+  background: none;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+.composer-look:hover {
+  color: var(--dm-ink);
+}
+.composer-look span {
+  margin-right: 5px;
+}
+.composer-voice,
+.composer-send {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 4px;
+  transition:
+    transform 0.25s,
+    background 0.25s,
+    box-shadow 0.25s;
+}
+.composer-voice {
+  background: none;
+  color: var(--dm-muted);
+}
+.composer-voice:hover {
+  background: var(--dm-canvas);
+}
+.composer-voice.is-listening {
+  background: var(--dm-canvas);
+  color: var(--dm-ink);
+  animation: voice-pulse 1.3s ease-in-out infinite;
+}
+.composer-send {
+  background: var(--dm-ink);
+  color: var(--dm-border);
+  box-shadow: none;
+}
+.composer-send:hover:enabled {
+  transform: translateY(-2px);
+  background: var(--dm-ink);
+  box-shadow: none;
+}
+.composer-send:active:enabled {
+  transform: scale(0.91);
+}
+.composer-send:disabled {
+  background: var(--dm-canvas);
+  color: var(--dm-muted);
+  cursor: default;
+  box-shadow: none;
+}
+svg {
+  width: 20px;
+  height: 20px;
+}
+.composer-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px 5px 10px;
+  font-size: 11px;
+  color: var(--dm-ink);
+  background: var(--dm-canvas);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  animation: toolbox-enter 0.25s ease;
+}
+.composer-context button {
+  padding: 0 3px;
+  border: 0;
+  color: inherit;
+  background: none;
+  font-size: 17px;
+}
+.composer-footnote {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px 0;
+  color: var(--dm-muted);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}
+.keyboard-hint {
+  white-space: nowrap;
+}
+.keyboard-hint span {
+  padding: 0 4px;
+}
+.composer-toolbox {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  background: var(--dm-paper);
+  border: 1px solid var(--dm-border);
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 14px;
+  animation: toolbox-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 30;
+}
+.toolbox-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3px 10px;
+  font-size: 11px;
+  color: var(--dm-muted);
+}
+.toolbox-heading button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 22px;
+  width: 30px;
+  height: 30px;
+}
+.toolbox-grid {
+  max-height: min(50dvh, 400px);
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.toolbox-grid > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: 14px 10px;
+  border-radius: 4px;
+  color: var(--dm-ink);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.toolbox-grid > button:hover {
+  background: var(--dm-canvas);
+  transform: translateY(-2px);
+}
+.toolbox-grid > button > span:nth-child(2) {
+  flex: 1;
+}
+.toolbox-grid strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+}
+.toolbox-grid small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--dm-muted);
+}
+.toolbox-icon {
+  width: 34px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: var(--dm-canvas);
+  border-radius: 4px;
+  font-size: 23px;
+  color: var(--dm-muted);
+}
+.toolbox-grid > button > span:last-child {
+  color: var(--dm-muted);
+  font-size: 14px;
+}
+@keyframes toolbox-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes voice-pulse {
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@media (max-width: 600px) {
+  .composer-card {
+    padding: 14px 12px 10px;
+    border-radius: 4px;
+  }
+  textarea {
+    font-size: 14px;
+  }
+  .composer-look,
+  .keyboard-hint,
+  .tools-key {
+    display: none;
+  }
+  .composer-footnote {
+    justify-content: center;
+    font-size: 11px;
+  }
+  .toolbox-grid {
+    grid-template-columns: 1fr;
+  }
+  .composer-toolbox {
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+  .toolbox-grid > button {
+    padding: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.composer-card {
+  border: 2px solid var(--dm-ink);
+  background: var(--dm-paper);
+  box-shadow: 4px 4px 0 var(--dm-ink);
+  border-radius: 4px;
+}
+.composer-card:focus-within,
+.composer-card.is-focused {
+  border-color: var(--dm-ink);
+  box-shadow: 4px 4px 0 var(--dm-ink);
+  transform: none;
+}
+textarea {
+  color: var(--dm-ink);
+}
+textarea:focus {
+  box-shadow: none;
+}
+.composer-card textarea::placeholder {
+  color: var(--dm-muted);
+}
+.composer-tools-button {
+  background: var(--dm-canvas);
+  border-color: var(--dm-ink);
+  color: var(--dm-ink);
+  min-height: 44px;
+}
+.composer-tools-button:hover,
+.composer-tools-button.is-active {
+  background: var(--dm-lime);
+  border-color: var(--dm-ink);
+}
+.composer-look,
+.composer-voice {
+  color: var(--dm-ink);
+}
+.composer-send {
+  background: var(--dm-ink);
+  color: var(--dm-lime);
+  border: 1px solid var(--dm-ink);
+  border-radius: 4px;
+}
+.composer-send:hover:enabled {
+  background: var(--dm-lime);
+  color: var(--dm-ink);
+  transform: translateY(-1px);
+}
+.composer-send:disabled {
+  background: var(--dm-surface-soft);
+  color: var(--dm-muted);
+}
+.composer-context {
+  background: var(--dm-lime-soft);
+  color: var(--dm-ink);
+  border: 1px solid var(--dm-ink);
+}
+.composer-footnote {
+  color: var(--dm-muted);
+  font-size: 10px;
+}
+.composer-toolbox {
+  border: 2px solid var(--dm-ink);
+  background: var(--dm-paper);
+  box-shadow: 4px 4px 0 var(--dm-ink);
+  border-radius: 4px;
+}
+.toolbox-heading {
+  color: var(--dm-muted);
+}
+.toolbox-grid > button {
+  color: var(--dm-ink);
+  border: 1px solid transparent;
+}
+.toolbox-grid > button:hover {
+  background: var(--dm-lime-soft);
+  border-color: var(--dm-ink);
+  transform: none;
+}
+.toolbox-icon {
+  color: var(--dm-ink);
+  background: var(--dm-lime);
+  border: 1px solid var(--dm-ink);
+}
+.toolbox-grid small {
+  color: var(--dm-muted);
+  font-size: 11px;
+}
+button:focus-visible {
+  outline-color: var(--dm-ink);
+}
+
+@include fashion.controls;

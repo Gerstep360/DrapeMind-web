@@ -1,0 +1,12 @@
+<main class="feature-page report-page">
+ <header class="feature-heading"><div><p class="eyebrow">El pulso de tu tienda</p><h1>Indicadores y tendencias</h1><p>Revisa lo que ya ocurrió y planifica con el historial de tu empresa.</p></div><a routerLink="/ai-reports">Reportes y exportaciones</a></header>
+ <form class="filters" (ngSubmit)="load()"><label>Periodo<select name="days" [(ngModel)]="days"><option [ngValue]="7">Últimos 7 días</option><option [ngValue]="30">Últimos 30 días</option><option [ngValue]="90">Últimos 90 días</option></select></label><label>Sucursal<select name="branch" [(ngModel)]="branch"><option value="">Todas mis sucursales</option>@for(b of branches();track b.id){<option [value]="b.id">{{b.nombre}}</option>}</select></label><button class="primary" [disabled]="busy()">Actualizar indicadores</button></form>
+ @if(error()){<p class="error" role="alert">{{error()}}</p>}
+ @if(busy()){<p role="status">Consultando los datos de tu empresa…</p>}
+ @if(data();as d){<article class="stack report-result"><p class="eyebrow">{{d.empresa}} · {{d.sucursal}}</p><h2>{{d.desde}} — {{d.hasta}}</h2><dl class="report-metrics"><div><dt>Ingreso neto cobrado</dt><dd>Bs {{d.ingreso_neto_cobrado|number:'1.2-2'}}</dd></div><div><dt>Pedidos pagados</dt><dd>{{d.pedidos_pagados}}</dd></div><div><dt>Unidades disponibles ahora</dt><dd>{{d.inventario_actual.unidades_disponibles}}</dd></div></dl><p>{{d.inventario_actual.variantes_con_stock_bajo}} variantes requieren revisar stock.</p><p class="muted">{{d.alcance}}</p>
+ @if(d.prendas_vendidas.length){<div class="table-wrap"><table class="list-table"><thead><tr><th>Prenda vendida</th><th>Unidades</th></tr></thead><tbody>@for(item of d.prendas_vendidas;track item.nombre){<tr><td>{{item.nombre}}</td><td>{{item.cantidad}}</td></tr>}</tbody></table></div>}@else{<p>Todavía no hay prendas en pedidos pagados para este periodo.</p>}
+ </article>}
+ <section class="stack report-result"><p class="eyebrow">Planifica los próximos días</p><h2>Predicción de demanda</h2><p>Usa hasta 180 días completos del historial de la sucursal seleccionada. Compara regresión, media móvil y Random Forest. Guarda el entrenamiento de tu empresa y utiliza el modelo con menor error de validación.</p><button type="button" (click)="predict()" [disabled]="busy()">Consultar predicción</button><button type="button" (click)="predict(true)" [disabled]="busy()">Volver a entrenar</button>
+ <app-demand-prediction [result]="prediction()"/>
+ </section>
+</main>

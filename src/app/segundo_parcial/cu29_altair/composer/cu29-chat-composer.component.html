@@ -1,0 +1,145 @@
+<div class="composer-wrap">
+  @if (isPlusMenuOpen() || isSlashMenuOpen()) {
+    <section class="composer-toolbox" aria-label="Herramientas para tu estilo">
+      <div class="toolbox-heading">
+        <span>¿Por dónde empezamos?</span
+        ><button
+          type="button"
+          (click)="closePlusMenu(); isSlashMenuOpen.set(false)"
+          aria-label="Cerrar herramientas"
+        >
+          ×
+        </button>
+      </div>
+      <div class="toolbox-grid">
+        @for (tool of slashCommands.slice(0, 5); track tool.label; let i = $index) {
+          <button type="button" (click)="selectShoppingTool(i)">
+            <span class="toolbox-icon" aria-hidden="true">{{
+              i === 2 ? '⌖' : i >= 3 ? '$' : '✦'
+            }}</span>
+            <span
+              ><strong>{{ tool.label }}</strong
+              ><small>{{ tool.desc }}</small></span
+            ><span aria-hidden="true">↗</span>
+          </button>
+        }
+        <button type="button" (click)="executeCatalogExplore()">
+          <span class="toolbox-icon">⌕</span
+          ><span><strong>Buscar prendas</strong><small>Color, talla y presupuesto</small></span
+          ><span aria-hidden="true">↗</span>
+        </button>
+        <button type="button" (click)="executeOutfitBuilder()">
+          <span class="toolbox-icon">✧</span
+          ><span><strong>Armar un look</strong><small>Personalízalo para tu ocasión</small></span
+          ><span aria-hidden="true">↗</span>
+        </button>
+        <button type="button" (click)="executeClosetAnalysis()">
+          <span class="toolbox-icon">♧</span
+          ><span
+            ><strong>Combinar mi carrito</strong><small>Ideas con lo que ya elegiste</small></span
+          ><span aria-hidden="true">↗</span>
+        </button>
+        <button type="button" (click)="executeBudgetLook()">
+          <span class="toolbox-icon">$</span
+          ><span
+            ><strong>Cuidar mi presupuesto</strong
+            ><small>Encuentra opciones a tu medida</small></span
+          ><span aria-hidden="true">↗</span>
+        </button>
+      </div>
+    </section>
+  }
+  <div class="composer-card" [class.is-focused]="isListening()">
+    @if (activeCommand()) {
+      <div class="composer-context">
+        <span aria-hidden="true">✦</span>{{ activeCommand()
+        }}<button
+          type="button"
+          (click)="clearActiveCommand()"
+          aria-label="Quitar herramienta seleccionada"
+        >
+          ×
+        </button>
+      </div>
+    }
+    <textarea
+      #promptTextarea
+      [formControl]="prompt"
+      placeholder="Cuéntame qué tienes en mente…"
+      aria-label="Mensaje para Altair"
+      rows="2"
+      maxlength="2000"
+      (keydown)="onKeydown($event)"
+      (input)="onInputChange()"
+    ></textarea>
+    <div class="composer-toolbar">
+      <div class="composer-toolbar__left">
+        <button
+          type="button"
+          class="composer-tools-button"
+          [class.is-active]="isPlusMenuOpen()"
+          (click)="togglePlusMenu()"
+          [attr.aria-expanded]="isPlusMenuOpen()"
+          aria-label="Abrir herramientas"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="3" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="3" width="7" height="7" rx="2" />
+            <rect x="3" y="14" width="7" height="7" rx="2" />
+            <path d="M17.5 14v7M14 17.5h7" /></svg
+          ><span>Herramientas</span><span class="tools-key">/</span>
+        </button>
+        <button type="button" class="composer-look" (click)="executeOutfitBuilder()">
+          <span aria-hidden="true">✦</span> Crear look
+        </button>
+      </div>
+      <div class="composer-toolbar__right">
+        <button
+          type="button"
+          class="composer-voice"
+          (click)="toggleVoiceRecognition()" [disabled]="voice.processing() || isBusy || disabled"
+          [class.is-listening]="isListening()"
+          [attr.aria-label]="isListening() ? 'Detener dictado' : 'Dictar mensaje'"
+          [title]="isListening() ? 'Detener dictado' : 'Dictar mensaje'"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="9" y="2" width="6" height="12" rx="3" />
+            <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" />
+          </svg>
+        </button>
+        @if (isBusy) {
+          <button
+            class="composer-send"
+            type="button"
+            (click)="cancel()"
+            aria-label="Detener respuesta"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="3" />
+            </svg>
+          </button>
+        } @else {
+          <button
+            class="composer-send"
+            type="button"
+            (click)="send()"
+            [disabled]="!prompt.value.trim() || disabled"
+            aria-label="Enviar mensaje"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m5 12 7-7 7 7M12 5v15" />
+            </svg>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="composer-footnote">
+    <span>{{
+      isListening()
+        ? 'Grabando ' + voice.seconds() + ' s · pulsa el micrófono para terminar.'
+        : voice.processing() ? 'Transcribiendo tu voz con NVIDIA…' : 'Tu estilo, tus reglas. Altair te ayuda a encontrarlo.'
+    }}</span
+    ><span class="keyboard-hint">↵ Enviar <span>·</span> ⇧ ↵ Nueva línea</span>
+  </div>
+</div>

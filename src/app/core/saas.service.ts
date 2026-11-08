@@ -57,6 +57,8 @@ export function saasError(error: any): string {
 
 @Injectable({ providedIn: 'root' })
 export class SaaSService {
+  private readonly planService=inject(PlanService);
+  private readonly subscriptionService=inject(BusinessSubscriptionService);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(RuntimeConfigService);
   readonly current = signal<CompanySubscription | null>(null);
@@ -81,15 +83,13 @@ export class SaaSService {
       .pipe(tap((value) => this.current.set(value)));
   }
   plans() {
-    return this.http.get<SaaSPlan[]>(this.url + '/plans');
+    return this.planService.plans();
   }
   tenants() {
     return this.http.get<CompanySubscription[]>(this.url + '/tenants');
   }
   price(id: number, interval: 'month' | 'year' = 'month') {
-    return this.http.get<{ amount_minor: number; currency: string; interval: string }>(
-      `${this.url}/plans/${id}/price?interval=${interval}`,
-    );
+    return this.planService.price(id,interval);
   }
   createTenant(data: unknown) {
     return this.http.post<CompanySubscription>(this.url + '/tenants', data);
@@ -101,13 +101,13 @@ export class SaaSService {
     return this.http.put<CompanySubscription>(`${this.url}/tenants/${id}/details`, data);
   }
   savePlan(id: number, data: unknown) {
-    return this.http.put<SaaSPlan>(`${this.url}/plans/${id}`, data);
+    return this.planService.savePlan(id,data);
   }
   license(id: number, data: unknown) {
-    return this.http.put<CompanySubscription>(`${this.url}/tenants/${id}/subscription`, data);
+    return this.subscriptionService.license(id,data);
   }
   configurePrice(id: number, data: unknown) {
-    return this.http.post<SaaSPlan>(`${this.url}/plans/${id}/stripe-price`, data);
+    return this.planService.configurePrice(id,data);
   }
   checkout(id: number, interval: 'month' | 'year' = 'month') {
     return this.http.post<{ url?: string; synchronized?: boolean; message?: string }>(
@@ -153,3 +153,5 @@ export const aiReportsPlanGuard: CanActivateFn = () => {
     catchError(() => of(router.createUrlTree(['/subscription']))),
   );
 };
+import {PlanService} from '../segundo_parcial/cu02_planes/cu02-planes.service';
+import {BusinessSubscriptionService} from '../segundo_parcial/cu03_suscripciones/cu03-suscripciones.service';

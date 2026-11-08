@@ -1,14 +1,14 @@
 import { Routes } from '@angular/router';
 import { aiReportsPlanGuard } from '../saas.service';
-import { incrementoIRoutes } from '../../incrementos/incremento-i/routes';
-import { incrementoIIRoutes } from '../../incrementos/incremento-ii/routes';
+import { cu01Cu10Routes } from '../../segundo_parcial/compartido/cu01_cu10.routes';
+import { cu11Cu20Routes } from '../../segundo_parcial/compartido/cu11_cu20.routes';
 
 /** Feature routes grouped by the same business packages used by navigation. */
 export const packageRoutes: Routes = [
-  {path:'pending-purchases',title:'Compras pendientes | DrapeMind',loadComponent:()=>import('../../incrementos/incremento-iii/deferred-checkout.component').then(m=>m.DeferredCheckoutComponent)},
-  {path:'business-insights',title:'Indicadores y tendencias | DrapeMind',loadComponent:()=>import('../../incrementos/incremento-iv/insights.component').then(m=>m.InsightsComponent)},
-  ...incrementoIRoutes,
-  ...incrementoIIRoutes,
+  {path:'pending-purchases',title:'Compras pendientes | DrapeMind',loadComponent:()=>import('../../segundo_parcial/cu23_pagos/cu23-deferred-checkout.component').then(m=>m.DeferredCheckoutComponent)},
+  {path:'business-insights',title:'Indicadores y tendencias | DrapeMind',loadComponent:()=>import('../../segundo_parcial/cu27_dashboard/cu27-insights.component').then(m=>m.InsightsComponent)},
+  ...cu01Cu10Routes,
+  ...cu11Cu20Routes,
   {
     path: 'dashboard',
     title: 'Resumen | DrapeMind',
@@ -32,7 +32,7 @@ export const packageRoutes: Routes = [
     title: 'Catálogo | DrapeMind',
     data: { package: 'Catálogo y comercialización' },
     loadComponent: () =>
-      import('@packages/catalogo-comercializacion/consultar-catalogo-prendas/catalog.component').then(
+      import('../../segundo_parcial/cu13_catalogo_offline/cu13-catalog.component').then(
         (m) => m.CatalogComponent,
       ),
   },
@@ -50,7 +50,7 @@ export const packageRoutes: Routes = [
     title: 'Pedidos | DrapeMind',
     data: { package: 'Carrito, pedidos y pagos' },
     loadComponent: () =>
-      import('@packages/carrito-pedidos-pagos/gestionar-pedidos-ventas-entregas/orders.component').then(
+      import('../../segundo_parcial/cu24_pedidos/cu24-orders.component').then(
         (m) => m.OrdersComponent,
       ),
   },
@@ -59,7 +59,7 @@ export const packageRoutes: Routes = [
     title: 'Caja | DrapeMind',
     data: { package: 'Carrito, pedidos y pagos' },
     loadComponent: () =>
-      import('@packages/carrito-pedidos-pagos/registrar-venta-presencial/pos.component').then(
+      import('../../segundo_parcial/compartido/caja_online/pos.component').then(
         (m) => m.PosComponent,
       ),
   },
@@ -77,7 +77,7 @@ export const packageRoutes: Routes = [
     title: 'Altair | DrapeMind',
     data: { package: 'Inteligencia artificial y asistencia de moda' },
     loadComponent: () =>
-      import('@packages/inteligencia-artificial-asistencia-moda/consultar-asistente-altair/ai-studio.component').then(
+      import('../../segundo_parcial/cu29_altair/cu29-ai-studio.component').then(
         (m) => m.AiStudioComponent,
       ),
   },
@@ -105,7 +105,7 @@ export const packageRoutes: Routes = [
     title: 'Informes Ejecutivos IA | DrapeMind',
     data: { package: 'Inteligencia artificial y asistencia de moda' },
     loadComponent: () =>
-      import('@packages/inteligencia-artificial-asistencia-moda/generar-reportes-empresariales/business-reports.component').then(
+      import('../../segundo_parcial/cu25_reportes_voz/cu25-business-reports.component').then(
         (m) => m.BusinessReportsComponent,
       ),
   },

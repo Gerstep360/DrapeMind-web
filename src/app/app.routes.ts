@@ -7,18 +7,18 @@ export const routes: Routes = [
   {
     path: 'tiendas',
     title: 'Tiendas | DrapeMind',
-    loadComponent: () => import('./packages/saas/stores.component').then((m) => m.StoresComponent),
+    loadComponent: () => import('./segundo_parcial/cu05_acceso/cu05-stores.component').then((m) => m.StoresComponent),
   },
   {
     path: 'tienda/:slug',
     title: 'Entrar a tu tienda | DrapeMind',
     loadComponent: () =>
-      import('./packages/saas/store-entry.component').then((m) => m.StoreEntryComponent),
+      import('./segundo_parcial/cu05_acceso/cu05-store-entry.component').then((m) => m.StoreEntryComponent),
   },
   {
     path: 'tienda/:slug/login',
     loadComponent: () =>
-      import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(
+      import('./segundo_parcial/cu05_acceso/cu05-login.component').then(
         (m) => m.LoginComponent,
       ),
   },
@@ -27,12 +27,12 @@ export const routes: Routes = [
     title: 'Empresas | DrapeMind',
     canActivate: [authGuard, platformGuard],
     loadComponent: () =>
-      import('./packages/saas/platform.component').then((m) => m.PlatformComponent),
+      import('./segundo_parcial/cu01_empresas/cu01-platform.component').then((m) => m.PlatformComponent),
   },
   {
     path: 'login',
     loadComponent: () =>
-      import('@packages/acceso-gestion-usuarios/iniciar-sesion/login.component').then(
+      import('./segundo_parcial/cu05_acceso/cu05-login.component').then(
         (m) => m.LoginComponent,
       ),
   },

@@ -1,5 +1,8 @@
 # DrapeMind Web
 
+[Código y organización vigente del segundo parcial](src/app/segundo_parcial/README.md). Navegación de tienda, gestión por permisos, voz NVIDIA, Stripe y modelos de demanda persistentes.
+
+
 El acceso pide correo y contraseña; la API determina la empresa y el destino. Los enlaces `/tienda/<slug>` reconocen la tienda automáticamente. Los clientes tienen una cuenta universal y pueden elegir otra tienda desde `/tiendas`. El carrito, las compras y el stock se conservan por empresa y sucursal. No hay selector de rol en el acceso.
 
 El panel de empresas guía el alta en tres pasos y muestra validaciones junto a los campos. Permite preparar el enlace, asignar el plan y elegir contratación Stripe o licencia administrativa. Los comprobantes usan datos comerciales de cada empresa. [Contrato de identidad y compras](../backend/docs/COMPRAS_POR_TIENDA.md).

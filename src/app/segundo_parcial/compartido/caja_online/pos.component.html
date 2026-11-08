@@ -1,0 +1,97 @@
+<div class="pos-layout">
+  <!-- HEADER MODULAR -->
+  <app-pos-header
+    [branches]="branchService.branches()"
+    [selectedBranchId]="selectedBranchId()"
+    [currentUser]="auth.user()"
+    (branchSelected)="setBranchById($event)"
+    (openAiOutfit)="openAiOutfitModal()"
+  />
+
+  <!-- MAIN WORKSPACE: 2 COLUMNAS (CATÁLOGO + TICKET) -->
+  <div class="pos-body">
+    <!-- PANEL DE CATÁLOGO MODULAR -->
+    <app-pos-catalog
+      [products]="products()"
+      [categories]="categories()"
+      [loading]="loadingCatalog()"
+      [selectedCategory]="selectedCategory()"
+      [searchControl]="searchControl"
+      (categorySelected)="setCategory($event)"
+      (productSelected)="openVariantModal($event)"
+    />
+
+    <!-- PANEL DE TICKET Y COBRO MODULAR -->
+    <app-pos-ticket
+      [ticketItems]="ticketItems()"
+      [isSubmitting]="isSubmitting()"
+      [totalPieces]="totalPieces()"
+      [subtotal]="subtotal()"
+      [total]="total()"
+      [cashChange]="cashChange()"
+      [cashMissing]="cashMissing()"
+      [isCashSufficient]="isCashSufficient()"
+      [canSubmitSale]="canSubmitSale()"
+      [customerMode]="customerMode()"
+      [guestNameControl]="guestNameControl"
+      [guestDocControl]="guestDocControl"
+      [customerSearchControl]="customerSearchControl"
+      [customerSearchResults]="customerSearchResults()"
+      [isSearchingCustomers]="isSearchingCustomers()"
+      [selectedCustomer]="selectedCustomer()"
+      [paymentMethod]="paymentMethod()"
+      [cashReceivedControl]="cashReceivedControl"
+      [cardRefControl]="cardRefControl"
+      [qrRefControl]="qrRefControl"
+      (customerModeChange)="setCustomerMode($event)"
+      (customerSelect)="selectCustomer($event)"
+      (clearCustomer)="clearCustomer()"
+      (increment)="incrementItem($event)"
+      (decrement)="decrementItem($event)"
+      (remove)="removeItem($event)"
+      (clearTicket)="clearTicket()"
+      (paymentMethodChange)="setPaymentMethod($event)"
+      (setExactCash)="setExactCash()"
+      (setCashAmount)="setCashAmount($event)"
+      (submit)="submitSale()"
+    />
+  </div>
+</div>
+
+<!-- MODAL: VER PRENDA Y SELECCIONAR VARIANTE (COLOR ÚNICO Y TALLAS DEPENDIENTES) -->
+<app-pos-product-modal
+  [open]="variantModalOpen()"
+  [product]="selectedProduct()"
+  [productStockRows]="productStockRows()"
+  [loading]="loadingVariants()"
+  [branchId]="selectedBranchId()"
+  [branchName]="branchName(selectedBranchId())"
+  (close)="closeVariantModal()"
+  (addToTicket)="onAddVariantToTicket($event)"
+/>
+
+<!-- ASISTENTE PERSONAL STYLIST IA EN CAJA (CON ADICIÓN DIRECTA AL TICKET) -->
+<app-pos-ai-modal
+  [open]="aiModalOpen()"
+  [loading]="aiLoading()"
+  [selectedModel]="selectedAiModel()"
+  [occasionControl]="aiOccasionControl"
+  [outfitSets]="aiOutfitSets()"
+  [selectedOutfitSet]="selectedOutfitSet()"
+  [responseText]="aiResponseText()"
+  [recommendationText]="aiRecommendationText()"
+  [contextSummary]="altairPosContext()"
+  (close)="closeAiOutfitModal()"
+  (modelChange)="setAiModel($event)"
+  (generate)="generateAiSuggestions()"
+  (selectOutfitSet)="selectOutfitSet($event)"
+  (addSinglePiece)="addSinglePieceFromOutfit($event)"
+  (addWholeOutfit)="addWholeOutfitToTicket($event)"
+/>
+
+<!-- MODAL: COMPROBANTE OFICIAL ELECTRÓNICO CON QR -->
+@if (receiptModalOpen() && completedOrderId(); as id) {
+  <app-receipt-modal [orderId]="id" (close)="closeReceiptModal()" />
+}
+
+@if(stripeOrderId();as id){<div class="modal-scrim"></div><section class="modal-panel" role="dialog" aria-label="Pago seguro con Stripe"><h2>Autorizar pago de la venta</h2><app-stripe-payment [orderId]="id" (paid)="stripeSalePaid()"/><button class="button" type="button" (click)="stripeOrderId.set(null)">Continuar luego desde Pedidos</button></section>}

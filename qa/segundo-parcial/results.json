@@ -1,0 +1,15 @@
+{
+  "voicePurposes": [
+    "REPORTE",
+    "ALTAIR"
+  ],
+  "reviewBeforeRequest": true,
+  "checkoutRequests": 1,
+  "availabilityRefreshReadOnly": true,
+  "stripeOnly": true,
+  "pageErrors": [],
+  "viewports": [
+    1440,
+    390
+  ]
+}

@@ -8,7 +8,7 @@ import { TenantService } from './tenant.service';
 import { RuntimeConfigService } from './runtime-config.service';
 import { authInterceptor } from './auth.interceptor';
 import { BranchService } from './branch.service';
-import { LoginComponent } from '../packages/acceso-gestion-usuarios/iniciar-sesion/login.component';
+import { LoginComponent } from '../segundo_parcial/cu05_acceso/cu05-login.component';
 
 const jwt = (platform = false) =>
   'header.' +

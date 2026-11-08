@@ -8,15 +8,15 @@ import { AuthService } from '@core/auth.service';
 import { CartService } from '@core/cart.service';
 import { EventsSocketService } from '@core/events-socket.service';
 import { ToastService } from '@core/toast.service';
-import { CartDrawerComponent } from '@shared/components/cart/cart-drawer/cart-drawer.component';
+import { CartDrawerComponent } from '../segundo_parcial/cu22_carrito_checkout/cu22-cart-drawer.component';
 import { BranchService } from '@core/branch.service';
 import { Branch } from '@core/models';
 import { navigationForRole } from '@core/navigation/package-navigation';
 import { NotificationService } from '@core/notification.service';
 import { NavIconComponent } from '@shared/components/navigation/nav-icon/nav-icon.component';
 import { NotificationsDrawerComponent } from '@shared/components/notifications/notifications-drawer.component';
-import { OfflineService } from '../incrementos/incremento-ii/offline/offline.service';
-import { DeferredCheckoutService } from '../incrementos/incremento-iii/deferred-checkout.service';
+import { OfflineService } from '../segundo_parcial/cu13_catalogo_offline/cu13-offline.service';
+import { DeferredCheckoutService } from '../segundo_parcial/cu23_pagos/cu23-deferred-checkout.service';
 
 @Component({
   selector: 'app-shell',

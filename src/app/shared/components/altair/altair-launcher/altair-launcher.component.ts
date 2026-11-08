@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { ChatComposerComponent } from '../chat-composer/chat-composer.component';
+import { ChatComposerComponent } from '../../../../segundo_parcial/cu29_altair/composer/cu29-chat-composer.component';
 import { ComposerSubmitEvent } from '../altair-component.models';
 
 @Component({
