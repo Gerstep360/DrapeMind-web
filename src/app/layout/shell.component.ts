@@ -16,6 +16,7 @@ import { NotificationService } from '@core/notification.service';
 import { NavIconComponent } from '@shared/components/navigation/nav-icon/nav-icon.component';
 import { NotificationsDrawerComponent } from '@shared/components/notifications/notifications-drawer.component';
 import { OfflineService } from '../incrementos/incremento-ii/offline/offline.service';
+import { DeferredCheckoutService } from '../incrementos/incremento-iii/deferred-checkout.service';
 
 @Component({
   selector: 'app-shell',
@@ -25,6 +26,7 @@ import { OfflineService } from '../incrementos/incremento-ii/offline/offline.ser
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShellComponent {
+  readonly deferredPurchases=inject(DeferredCheckoutService);
   readonly offline = inject(OfflineService);
   readonly saas=inject(SaaSService);
   readonly auth = inject(AuthService);
@@ -46,6 +48,7 @@ export class ShellComponent {
     { label: 'Colección', route: '/catalog' },
     { label: 'Favoritos', route: '/favorites' },
     { label: 'Mis pedidos', route: '/orders' },
+    { label: 'Compras pendientes', route: '/pending-purchases' },
     { label: 'Reservas', route: '/reservations' },
     { label: 'Con Altair', route: '/ai-studio' },
     { label: 'Sin conexión', route: '/offline' },

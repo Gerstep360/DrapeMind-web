@@ -34,6 +34,7 @@ import { CartDrawerStep } from './cart-drawer.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartDrawerComponent {
+  openDeferredPurchase(): void { this.cart.close(); void this.router.navigateByUrl('/pending-purchases'); }
   stripePaid(payment: Payment): void {
     this.lastPayment.set(payment);
     const order = this.lastOrder();

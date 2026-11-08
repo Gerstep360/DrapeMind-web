@@ -1,0 +1,49 @@
+<header class="page-heading"><p class="eyebrow">{{ auth.user()?.tenant_name }} · Tus compras</p><h1>Tu compra puede esperar la conexión.</h1>
+  <p>Guarda las prendas y el importe que autorizas. Al reconectar comprobaremos disponibilidad y procesaremos Stripe una sola vez.</p>
+  <span class="connection" [class.offline]="!queue.online()">{{ queue.online() ? 'Con conexión' : 'Sin conexión · Guardado local' }}</span>
+</header>
+@if (error()) { <p class="message error" role="alert">{{ error() }}</p> }
+@if (feedback()) { <p class="message" role="status">{{ feedback() }}</p> }
+@if (queue.error()) { <p class="hint">{{ queue.error() }}</p> }
+<div class="purchase-layout">
+  <section class="checkout" aria-labelledby="saved-cart-heading"><h2 id="saved-cart-heading">Prendas de tu carrito</h2>
+    @if (queue.context(); as context) {
+      <p class="hint">Copia del {{ context.downloaded_at | date:'short' }}. El stock se confirma cuando la compra llega al servidor.</p>
+      @for (item of context.cart.items; track item.variante_id) { <div class="line"><div><strong>{{ item.nombre }}</strong><small>{{ item.talla }} · {{ item.color }} · {{ item.cantidad }} unidades</small></div><span>Bs {{ item.subtotal | number:'1.2-2' }}</span></div> }
+      @if (!context.cart.items.length) { <p>Tu carrito está vacío. <a routerLink="/catalog">Elegir prendas</a></p> }
+      <div class="fields"><label>Recibir mis prendas<select [(ngModel)]="delivery"><option value="RECOJO">Recoger en tienda</option><option value="DELIVERY">Entrega a domicilio</option></select></label>
+        @if (delivery === 'RECOJO') { <label>Sucursal<select [(ngModel)]="branch"><option [ngValue]="null">Elegir sucursal</option>@for (place of context.branches; track place.id) { <option [ngValue]="place.id">{{ place.nombre }}</option> }</select></label> }
+        @else { <label>Dirección guardada<select [(ngModel)]="address"><option [ngValue]="null">Elegir dirección</option>@for (place of context.addresses; track place.id) { <option [ngValue]="place.id">{{ place.alias }} · {{ place.ciudad }}</option> }</select></label> }
+      </div>
+      <label>Tarjeta para esta compra<select [(ngModel)]="card"><option [ngValue]="null">Elegiré una tarjeta cuando tenga conexión</option>@for (method of context.cards; track method.id) { <option [ngValue]="method.id">{{ method.marca | uppercase }} ···· {{ method.ultimos_cuatro }}</option> }</select></label>
+      <button type="button" class="text-button" [disabled]="!queue.online() || saving()" (click)="openCard()">Guardar otra tarjeta con Stripe</button>
+      <div class="total"><span>Importe autorizado</span><strong>Bs {{ total() | number:'1.2-2' }}</strong></div>
+      @if (card) { <label class="consent"><input type="checkbox" [ngModel]="consent" (ngModelChange)="setConsent($event)" />Autorizo un único cobro de Bs {{ total() | number:'1.2-2' }} a esta tarjeta al recuperar conexión, dentro de las próximas 24 horas. Si cambia el importe o falta stock, se anulará sin cobrar.</label> }
+      @else { <p class="hint">Se guardará la solicitud, sin cobro. Para terminar tendrás que añadir o elegir una tarjeta con Internet.</p> }
+      <button class="button button--primary" type="button" [disabled]="saving() || !context.cart.items.length || (!!card && !consent)" (click)="save()">{{ saving() ? 'Guardando…' : 'Guardar compra pendiente' }}</button>
+    } @else { <p>Abre esta pantalla con conexión para descargar tu carrito, sucursales y tarjetas guardadas.</p><button class="button" type="button" [disabled]="!queue.online()" (click)="queue.refresh()">Preparar compra</button> }
+  </section>
+  <section class="pending" aria-labelledby="pending-heading"><header><h2 id="pending-heading">Compras pendientes</h2><button type="button" class="text-button" [disabled]="!queue.online() || queue.busy()" (click)="queue.refresh()">{{ queue.busy() ? 'Comprobando…' : 'Sincronizar' }}</button></header>
+    @for (row of queue.purchases(); track row.operation) {
+      <article><span class="state" [class.paid]="queue.state(row) === 'PAGADA'">{{ queue.label(queue.state(row)) }}</span><h3>{{ row.label }}</h3>
+        <strong>Bs {{ row.remote?.total_autorizado || row.body?.['total_autorizado'] }}</strong><p>{{ row.remote?.mensaje || 'Guardada en este dispositivo. Todavía no se ha confirmado el pago ni la disponibilidad en la tienda.' }}</p>
+        @if (row.remote?.pedido_id) { <a routerLink="/orders" [queryParams]="{id:row.remote?.pedido_id}">Ver pedido #{{ row.remote?.pedido_id }}</a> }
+        @if (!queue.isTerminal(row)) {
+          <div class="actions">
+            @if (queue.state(row) === 'REQUIERE_AUTENTICACION') { <button type="button" [disabled]="!queue.online() || saving()" (click)="action(row,'authenticate')">Verificar con mi banco</button> }
+            @if (queue.state(row) === 'REQUIERE_METODO') { <button type="button" [disabled]="!queue.online() || saving() || !card" (click)="action(row,'card')">Autorizar Bs {{ row.remote?.total_autorizado }} con tarjeta elegida</button> }
+            <button type="button" [disabled]="saving()" (click)="action(row,'cancel')">Cancelar compra</button>
+          </div>
+        }
+      </article>
+    } @empty { <p class="empty">Aquí verás lo que guardes sin conexión y la confirmación de Stripe cuando vuelva Internet.</p> }
+  </section>
+</div>
+<dialog #cardDialog aria-labelledby="save-card-heading" (cancel)="saving() && $event.preventDefault()"><header><h2 id="save-card-heading">Guardar tarjeta con Stripe</h2><button type="button" aria-label="Cerrar registro de tarjeta" [disabled]="saving()" (click)="cardDialog.close()">×</button></header>
+  <p>Necesitas conexión para registrar una tarjeta nueva. Los datos viajan directamente a Stripe.</p>
+  <label class="consent"><input type="checkbox" [(ngModel)]="saveConsent" />Acepto guardar la tarjeta en Stripe y permitir únicamente los futuros cobros que autorice expresamente con su importe. Puedo cancelar una compra pendiente antes de que se confirme su pago.</label>
+  @if (!setupReady()) { <button type="button" class="button" [disabled]="!saveConsent || saving()" (click)="prepareCard()">Continuar con Stripe</button> }
+  <div #cardHost></div>
+  @if (setupReady()) { <button type="button" class="button button--primary" [disabled]="saving() || !saveConsent" (click)="saveCard()">{{ saving() ? 'Guardando…' : 'Guardar tarjeta' }}</button> }
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+</dialog>
