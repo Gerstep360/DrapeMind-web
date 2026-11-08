@@ -133,7 +133,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
       },
       {
         label: 'Caja presencial',
-        description: 'Cobro rápido y QR en tienda',
+        description: 'Contado en caja o tarjeta con Stripe',
         icon: 'pos',
         route: '/pos',
         roles: staff,
