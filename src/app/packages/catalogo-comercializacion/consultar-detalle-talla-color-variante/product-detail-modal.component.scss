@@ -539,3 +539,17 @@
     border-radius: var(--dm-radius-sm, 999px);
   }
 }
+
+.modal-body > * { min-width: 0; }
+.product-opinions { min-width: 0; margin: 16px 0; }
+.product-opinions summary { cursor: pointer; font-weight: 700; padding: 12px 0; }
+@media (max-width: 860px) {
+  .modal-body { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 20px; }
+  .modal-gallery { max-width: 100%; }
+  .product-detail-modal { max-height: calc(100dvh - 32px); }
+}
+@media (max-width: 560px) {
+  .modal-actions { grid-template-columns: minmax(0, 1fr); }
+  .modal-header { padding: 20px; }
+  .close-button { flex-shrink: 0; }
+}

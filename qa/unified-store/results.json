@@ -1,0 +1,12 @@
+{
+  "normalCatalogCartCheckoutOrders": true,
+  "reviewsInProduct": true,
+  "offlineReload": true,
+  "automaticReconnect": true,
+  "submitted": 1,
+  "viewports": [
+    1440,
+    390
+  ],
+  "pageErrors": []
+}

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild, inject, signal,input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,6 +15,8 @@ import { PendingPurchase } from './cu23-deferred-store';
 @Component({selector:'app-deferred-checkout',standalone:true,imports:[CommonModule,FormsModule,RouterLink],
   templateUrl:'./cu23-deferred-checkout.component.html',styleUrl:'./cu23-deferred-checkout.component.scss'})
 export class DeferredCheckoutComponent implements OnDestroy {
+  readonly embedded=input(false);readonly existingOrderIds=input<number[]>([]);
+  rows(){return this.queue.purchases().filter(row=>!(this.queue.state(row)==='PAGADA'&&row.remote?.pedido_id&&this.existingOrderIds().includes(row.remote.pedido_id)));}
   readonly queue=inject(DeferredCheckoutService);readonly auth=inject(AuthService);
   private readonly http=inject(HttpClient);private readonly runtime=inject(RuntimeConfigService);
   @ViewChild('cardDialog') dialog!:ElementRef<HTMLDialogElement>;

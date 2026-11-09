@@ -30,6 +30,9 @@
               @case ('CHECKOUT') {
                 Finalizar Pedido
               }
+              @case ('SAVED') {
+                Compra guardada
+              }
               @case ('SUCCESS') {
                 Pedido Confirmado
               }
@@ -43,6 +46,9 @@
               }
               @case ('CHECKOUT') {
                 Selección de entrega y forma de pago
+              }
+              @case ('SAVED') {
+                Sigue su estado en Mis pedidos
               }
               @case ('SUCCESS') {
                 Transacción registrada en el atelier
@@ -76,6 +82,7 @@
     <!-- STEP 1: ITEMS IN CART -->
     @if (step() === 'CART') {
       <div class="cart-content">
+        @if(cart.localIssue()){<div role="alert"><p>{{cart.localIssue()}}</p><button type="button" class="button button--ghost" [disabled]="processing()||!offline.online()" (click)="keepCartSelection()">Conservar esta selección</button><p>Esto reemplazará el carrito guardado desde otro dispositivo.</p></div>}
         @if (cart.items().length > 0) {
           <div class="cart-items-list">
             @for (item of cart.items(); track item.id) {
@@ -460,7 +467,7 @@
                   <button
                     type="button"
                     class="button button--ghost button--small"
-                    (click)="showNewAddressForm.set(true)"
+                    [disabled]="offlineCheckout()" (click)="showNewAddressForm.set(true)"
                   >
                     + Registrar nueva dirección
                   </button>
@@ -504,9 +511,15 @@
             </section>
           }
 
-          <section class="checkout-section"><p class="section-label">Pago seguro</p><strong>Tarjeta con Stripe</strong><p>Revisarás el importe y autorizarás el pago de forma segura. Tu pedido queda pendiente hasta la confirmación de Stripe.</p></section>
+          @if(offlineCheckout()){
+            <section class="checkout-section"><p class="section-label">Pago al recuperar conexión</p>
+              <label for="offline-card">Tarjeta de esta compra</label><select #cardChoice id="offline-card" [value]="savedCard()??''" (change)="savedCard.set(cardChoice.value?+cardChoice.value:null);setChargeConsent(false)"><option value="">La elegiré cuando vuelva Internet</option>@for(method of queue.context()?.cards||[];track method.id){<option [value]="method.id">{{method.marca}} ···· {{method.ultimos_cuatro}}</option>}</select>
+              @if(savedCard()){<label><input #consentBox type="checkbox" [checked]="chargeConsent()" (change)="setChargeConsent(consentBox.checked)" />Autorizo un único cobro de Bs {{grandTotal()|number:'1.2-2'}} cuando vuelva la conexión, dentro de las próximas 24 horas. Si cambia el importe o falta stock, se anulará sin cobrar.</label>}
+              @else{<p>Podrás elegir una tarjeta y autorizar el pago al recuperar conexión.</p>}
+            </section>
+          }@else{<section class="checkout-section"><p class="section-label">Pago seguro</p><strong>Tarjeta con Stripe</strong><p>Revisarás el importe y autorizarás el pago de forma segura. Tu pedido queda pendiente hasta la confirmación de Stripe.</p></section>}
           <!-- OBSERVACION -->
-          <section class="checkout-section"><button type="button" class="button" (click)="openDeferredPurchase()">Guardar compra para pagar al recuperar conexión</button><p>Usa una tarjeta ya guardada en Stripe o elígela cuando vuelva Internet.</p></section>
+
           <section class="checkout-section">
             <label>
               Instrucciones adicionales para el atelier (opcional)
@@ -608,7 +621,7 @@
             @if (processing()) {
               <span class="spinner"></span> Procesando orden...
             } @else {
-              Confirmar Pedido (Bs {{ grandTotal() | number: '1.2-2' }})
+              {{offlineCheckout()?'Confirmar compra':'Confirmar Pedido'}} (Bs {{ grandTotal() | number: '1.2-2' }})
             }
           </button>
         </div>
@@ -616,6 +629,9 @@
     }
 
     <!-- STEP 3: SUCCESS & PAYMENT CONFIRMATION -->
+    @if(step()==='SAVED'){
+      <div class="checkout-content"><h2>Tu compra está guardada</h2><p>Está en Mis pedidos. Al recuperar conexión comprobaremos el stock y procesaremos el pago autorizado.</p><p>Si tu banco necesita confirmación o falta elegir tarjeta, podrás continuar desde ese mismo pedido.</p><button type="button" class="button button--primary" (click)="viewMyOrders()">Ver mis pedidos</button></div>
+    }
     @if (step() === 'SUCCESS' && lastOrder(); as order) {
       <div class="cart-content success-step">
         <div class="success-banner">

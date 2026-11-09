@@ -2,6 +2,10 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import { CheckoutRequest, Order } from '../../core/models';
 
+export function hasUncertainCheckout(base:string,tenant:number,user:number):boolean{
+  return localStorage.getItem(`drapemind.checkout.pending|${base}|${tenant}:${user}`)!==null;
+}
+
 export async function confirmCheckout(http:HttpClient,base:string,payload:CheckoutRequest):Promise<Order>{
   const account=JSON.parse(localStorage.getItem('drapemind_user')??'null');
   if(!account?.id || !account?.tenant_id) throw new Error('Inicia sesión en la tienda antes de confirmar.');

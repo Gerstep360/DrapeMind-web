@@ -1,3 +1,7 @@
+import {hasUncertainCheckout} from './cu22-checkout';
+import {DeferredCheckoutService} from '../cu23_pagos/cu23-deferred-checkout.service';
+import {OfflineService} from '../cu13_catalogo_offline/cu13-offline.service';
+import {firstValueFrom} from 'rxjs';
 import { ProductMediaComponent } from '../../shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
@@ -34,13 +38,18 @@ import { CartDrawerStep } from './cu22-cart-drawer.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartDrawerComponent {
-  openDeferredPurchase(): void { this.cart.close(); void this.router.navigateByUrl('/pending-purchases'); }
+  async keepCartSelection(){this.processing.set(true);try{await this.cart.local.keepSelection();}catch{this.toast.show('No pudimos actualizar el carrito. Tu selección sigue guardada.','error');}finally{this.processing.set(false);}}
+  openDeferredPurchase(): void { this.cart.close(); void this.router.navigateByUrl('/orders'); }
   stripePaid(payment: Payment): void {
     this.lastPayment.set(payment);
     const order = this.lastOrder();
     if (order && payment.estado === 'APROBADO') this.lastOrder.set({ ...order, estado: 'PAGADO' });
   }
   readonly cart = inject(CartService);
+  readonly queue=inject(DeferredCheckoutService);readonly offline=inject(OfflineService);
+  readonly offlineCheckout=signal(false);readonly savedCard=signal<number|null>(null);readonly chargeConsent=signal(false);readonly chargeTotal=signal('');readonly savedOperation=signal('');
+  setChargeConsent(checked:boolean){this.chargeConsent.set(checked);this.chargeTotal.set(checked?this.grandTotal().toFixed(2):'');}
+
   readonly auth = inject(AuthService);
   readonly branches = inject(BranchService);
   readonly runtime = inject(RuntimeConfigService);
@@ -93,10 +102,12 @@ export class CartDrawerComponent {
   readonly promoInput = signal<string>('');
   readonly validatingPromo = signal<boolean>(false);
 
+  private owner='';
   constructor() {
+    effect(()=>{const user=this.auth.user(),owner=`${user?.tenant_id}:${user?.id}`;if(owner!==this.owner){this.owner=owner;this.cart.close();this.step.set('CART');this.lastOrder.set(null);this.lastPayment.set(null);this.addresses.set([]);this.savedCard.set(null);this.offlineCheckout.set(false);this.setChargeConsent(false);}});
     effect(() => {
       if (this.cart.isOpen()) {
-        this.commerceApi.shippingConfiguration().subscribe({next:config=>this.deliveryFee.set(+config.costo_delivery),error:()=>this.deliveryFee.set(null)});
+        this.commerceApi.shippingConfiguration().subscribe({next:config=>this.deliveryFee.set(+config.costo_delivery),error:()=>this.deliveryFee.set(this.queue.context()?+this.queue.context()!.delivery_fee:null)});
         this.branches.loadBranches();
         this.loadAddresses();
         this.loadPromotions();
@@ -204,19 +215,52 @@ export class CartDrawerComponent {
     });
   }
 
-  goToCheckout(): void {
-    if (this.cart.totalItems() === 0) return;
-    this.step.set('CHECKOUT');
-    this.checkoutError.set('');this.checkingAvailability.set(true);
-    this.commerceApi.checkoutOptions().subscribe({next:options=>{
-      this.checkingAvailability.set(false);this.checkoutBranches.set(options.sucursales);
-      if(options.compra_pendiente){this.checkoutError.set('Estas prendas ya tienen una compra pendiente. Revisa su pago antes de crear otra.');return;}
-      if(options.vacio){this.checkoutError.set('Tu carrito ya cambió o se confirmó. Revisa Mis pedidos y actualiza el carrito.');this.cart.loadCart();return;}
-      const selected=this.checkoutForm.controls.sucursal_id.value;
-      if(!options.sucursales.some(b=>b.id===selected&&b.disponible))this.checkoutForm.controls.sucursal_id.setValue(options.sucursales.find(b=>b.disponible)?.id||null);
-      if(!options.sucursales.some(b=>b.disponible))this.checkoutError.set('Ninguna sucursal tiene todas las cantidades de este carrito. Ajusta las prendas o cantidades para continuar.');
-    },error:()=>{this.checkingAvailability.set(false);this.checkoutError.set('No pudimos comprobar la disponibilidad. Recupera conexión y vuelve a intentarlo.');}});
-    this.loadAddresses();
+  async goToCheckout():Promise<void>{
+    if(!this.cart.totalItems())return;
+    this.step.set('CHECKOUT');this.checkoutError.set('');this.checkingAvailability.set(true);this.offlineCheckout.set(false);this.setChargeConsent(false);
+    try {
+      await this.cart.local.ready;
+      if(!navigator.onLine||!this.offline.online()){await this.cachedCheckout();return;}
+      await this.cart.synchronizeDraft();
+      const options=await firstValueFrom(this.commerceApi.checkoutOptions());
+      this.checkoutBranches.set(options.sucursales);
+      if(options.compra_pendiente)throw new Error('Estas prendas ya tienen una compra pendiente. Revisa Mis pedidos antes de crear otra.');
+      if(options.vacio)throw new Error('Tu carrito cambió. Revisa Mis pedidos y vuelve a elegir tus prendas.');
+      this.checkoutForm.controls.sucursal_id.setValue(options.sucursales.find(b=>b.disponible)?.id||null);
+      if(!options.sucursales.some(b=>b.disponible))throw new Error('Ninguna sucursal tiene todas las cantidades. Ajusta tu carrito para continuar.');
+      this.loadAddresses();
+    }catch(error:any){
+      if([0,502,503,504].includes(error.status)){try{await this.cachedCheckout();}catch(e:any){this.checkoutError.set(e.message);}}
+      else this.checkoutError.set(error instanceof Error?error.message:typeof error.error?.detail==='string'?error.error.detail:'No pudimos comprobar tu compra.');
+    }finally{this.checkingAvailability.set(false);}
+  }
+  private async cachedCheckout(){
+    const user=this.auth.user();if(user&&hasUncertainCheckout(this.runtime.apiUrl,user.tenant_id!,user.id))throw new Error('Hay un pedido por verificar. Recupera conexión para comprobarlo antes de confirmar otra compra.');
+    await this.queue.ready;const bundle=await this.offline.snapshot();const value=this.queue.context();
+    if(!value||Date.parse(value.valid_until)<Date.now())throw new Error('Actualiza la descarga de esta tienda para completar la compra sin conexión.');
+    const cart=this.cart.cart();if(!cart?.items.length)throw new Error('Elige las prendas que quieres llevar.');
+    await this.queue.useCart(cart);this.offlineCheckout.set(true);
+    const branches=value.branches.map(b=>({...b,disponible:cart.items.every(i=>(bundle.stock.find(s=>s.sucursal_id===b.id&&s.variante_id===i.variante_id)?.disponible??0)>=i.cantidad)}));
+    this.checkoutBranches.set(branches);this.checkoutForm.controls.sucursal_id.setValue(branches.find(b=>b.disponible)?.id||null);
+    this.deliveryFee.set(+value.delivery_fee);this.addresses.set(value.addresses as Address[]);this.selectedAddressId.set(value.addresses[0]?.id||null);
+    this.savedCard.set(value.cards[0]?.id||null);
+  }
+  private async saveOfflinePurchase(){
+    if(this.processing()||this.checkingAvailability())return;
+    const owner=this.cart.local.scopeKey();
+    this.checkoutError.set('');this.processing.set(true);
+    try{
+      const delivery=this.checkoutForm.controls.tipo_entrega.value,branch=this.checkoutForm.controls.sucursal_id.value,address=this.selectedAddressId();
+      if(delivery==='RECOJO'&&!branch)throw new Error('Elige una sucursal disponible en la descarga.');
+      if(delivery==='DELIVERY'&&!address)throw new Error('Elige una dirección guardada o recoge tus prendas en una sucursal.');
+      if(this.savedCard()&&(!this.chargeConsent()||this.chargeTotal()!==this.grandTotal().toFixed(2)))throw new Error('Revisa y autoriza el importe de esta compra.');
+      await this.queue.useCart(this.cart.cart()!);
+      if(owner!==this.cart.local.scopeKey())return;
+      const operation=await this.queue.enqueue({tipo_entrega:delivery,sucursal_id:branch,direccion_id:address,tarjeta_id:this.savedCard(),total_autorizado:this.grandTotal().toFixed(2),autorizar_cobro_automatico:!!this.savedCard()&&this.chargeConsent(),codigo_promocion:this.cart.appliedPromo()?.codigo||null});
+      if(owner!==this.cart.local.scopeKey())return;
+      this.savedOperation.set(operation);this.step.set('SAVED');
+      try{await this.cart.local.edit('replace',[]);}catch{/* The purchase is already durable and remains visible in orders. */}
+    }catch(error:any){this.checkoutError.set(error.message||'No se pudo guardar la compra.');}finally{this.processing.set(false);}
   }
 
   backToCart(): void {
@@ -232,6 +276,7 @@ export class CartDrawerComponent {
   }
 
   confirmOrder(): void {
+    if(this.offlineCheckout()){void this.saveOfflinePurchase();return;}
     if(this.checkoutForm.get('tipo_entrega')?.value==='DELIVERY' && this.deliveryFee()===null){this.toast.show('No pudimos consultar la tarifa de envío. Reabre el carrito para reintentar.','error');return;}
     if (this.processing() || this.checkingAvailability() || this.checkoutError()) return;
     if (

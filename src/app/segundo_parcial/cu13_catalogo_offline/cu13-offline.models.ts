@@ -4,6 +4,12 @@ export interface OfflineProduct {
   descripcion?: string;
   categoria_id: number;
   precio: string;
+  marca?: string | null;
+  material?: string | null;
+  genero_objetivo?: 'HOMBRE'|'MUJER'|'UNISEX'|'OTRO';
+  calidad_nivel?: number;
+  tags_ai?: string[];
+  created_at?: string;
   imagenes: string[];
 }
 export interface OfflineVariant {

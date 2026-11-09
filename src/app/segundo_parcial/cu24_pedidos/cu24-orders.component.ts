@@ -1,3 +1,6 @@
+import {DownloadedOrdersService} from './cu24-pedidos-descargados.service';
+import {DeferredCheckoutComponent} from '../cu23_pagos/cu23-deferred-checkout.component';
+import {DeferredCheckoutService} from '../cu23_pagos/cu23-deferred-checkout.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +18,7 @@ import { CashPaymentModalComponent } from '../../shared/components/cash-payment-
 
 @Component({
   selector: 'app-orders',
-  imports: [
+  imports: [DeferredCheckoutComponent,
     DatePipe,
     DecimalPipe,
     FormsModule,
@@ -28,6 +31,10 @@ import { CashPaymentModalComponent } from '../../shared/components/cash-payment-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrdersComponent {
+  readonly downloaded=inject(DownloadedOrdersService);
+  readonly queued=inject(DeferredCheckoutService);
+  orderIds(){return this.orders().map(o=>o.id);}
+  filterLabel(state:string){return ({TODOS:'Todos',PENDIENTE_PAGO:'Por pagar',PAGADO:'Pagados',PREPARANDO:'En preparación',LISTO:'Listos',ENVIADO:'En camino',ENTREGADO:'Entregados',CANCELADO:'Cancelados'} as Record<string,string>)[state]||state;}
   readonly auth = inject(AuthService);
   private readonly commerceApi = inject(CommerceApiService);
   private readonly branchApi = inject(BranchInventoryApiService);
@@ -81,7 +88,15 @@ export class OrdersComponent {
   readonly posLoadingStock = signal<boolean>(false);
   readonly posSubmitting = signal<boolean>(false);
 
+  private requestGeneration=0;
+  private paidSeen=new Set<string>();
   constructor() {
+    effect(()=>{
+      const paid=this.queued.purchases().filter(r=>this.queued.state(r)==='PAGADA').map(r=>r.operation);
+      const changed=paid.some(id=>!this.paidSeen.has(id));
+      paid.forEach(id=>this.paidSeen.add(id));
+      if(changed)this.load();
+    });
     effect(() => {
       const event = this.events.events().at(0);
       if (event?.type.startsWith('order_') || event?.type.startsWith('payment_')) this.load();
@@ -103,20 +118,22 @@ export class OrdersComponent {
   }
 
   load(): void {
-    const request = this.auth.user()?.rol === 'CLIENTE' ? this.commerceApi.myOrders() : this.commerceApi.orders();
+    const generation=++this.requestGeneration, owner=this.auth.user();
+    const request = this.auth.user()?.rol === 'CLIENTE' ? this.downloaded.list() : this.commerceApi.orders();
     request.subscribe({
       next: (orders) => {
+        if(generation!==this.requestGeneration||owner!==this.auth.user())return;
         this.orders.set(orders);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {if(generation===this.requestGeneration)this.loading.set(false);},
     });
   }
 
   filteredOrders(): Order[] {
-    return this.filter() === 'TODOS'
-      ? this.orders()
-      : this.orders().filter((order) => order.estado === this.filter());
+    const hidden=new Set(this.queued.purchases().filter(r=>this.queued.state(r)!=='PAGADA').map(r=>r.remote?.pedido_id));
+    const orders=this.orders().filter(o=>!hidden.has(o.id));
+    return this.filter()==='TODOS'?orders:orders.filter(o=>o.estado===this.filter());
   }
 
   nextStatuses(order: Order): string[] {

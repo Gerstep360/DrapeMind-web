@@ -1,26 +1,27 @@
 <section class="page-heading page-heading--split">
   <div>
-    <p class="eyebrow">Flujo de Entrega y Operaciones</p>
-    <h1>Pedidos y Ventas.</h1>
+    <p class="eyebrow">Tu tienda · Tus compras</p>
+    <h1>Mis pedidos</h1>
     <p class="page-lead">
-      Monitoreo en tiempo real de cada orden, canal de entrega y confirmación de pagos.
+      Consulta tus compras, su pago y la entrega de tus prendas.
     </p>
   </div>
   <div class="header-actions">
     <div class="order-live">
       <span class="status-dot status-dot--live"></span>
-      <span>Eventos WebSocket en vivo</span>
+      <span>Estado de tus compras</span>
     </div>
   </div>
 </section>
 
+<app-deferred-checkout class="embedded" [embedded]="true" [existingOrderIds]="orderIds()" />
 <nav class="filter-line" aria-label="Filtrar pedidos">
   @for (
     state of ['TODOS', 'PENDIENTE_PAGO', 'PAGADO', 'PREPARANDO', 'LISTO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'];
     track state
   ) {
     <button type="button" [class.active]="filter() === state" (click)="filter.set(state)">
-      {{ state }}
+      {{ filterLabel(state) }}
     </button>
   }
 </nav>
@@ -36,7 +37,7 @@
             <span class="order-label">Pedido Registrado</span>
             <strong class="order-id">#{{ order.id.toString().padStart(5, '0') }}</strong>
           </div>
-          <span class="status-badge" [attr.data-status]="order.estado">{{ order.estado }}</span>
+          <span class="status-badge" [attr.data-status]="order.estado">{{ filterLabel(order.estado) }}</span>
         </header>
 
         <div class="order-card__body">
@@ -157,6 +158,7 @@
         </footer>
       </article>
     } @empty {
+      @if(!queued.purchases().length){
       <div class="empty-state">
         <div class="empty-icon-box">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -169,6 +171,7 @@
         <strong>No hay pedidos en este estado.</strong>
         <span>Los nuevos pedidos y ventas procesadas aparecerán automáticamente aquí.</span>
       </div>
+      }
     }
   </section>
 }

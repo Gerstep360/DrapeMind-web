@@ -5,9 +5,6 @@
   [class.storefront-shell--chat]="isCustomer() && chatRoute()"
   [class.app-shell--menu-open]="menuOpen()"
 >
-  @if (!offline.online()) {
-    <a class="offline-access" routerLink="/offline" style="display:block;padding:12px 20px;background:#fff0c7;color:#1b1b1b;text-align:center;font-weight:700">Sin señal · Abrir el catálogo guardado y tus solicitudes</a>
-  }
   @if (isCustomer()) {
     <header class="storefront-header">
       <div class="storefront-topline">
@@ -36,6 +33,7 @@
           }
         </nav>
         <div class="storefront-actions">
+          <app-store-download />
           <a routerLink="/tiendas" title="Cambiar de tienda">Tiendas</a>
           <a routerLink="/account" title="Mi cuenta" aria-label="Mi cuenta"
             ><app-nav-icon name="account"
@@ -535,6 +533,7 @@
             }
           </button>
 
+          <app-store-download />
           <!-- CART -->
           <button
             class="cart-trigger-btn dm-cart-pill"

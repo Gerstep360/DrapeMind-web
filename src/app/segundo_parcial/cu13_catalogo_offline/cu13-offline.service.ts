@@ -91,6 +91,15 @@ export class OfflineService {
       this.auth.hasValidToken()
     );
   }
+  async snapshot():Promise<OfflineBundle>{
+    const owner=this.owner();
+    if(owner&&!this.bundle()){
+      const saved=await this.store.read<{key:string;data:OfflineBundle}>('bundles',owner);
+      if(owner===this.owner()&&saved)this.bundle.set(saved.data);
+    }
+    if(!this.usable())throw new Error('Descarga los datos de esta tienda con conexión para seguir comprando sin Internet.');
+    return this.bundle()!;
+  }
   private async restore(owner: string): Promise<void> {
     this.loadingOwner = owner;
     try {

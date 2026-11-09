@@ -1,3 +1,4 @@
+import {StoreDownloadComponent} from '../segundo_parcial/cu12_descarga_offline/cu12-tienda-descargada.component';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,7 +21,7 @@ import { DeferredCheckoutService } from '../segundo_parcial/cu23_pagos/cu23-defe
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, NavIconComponent, NotificationsDrawerComponent],
+  imports: [StoreDownloadComponent, RouterLink, RouterLinkActive, RouterOutlet, CartDrawerComponent, NavIconComponent, NotificationsDrawerComponent],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,10 +49,8 @@ export class ShellComponent {
     { label: 'Colección', route: '/catalog' },
     { label: 'Favoritos', route: '/favorites' },
     { label: 'Mis pedidos', route: '/orders' },
-    { label: 'Compras pendientes', route: '/pending-purchases' },
     { label: 'Reservas', route: '/reservations' },
     { label: 'Con Altair', route: '/ai-studio' },
-    { label: 'Sin conexión', route: '/offline' },
   ];
   readonly isBranchDropdownOpen = signal(false);
 

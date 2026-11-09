@@ -1,0 +1,174 @@
+<section class="reviews-container">
+  @if(loadError()){<p role="status">{{loadError()}} <button type="button" (click)="loadReviews()">Reintentar</button></p>}
+  <!-- Header Neubrutalista -->
+  <div class="reviews-header">
+    <div class="header-title">
+      <h2 class="title">Opiniones de clientes</h2>
+    </div>
+    @if (!showForm()) {
+      <button class="dm-btn dm-btn-primary" (click)="openReviewForm()">
+        @if (reviewsData()?.mi_resena) {
+          ✎ EDITAR MI RESEÑA
+        } @else {
+          ★ CALIFICAR PRENDA
+        }
+      </button>
+    }
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert-success">
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Resumen de puntuaciones -->
+  @if (reviewsData(); as data) {
+    <div class="rating-summary-card">
+      <div class="score-box">
+        <div class="score-number">{{ data.promedio.toFixed(1) }}</div>
+        <div class="stars-row">
+          @for (s of [1,2,3,4,5]; track s) {
+            <span class="star-icon" [class.filled]="s <= Math.round(data.promedio)">★</span>
+          }
+        </div>
+        <div class="score-total">Basado en {{ data.total }} {{ data.total === 1 ? 'opinión' : 'opiniones' }}</div>
+      </div>
+
+      <!-- Barras de distribución -->
+      <div class="breakdown-box">
+        @for (s of [5, 4, 3, 2, 1]; track s) {
+          <div class="breakdown-row">
+            <span class="row-label">{{ s }} ★</span>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="getStarPercent(s)"></div>
+            </div>
+            <span class="row-count">({{ data.distribucion[s.toString()] || 0 }})</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Formulario de Reseña -->
+  @if (showForm()) {
+    <div class="review-form-card">
+      <h3 class="form-title">
+        {{ reviewsData()?.mi_resena ? 'ACTUALIZAR TU OPINIÓN' : 'DEJAR UNA OPINIÓN SOBRE ESTA PRENDA' }}
+      </h3>
+
+      <div class="star-picker-section">
+        <label class="field-label">PUNTUACIÓN *</label>
+        <div class="star-picker">
+          @for (star of stars; track star) {
+            <button
+              type="button"
+              class="star-btn"
+              [attr.aria-label]="star + ' estrellas'"
+              [attr.aria-pressed]="star === selectedRating()"
+              [class.active]="star <= selectedRating()"
+              (click)="setRating(star)"
+            >
+              ★
+            </button>
+          }
+          <span class="rating-text-hint">{{ selectedRating() }} de 5 estrellas</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">TÍTULO (OPCIONAL)</label>
+        <input
+          type="text"
+          class="dm-input"
+          placeholder="Ej: Excelente corte y tela de alta calidad"
+          [(ngModel)]="reviewTitle"
+          maxlength="120"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">TU OPINIÓN DETALLADA *</label>
+        <textarea
+          class="dm-textarea"
+          rows="4"
+          placeholder="Comparte cómo te quedó la talla, la textura de la tela, comodidad..."
+          [(ngModel)]="reviewComment"
+          maxlength="1000"
+        ></textarea>
+      </div>
+
+      @if (formError()) {
+        <div class="alert-error">
+          <span>{{ formError() }}</span>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="dm-btn dm-btn-primary"
+          [disabled]="submitting()"
+          (click)="submitReview()"
+        >
+          {{ submitting() ? 'GUARDANDO...' : 'PUBLICAR RESEÑA' }}
+        </button>
+        <button type="button" class="dm-btn dm-btn-secondary" (click)="cancelForm()">
+          CANCELAR
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de reseñas de clientes -->
+  <div class="reviews-list-section">
+    @if (loading()) {
+      <div class="loading-box">Cargando opiniones de clientes...</div>
+    } @else if (reviewsData()?.resenas?.length === 0) {
+      <div class="empty-box">
+        <p class="empty-title">Aún no hay reseñas registradas para esta prenda.</p>
+        <p class="empty-sub">¡Sé el primero en compartir tu experiencia con la comunidad!</p>
+      </div>
+    } @else {
+      @for (rev of reviewsData()?.resenas; track rev.id) {
+        <article class="review-card" [class.my-review-highlight]="rev.usuario_id === reviewsData()?.mi_resena?.usuario_id">
+          <div class="review-header">
+            <div class="user-meta">
+              <div class="user-avatar">{{ rev.usuario_nombre.charAt(0).toUpperCase() }}</div>
+              <div>
+                <div class="user-name">{{ rev.usuario_nombre }}</div>
+                <div class="review-date">{{ rev.creado_en | date:'d MMM y' }}</div>
+              </div>
+            </div>
+
+            <div class="review-badges">
+              @if (rev.compra_verificada) {
+                <span class="badge-verified">✓ COMPRA VERIFICADA</span>
+              }
+              <div class="stars-display">
+                @for (s of [1,2,3,4,5]; track s) {
+                  <span class="star-mini" [class.filled]="s <= rev.calificacion">★</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          @if (rev.titulo) {
+            <h4 class="review-title">{{ rev.titulo }}</h4>
+          }
+
+          <p class="review-comment">{{ rev.comentario }}</p>
+
+          @if (reviewsData()?.mi_resena?.id === rev.id) {
+            <div class="my-review-actions">
+              <span class="tag-mine">TU RESEÑA</span>
+              <button class="action-link" (click)="openReviewForm()">Editar</button>
+              <button class="action-link delete" (click)="deleteReview()">Eliminar</button>
+            </div>
+          }
+        </article>
+      }
+    }
+  </div>
+</section>
+

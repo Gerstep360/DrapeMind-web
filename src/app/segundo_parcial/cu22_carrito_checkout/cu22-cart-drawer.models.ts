@@ -1,1 +1,1 @@
-export type CartDrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS';
+export type CartDrawerStep = 'CART' | 'CHECKOUT' | 'SUCCESS' | 'SAVED';

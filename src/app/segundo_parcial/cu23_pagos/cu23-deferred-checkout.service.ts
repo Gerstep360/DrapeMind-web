@@ -15,28 +15,30 @@ export const purchaseLabel=(state:string)=>({ESPERANDO_CONEXION:'En espera de co
 @Injectable({providedIn:'root'})
 export class DeferredCheckoutService {
   private readonly http=inject(HttpClient);private readonly auth=inject(AuthService);private readonly runtime=inject(RuntimeConfigService);
-  private readonly store=new DeferredStore();private owner='';private syncing=false;
+  private readonly store=new DeferredStore();private owner='';private syncing=false;private restoring:Promise<void>=Promise.resolve();
+  get ready(){return this.restoring;}
+  async useCart(cart:Cart){await this.ready;const value=this.context(),owner=this.owner;if(!owner||!value)throw new Error('Descarga los datos de compra de esta tienda con conexión.');const next={...value,cart};await this.store.write('context',{key:owner,value:next});if(owner===this.owner)this.context.set(next);}
   private readonly cart=inject(CartService);
   readonly context=signal<PurchaseContext|null>(null);readonly purchases=signal<PendingPurchase[]>([]);
   readonly online=signal(typeof navigator==='undefined'||navigator.onLine);readonly busy=signal(false);readonly error=signal('');
   constructor(){
     effect(()=>{const cart=this.cart.cart();untracked(()=>{const value=this.context(),owner=this.owner;if(cart&&value&&owner){const next={...value,cart};this.context.set(next);void this.store.write('context',{key:owner,value:next}).catch(()=>this.error.set('No se pudo actualizar la copia local del carrito.'));}});});
-    effect(()=>{const u=this.auth.user();const token=this.auth.token();untracked(()=>{const next=token&&u?.rol==='CLIENTE'?`${this.runtime.apiUrl}|${u.tenant_id}:${u.id}`:'';if(next===this.owner)return;this.owner=next;this.context.set(null);this.purchases.set([]);if(next)void this.restore(next);});});
+    effect(()=>{const u=this.auth.user();const token=this.auth.token();untracked(()=>{const next=token&&u?.rol==='CLIENTE'?`${this.runtime.apiUrl}|${u.tenant_id}:${u.id}`:'';if(next===this.owner)return;this.owner=next;this.context.set(null);this.purchases.set([]);if(next)this.restoring=this.restore(next);});});
     window.addEventListener('online',()=>{this.online.set(true);void this.refresh();});window.addEventListener('offline',()=>this.online.set(false));
     window.addEventListener('focus',()=>{if(navigator.onLine)void this.refresh();});
     setInterval(()=>{if(this.owner&&navigator.onLine&&this.purchases().some(r=>!this.isTerminal(r)))void this.synchronize();},30000);
   }
-  private async restore(owner:string):Promise<void>{try{const cached=await this.store.read<{key:string;value:PurchaseContext}>('context',owner);if(owner!==this.owner)return;this.context.set(cached?.value||null);await this.reloadLocal(owner);await this.refresh();}catch{this.error.set('No pudimos abrir el almacenamiento local. No se guardó ninguna compra nueva.');}}
+  private async restore(owner:string):Promise<void>{try{const cached=await this.store.read<{key:string;value:PurchaseContext}>('context',owner);if(owner!==this.owner)return;this.context.set(cached?.value||null);await this.reloadLocal(owner);void this.refresh();}catch{this.error.set('No pudimos abrir el almacenamiento local. No se guardó ninguna compra nueva.');}}
   private async reloadLocal(owner=this.owner){const rows=await this.store.list(owner);if(owner===this.owner)this.purchases.set(rows.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)));}
   async refresh():Promise<void>{
     const owner=this.owner;if(!owner||!navigator.onLine)return;
-    try{const value=await firstValueFrom(this.http.get<PurchaseContext>(this.runtime.apiUrl+'/payments/deferred/context').pipe(timeout(15000)));if(owner!==this.owner||value.owner!==owner.split('|').at(-1))return;await this.store.write('context',{key:owner,value});this.context.set(value);
+    try{await this.cart.local.synchronize();const value=await firstValueFrom(this.http.get<PurchaseContext>(this.runtime.apiUrl+'/payments/deferred/context').pipe(timeout(15000)));if(owner!==this.owner||value.owner!==owner.split('|').at(-1))return;await this.store.write('context',{key:owner,value});this.context.set(this.cart.cart()?{...value,cart:this.cart.cart()!}:value);
       const server=await firstValueFrom(this.http.get<PurchaseResult[]>(this.runtime.apiUrl+'/payments/deferred').pipe(timeout(15000)));if(owner!==this.owner)return;
       for(const row of server){const key=`${owner}|${row.operacion_id}`;const current=await this.store.read<PendingPurchase>('purchases',key);await this.store.write('purchases',{...current,key,owner,operation:row.operacion_id,createdAt:current?.createdAt||new Date().toISOString(),label:current?.label||'Compra de esta tienda',remote:row});}
       await this.reloadLocal(owner);await this.synchronize();
     }catch{if(owner===this.owner)this.error.set('Estás usando la copia local. Las compras siguen guardadas hasta recuperar conexión.');}
   }
-  async enqueue(options:{tipo_entrega:string;sucursal_id:number|null;direccion_id:number|null;tarjeta_id:number|null;total_autorizado:string;autorizar_cobro_automatico:boolean;codigo_promocion?:string|null}):Promise<void>{
+  async enqueue(options:{tipo_entrega:string;sucursal_id:number|null;direccion_id:number|null;tarjeta_id:number|null;total_autorizado:string;autorizar_cobro_automatico:boolean;codigo_promocion?:string|null}):Promise<string>{
     const owner=this.owner,context=this.context();if(!owner||!context||!context.cart.items.length)throw new Error('Descarga tu carrito con conexión antes de guardar una compra.');
     if(new Date(context.valid_until).getTime()<Date.now())throw new Error('Actualiza la copia de tu tienda con conexión antes de guardar otra compra.');
     const items=context.cart.items.map(i=>({variante_id:i.variante_id,cantidad:i.cantidad})).sort((a,b)=>a.variante_id-b.variante_id);
@@ -44,7 +46,7 @@ export class DeferredCheckoutService {
     const operation=crypto.randomUUID();const createdAt=new Date().toISOString();
     const body={...options,items,operacion_id:operation,creado_en_dispositivo:createdAt};
     await this.store.write('purchases',{key:`${owner}|${operation}`,owner,operation,body,createdAt,label:context.cart.items.map(i=>`${i.cantidad} × ${i.nombre}`).join(', '),localState:'ESPERANDO_CONEXION'});
-    await this.reloadLocal(owner);if(navigator.onLine)void this.synchronize();
+    await this.reloadLocal(owner);if(navigator.onLine)void this.synchronize();return operation;
   }
   isTerminal(row:PendingPurchase):boolean{return terminal.has(row.remote?.estado||row.localState||'');}
   state(row:PendingPurchase):string{return row.cancelRequested&&!this.isTerminal(row)?'CANCELACION_PENDIENTE':row.remote?.estado||row.localState||'ESPERANDO_CONEXION';}

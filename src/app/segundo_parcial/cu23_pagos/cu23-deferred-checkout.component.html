@@ -1,11 +1,15 @@
+@if(!embedded()){
 <header class="page-heading"><p class="eyebrow">{{ auth.user()?.tenant_name }} · Tus compras</p><h1>Tu compra puede esperar la conexión.</h1>
   <p>Guarda las prendas y el importe que autorizas. Al reconectar comprobaremos disponibilidad y procesaremos Stripe una sola vez.</p>
   <span class="connection" [class.offline]="!queue.online()">{{ queue.online() ? 'Con conexión' : 'Sin conexión · Guardado local' }}</span>
 </header>
+}
 @if (error()) { <p class="message error" role="alert">{{ error() }}</p> }
 @if (feedback()) { <p class="message" role="status">{{ feedback() }}</p> }
-@if (queue.error()) { <p class="hint">{{ queue.error() }}</p> }
+@if (queue.error() && !embedded()) { <p class="hint">{{ queue.error() }}</p> }
+@if(!embedded()||rows().length){
 <div class="purchase-layout">
+@if(!embedded()){
   <section class="checkout" aria-labelledby="saved-cart-heading"><h2 id="saved-cart-heading">Prendas de tu carrito</h2>
     @if (queue.context(); as context) {
       <p class="hint">Copia del {{ context.downloaded_at | date:'short' }}. El stock se confirma cuando la compra llega al servidor.</p>
@@ -23,15 +27,16 @@
       <button class="button button--primary" type="button" [disabled]="saving() || !context.cart.items.length || (!!card && !consent)" (click)="save()">{{ saving() ? 'Guardando…' : 'Guardar compra pendiente' }}</button>
     } @else { <p>Abre esta pantalla con conexión para descargar tu carrito, sucursales y tarjetas guardadas.</p><button class="button" type="button" [disabled]="!queue.online()" (click)="queue.refresh()">Preparar compra</button> }
   </section>
-  <section class="pending" aria-labelledby="pending-heading"><header><h2 id="pending-heading">Compras pendientes</h2><button type="button" class="text-button" [disabled]="!queue.online() || queue.busy()" (click)="queue.refresh()">{{ queue.busy() ? 'Comprobando…' : 'Sincronizar' }}</button></header>
-    @for (row of queue.purchases(); track row.operation) {
+}
+  <section class="pending" aria-labelledby="pending-heading"><header><h2 id="pending-heading">{{embedded()?'Por confirmar':'Compras pendientes'}}</h2>@if(!embedded()){<button type="button" class="text-button" [disabled]="!queue.online() || queue.busy()" (click)="queue.refresh()">{{ queue.busy() ? 'Comprobando…' : 'Sincronizar' }}</button>}</header>
+    @for (row of rows(); track row.operation) {
       <article><span class="state" [class.paid]="queue.state(row) === 'PAGADA'">{{ queue.label(queue.state(row)) }}</span><h3>{{ row.label }}</h3>
         <strong>Bs {{ row.remote?.total_autorizado || row.body?.['total_autorizado'] }}</strong><p>{{ row.remote?.mensaje || 'Guardada en este dispositivo. Todavía no se ha confirmado el pago ni la disponibilidad en la tienda.' }}</p>
         @if (row.remote?.pedido_id) { <a routerLink="/orders" [queryParams]="{id:row.remote?.pedido_id}">Ver pedido #{{ row.remote?.pedido_id }}</a> }
         @if (!queue.isTerminal(row)) {
           <div class="actions">
             @if (queue.state(row) === 'REQUIERE_AUTENTICACION') { <button type="button" [disabled]="!queue.online() || saving()" (click)="action(row,'authenticate')">Verificar con mi banco</button> }
-            @if (queue.state(row) === 'REQUIERE_METODO') { <button type="button" [disabled]="!queue.online() || saving() || !card" (click)="action(row,'card')">Autorizar Bs {{ row.remote?.total_autorizado }} con tarjeta elegida</button> }
+            @if (queue.state(row) === 'REQUIERE_METODO') { @if(embedded()){<label>Tarjeta<select [(ngModel)]="card"><option [ngValue]="null">Elige tu tarjeta</option>@for(method of queue.context()?.cards||[];track method.id){<option [ngValue]="method.id">{{method.marca|uppercase}} ···· {{method.ultimos_cuatro}}</option>}</select></label><button type="button" [disabled]="!queue.online()||saving()" (click)="openCard()">Guardar otra tarjeta con Stripe</button>} <button type="button" [disabled]="!queue.online() || saving() || !card" (click)="action(row,'card')">Autorizar Bs {{ row.remote?.total_autorizado }} con tarjeta elegida</button> }
             <button type="button" [disabled]="saving()" (click)="action(row,'cancel')">Cancelar compra</button>
           </div>
         }
@@ -39,6 +44,7 @@
     } @empty { <p class="empty">Aquí verás lo que guardes sin conexión y la confirmación de Stripe cuando vuelva Internet.</p> }
   </section>
 </div>
+}
 <dialog #cardDialog aria-labelledby="save-card-heading" (cancel)="saving() && $event.preventDefault()"><header><h2 id="save-card-heading">Guardar tarjeta con Stripe</h2><button type="button" aria-label="Cerrar registro de tarjeta" [disabled]="saving()" (click)="cardDialog.close()">×</button></header>
   <p>Necesitas conexión para registrar una tarjeta nueva. Los datos viajan directamente a Stripe.</p>
   <label class="consent"><input type="checkbox" [(ngModel)]="saveConsent" />Acepto guardar la tarjeta en Stripe y permitir únicamente los futuros cobros que autorice expresamente con su importe. Puedo cancelar una compra pendiente antes de que se confirme su pago.</label>

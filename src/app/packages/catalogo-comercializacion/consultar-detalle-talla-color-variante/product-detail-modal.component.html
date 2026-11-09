@@ -229,6 +229,9 @@
           </div>
 
           <!-- ACCIONES DE COMPRA -->
+          <details class="product-opinions"><summary>Opiniones de esta prenda</summary>
+            <app-product-reviews [productId]="product.id" [productName]="product.nombre" />
+          </details>
           <div class="modal-actions">
             <button
               class="button button--ghost modal-btn reserve-btn"

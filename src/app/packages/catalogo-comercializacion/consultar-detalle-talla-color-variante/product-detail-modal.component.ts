@@ -1,3 +1,4 @@
+import {ProductReviewsComponent} from '../../../segundo_parcial/cu30_resenas/cu30-product-reviews.component';
 import { ProductMediaComponent } from '@shared/components/product-media/product-media.component';
 import { DecimalPipe } from '@angular/common';
 import {
@@ -22,7 +23,7 @@ import { ProductDetailAction, ProductDetailState } from './product-detail-modal.
 @Component({
   selector: 'app-product-detail-modal',
   standalone: true,
-  imports: [ProductMediaComponent, DecimalPipe, RouterLink],
+  imports: [ProductMediaComponent, DecimalPipe, RouterLink, ProductReviewsComponent],
   templateUrl: './product-detail-modal.component.html',
   styleUrl: './product-detail-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
