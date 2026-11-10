@@ -1,9 +1,9 @@
 <main class="feature-page">
   <header class="feature-heading">
     <div>
-      <p class="eyebrow">Otra talla, el mismo cuidado</p>
-      <h1>Cambios de prendas</h1>
-      <p>Recupera la venta original, selecciona las prendas devueltas y calcula la diferencia.</p>
+      <p class="eyebrow">Otra talla o reembolso, el mismo cuidado</p>
+      <h1>Cambios y devoluciones de prendas</h1>
+      <p>Recupera la venta original, selecciona las prendas devueltas y calcula la diferencia o reembolso.</p>
     </div>
   </header>
   @if (error) {
@@ -21,10 +21,10 @@
   @if (result) {
     <section class="download-strip">
       <div>
-        <h2>Cambio {{ result.id }} registrado</h2>
+        <h2>{{ result.total_nuevo === '0' || result.total_nuevo === '0.00' ? 'Devolución' : 'Cambio' }} {{ result.id }} registrado</h2>
         <p>
-          Crédito aplicado: Bs {{ result.credito }} · Prendas nuevas: Bs {{ result.total_nuevo }} ·
-          Diferencia: Bs {{ result.diferencia }}
+          Crédito por prendas devueltas: Bs {{ result.credito }} · Prendas nuevas: Bs {{ result.total_nuevo }} ·
+          {{ +result.diferencia < 0 ? 'Efectivo devuelto al cliente' : 'Diferencia a cobrar' }}: Bs {{ +result.diferencia < 0 ? (-result.diferencia).toFixed(2) : result.diferencia }}
         </p>
         <p>El inventario de la sucursal ya está actualizado.</p>
       </div>
@@ -72,7 +72,7 @@
           }
         </section>
         <section class="order-form">
-          <h2>Prendas que lleva</h2>
+          <h2>Prendas que lleva (opcional si es solo devolución)</h2>
           <label
             >Nueva talla o prenda<select aria-label="Nueva talla o prenda" [(ngModel)]="variant">
               <option [ngValue]="0">Elige una variante</option>
@@ -91,20 +91,20 @@
         </section>
       </div>
       <label
-        >Motivo del cambio<textarea
+        >Motivo del cambio o devolución<textarea
           [(ngModel)]="note"
           minlength="5"
           maxlength="300"
           (ngModelChange)="quote = null"
-          placeholder="Talla, color, acuerdo con el cliente…"
+          placeholder="Talla, color, defecto, acuerdo con el cliente…"
         ></textarea></label
-      ><button type="button" [disabled]="busy || !lines.length" (click)="calculate()">
-        Calcular diferencia con precios actuales
+      ><button type="button" [disabled]="busy || (!hasReturns && !lines.length)" (click)="calculate()">
+        {{ lines.length === 0 ? 'Calcular devolución y reembolso' : 'Calcular diferencia con precios actuales' }}
       </button>
       @if (quote) {
         <section class="download-strip">
           <div>
-            <h2>Diferencia {{ quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
+            <h2>{{ +quote.diferencia < 0 ? 'Reembolso al cliente ' + (-quote.diferencia | currency: 'BOB' : 'Bs ') : 'Diferencia a cobrar ' + (quote.diferencia | currency: 'BOB' : 'Bs ') }}</h2>
             <p>
               Crédito de devolución {{ quote.credito | currency: 'BOB' : 'Bs ' }} · Prendas nuevas
               {{ quote.total_nuevo | currency: 'BOB' : 'Bs ' }}
@@ -122,7 +122,7 @@
             </div>
           </div>
           <button class="primary" type="button" [disabled]="busy" (click)="save()">
-            Confirmar cambio y efectivo
+            {{ lines.length === 0 ? 'Confirmar devolución y reembolso' : 'Confirmar cambio y efectivo' }}
           </button>
         </section>
       }

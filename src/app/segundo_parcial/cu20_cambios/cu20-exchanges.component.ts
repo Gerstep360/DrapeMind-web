@@ -54,6 +54,9 @@ export class ExchangesComponent {
   get base() {
     return `${this.runtime.apiUrl}/retail`;
   }
+  get hasReturns(): boolean {
+    return Object.values(this.returns).some((q) => +q > 0);
+  }
   variantName(id: number) {
     const v = this.offline.bundle()?.variants.find((v) => v.id === id),
       p = this.offline.bundle()?.products.find((p) => p.id === v?.producto_id);
