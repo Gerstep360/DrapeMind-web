@@ -101,9 +101,14 @@
 
         @if (result.stripe_refund) {
           <div class="refund-highlight refund-highlight--stripe">
-            <span class="refund-pill">Reembolso Procesado con Stripe</span>
+            <span class="refund-pill">{{ result.stripe_refund.estado === 'REEMBOLSADO' ? 'Reembolso confirmado por Stripe' : result.stripe_refund.estado === 'REEMBOLSO_FALLIDO' ? 'Reembolso por revisar' : 'Reembolso en proceso' }}</span>
             <strong class="refund-amount">Bs {{ result.stripe_refund.monto }}</strong>
-            <p>Se emitió el reembolso directo a tu tarjeta vía Stripe (ID: <code>{{ result.stripe_refund.id }}</code>). El dinero se reflejará en tu cuenta en los plazos bancarios habituales.</p>
+            @if (result.stripe_refund.estado === 'REEMBOLSADO') {
+              <p>Stripe confirmó el reembolso a la tarjeta original. El abono se reflejará según los plazos del banco.</p>
+            } @else {
+              <p>La devolución de prendas está registrada. El abono a tu tarjeta todavía no está confirmado.</p>
+              <button class="button" [disabled]="busy" (click)="refreshRefund()">Actualizar estado del reembolso</button>
+            }
           </div>
         } @else if (+result.diferencia < 0) {
           <div class="refund-highlight">

@@ -467,6 +467,17 @@ export class ExchangesComponent implements OnInit {
     });
   }
 
+  async refreshRefund() {
+    const operation = this.result?.operacion_id;
+    if (!operation) return;
+    const owner = this.offline.owner();
+    await this.action(async () => {
+      const result = await firstValueFrom(this.http.get<any>(`${this.base}/exchanges/operations/${operation}`).pipe(timeout(15000)));
+      if (owner !== this.offline.owner()) return;
+      this.result = result;
+    });
+  }
+
   async checkPending() {
     await this.action(async () => {
       const owner = this.offline.owner();
