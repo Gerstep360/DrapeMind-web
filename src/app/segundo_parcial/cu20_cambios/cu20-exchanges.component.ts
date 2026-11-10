@@ -1,7 +1,7 @@
-import { Component, ChangeDetectorRef, effect, inject } from '@angular/core';
+import { Component, ChangeDetectorRef, effect, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import { OfflineService, offlineMessage } from '../cu13_catalogo_offline/cu13-offline.service';
@@ -13,12 +13,13 @@ import { AuthService } from '../../core/auth.service';
   templateUrl: './cu20-exchanges.component.html',
   styleUrl: '../compartido/feature.scss',
 })
-export class ExchangesComponent {
+export class ExchangesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   readonly offline = inject(OfflineService);
   readonly auth = inject(AuthService);
   private http = inject(HttpClient);
   private runtime = inject(RuntimeConfigService);
+  private route = inject(ActivatedRoute);
   code = '';
   order: any = null;
   quote: any = null;
@@ -50,6 +51,13 @@ export class ExchangesComponent {
         this.pending = null;
       }
     });
+  }
+  ngOnInit() {
+    const codeParam = this.route.snapshot.queryParamMap.get('code');
+    if (codeParam) {
+      this.code = codeParam;
+      this.find();
+    }
   }
   get base() {
     return `${this.runtime.apiUrl}/retail`;

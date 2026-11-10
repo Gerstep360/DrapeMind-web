@@ -491,7 +491,8 @@ textarea {
 
 .status-badge[data-status='CANCELADO'],
 .status-badge[data-status='CANCELADA'],
-.status-badge[data-status='VENCIDA'] {
+.status-badge[data-status='VENCIDA'],
+.status-badge[data-status='DEVUELTO'] {
   border-color: #f6abab;
   color: var(--dm-danger);
   background: var(--dm-danger-soft);

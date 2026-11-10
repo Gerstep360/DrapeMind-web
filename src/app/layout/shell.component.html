@@ -1,118 +1,50 @@
 <div
-  [class.app-shell]="!isCustomer()"
-  [class.dm-shell]="!isCustomer()"
-  [class.storefront-shell]="isCustomer()"
-  [class.storefront-shell--chat]="isCustomer() && chatRoute()"
+  class="app-shell dm-shell"
+  [class.storefront-shell--chat]="chatRoute()"
   [class.app-shell--menu-open]="menuOpen()"
 >
-  @if (isCustomer()) {
-    <header class="storefront-header">
-      <div class="storefront-topline">
-        <span>{{ saas.current()?.tenant?.name || 'Ropa que va contigo.' }}</span
-        ><button type="button" (click)="openBranchSelectorModal()">
-          {{ branchService.selectedBranch()?.nombre || 'Elige tu tienda' }}
-          <span aria-hidden="true">↗</span>
-        </button>
-      </div>
-      <div class="storefront-header__main">
-        <a class="storefront-brand" routerLink="/catalog" aria-label="DrapeMind · Ir a la colección"
-          ><span class="storefront-brand__mark">{{
-            auth.user()?.tenant_name?.slice(0, 1) || 'D'
-          }}</span
-          ><span class="storefront-brand__name">{{ auth.user()?.tenant_name || 'DrapeMind' }}</span
-          ><span class="storefront-brand__dot">.</span></a
-        >
-        <nav class="storefront-nav" aria-label="Tu tienda">
-          @for (link of storefrontLinks; track link.route) {
-            <a
-              [routerLink]="link.route"
-              routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              >{{ link.label }}</a
+  <!-- =========================================================
+     SIDEBAR — DRAPEMIND VERTICAL
+     ========================================================= -->
+  <aside class="sidebar dm-sidebar" aria-label="Panel principal DrapeMind">
+    <!-- =======================================================
+       BRAND
+       ======================================================= -->
+    <div class="sidebar-header">
+      <a
+        class="brand dm-brand"
+        routerLink="/catalog"
+        (click)="menuOpen.set(false)"
+        aria-label="Ir al catálogo de DrapeMind"
+      >
+        <span class="brand__mark">
+          <span class="brand__mark-letter"> {{ auth.user()?.tenant_name?.slice(0, 1) || 'D' }} </span>
+
+          <span class="brand__mark-spark" aria-hidden="true">
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-          }
-        </nav>
-        <div class="storefront-actions">
-          <app-store-download />
-          <a routerLink="/tiendas" title="Cambiar de tienda">Tiendas</a>
-          <a routerLink="/account" title="Mi cuenta" aria-label="Mi cuenta"
-            ><app-nav-icon name="account"
-          /></a>
-          <button
-            type="button"
-            (click)="notifications.togglePanel()"
-            title="Notificaciones"
-            aria-label="Notificaciones"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />
+              <path
+                d="M12 3l1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Z"
+              />
+              <path d="M18.5 14.5l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z" />
             </svg>
-            @if (notifications.unreadCount()) {
-              <span class="storefront-dot"></span>
-            }
-          </button>
-          <button
-            class="storefront-cart"
-            type="button"
-            (click)="cart.toggle()"
-            aria-label="Abrir carrito"
-          >
-            <app-nav-icon name="catalog" /><span>Carrito</span><b>{{ cart.totalItems() }}</b>
-          </button>
-          <button class="storefront-logout" type="button" (click)="logout()">Salir</button>
-        </div>
-      </div>
-    </header>
-    <main class="storefront-content" [class.storefront-content--chat]="chatRoute()">
-      <router-outlet />
-    </main>
-    <footer class="storefront-footer">
-      <a routerLink="/catalog">DrapeMind.</a><span>Encuentra algo que se sienta muy tú.</span
-      ><a routerLink="/reservations">Reservar en tienda ↗</a>
-    </footer>
-  } @else {
-    <!-- =========================================================
-       SIDEBAR — DRAPEMIND ATELIER
-       ========================================================= -->
-    <aside class="sidebar dm-sidebar" aria-label="Panel principal DrapeMind">
-      <!-- =======================================================
-         BRAND
-         ======================================================= -->
-      <div class="sidebar-header">
-        <a
-          class="brand dm-brand"
-          routerLink="/catalog"
-          (click)="menuOpen.set(false)"
-          aria-label="Ir al catálogo de DrapeMind"
-        >
-          <span class="brand__mark">
-            <span class="brand__mark-letter"> D </span>
-
-            <span class="brand__mark-spark" aria-hidden="true">
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M12 3l1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Z"
-                />
-                <path d="M18.5 14.5l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z" />
-              </svg>
-            </span>
           </span>
+        </span>
 
-          <div class="brand__text">
-            <span class="brand__title"> DrapeMind </span>
+        <div class="brand__text">
+          <span class="brand__title"> {{ auth.user()?.tenant_name || 'DrapeMind' }} </span>
 
-            <span class="brand__sub"> ATELIER &amp; INTELLIGENCE </span>
-          </div>
-        </a>
+          <span class="brand__sub"> ATELIER &amp; FASHION </span>
+        </div>
+      </a>
 
         <div class="sidebar-header__meta">
           <span class="sidebar-header__status">
@@ -631,7 +563,6 @@
     <!-- =========================================================
        GLOBAL CART DRAWER
        ========================================================= -->
-  }
   <app-cart-drawer />
 
   <!-- =========================================================

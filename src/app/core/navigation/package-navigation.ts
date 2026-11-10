@@ -41,7 +41,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
   {label:'Operación en tienda',description:'Caja, retiros y cambios',items:[
     {label:'Caja y reservas',description:'Cobros de contado y retiros, con o sin señal',icon:'pos',route:'/retail',roles:['ADMIN','ENCARGADO','CAJERO']},
     {label:'Operaciones por revisar',description:'Resolver conflictos y dejar constancia',icon:'inventory',route:'/sync-conflicts',roles:['ADMIN','ENCARGADO']},
-    {label:'Cambios de prendas',description:'Devoluciones, nuevas tallas y diferencias',icon:'orders',route:'/exchanges',roles:['ADMIN','ENCARGADO','CAJERO']}
+    {label:'Cambios y devoluciones',description:'Devolución de prendas y reembolsos',icon:'orders',route:'/exchanges',roles:everyone}
   ]},
   {label:'Sin conexión',description:'Tu tienda guardada en este dispositivo',items:[{label:'Catálogo y reservas offline',description:'Descargar prendas y enviar solicitudes pendientes',icon:'catalog',route:'/offline',roles:staff.concat('CLIENTE')}]},
   {
@@ -232,7 +232,11 @@ export function navigationForRole(role: UserRole | undefined, permissions?: stri
   return PACKAGE_NAVIGATION.map((group) => ({
     ...group,
     items: group.items
-      .filter((item) => { const needed = ROUTE_PERMISSIONS[item.route]; return role === "ADMIN" || (permissions && needed ? permissions.includes(needed) : item.roles.includes(role)); })
+      .filter((item) => {
+        if (role === 'CLIENTE') return item.roles.includes('CLIENTE');
+        const needed = ROUTE_PERMISSIONS[item.route];
+        return role === "ADMIN" || (permissions && needed ? permissions.includes(needed) : item.roles.includes(role));
+      })
       .map((item) => {
         if (role === 'PROVEEDOR' && item.route === '/suppliers-admin') {
           return {

@@ -4,7 +4,7 @@ import {DeferredCheckoutService} from '../cu23_pagos/cu23-deferred-checkout.serv
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { EventsSocketService } from '../../core/events-socket.service';
@@ -18,10 +18,12 @@ import { CashPaymentModalComponent } from '../../shared/components/cash-payment-
 
 @Component({
   selector: 'app-orders',
-  imports: [DeferredCheckoutComponent,
+  imports: [
+    DeferredCheckoutComponent,
     DatePipe,
     DecimalPipe,
     FormsModule,
+    RouterLink,
     ReceiptModalComponent,
     StripePaymentComponent,
     CashPaymentModalComponent,
@@ -34,7 +36,21 @@ export class OrdersComponent {
   readonly downloaded=inject(DownloadedOrdersService);
   readonly queued=inject(DeferredCheckoutService);
   orderIds(){return this.orders().map(o=>o.id);}
-  filterLabel(state:string){return ({TODOS:'Todos',PENDIENTE_PAGO:'Por pagar',PAGADO:'Pagados',PREPARANDO:'En preparación',LISTO:'Listos',ENVIADO:'En camino',ENTREGADO:'Entregados',CANCELADO:'Cancelados'} as Record<string,string>)[state]||state;}
+  filterLabel(state: string) {
+    return (
+      {
+        TODOS: 'Todos',
+        PENDIENTE_PAGO: 'Por pagar',
+        PAGADO: 'Pagados',
+        PREPARANDO: 'En preparación',
+        LISTO: 'Listos',
+        ENVIADO: 'En camino',
+        ENTREGADO: 'Entregados',
+        DEVUELTO: 'Devoluciones',
+        CANCELADO: 'Cancelados',
+      } as Record<string, string>
+    )[state] || state;
+  }
   readonly auth = inject(AuthService);
   private readonly commerceApi = inject(CommerceApiService);
   private readonly branchApi = inject(BranchInventoryApiService);
@@ -137,13 +153,14 @@ export class OrdersComponent {
   }
 
   nextStatuses(order: Order): string[] {
-    const transitions: Record<Order['estado'], string[]> = {
+    const transitions: Record<string, string[]> = {
       PENDIENTE_PAGO: ['CANCELADO'],
-      PAGADO: ['PREPARANDO'],
+      PAGADO: ['PREPARANDO', 'DEVUELTO'],
       PREPARANDO: ['LISTO'],
       LISTO: ['ENVIADO', 'ENTREGADO'],
       ENVIADO: ['ENTREGADO'],
-      ENTREGADO: [],
+      ENTREGADO: ['DEVUELTO'],
+      DEVUELTO: [],
       CANCELADO: [],
     };
     return transitions[order.estado] || [];

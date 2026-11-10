@@ -3,7 +3,14 @@ export interface Order {
   codigo_publico: string;
   sucursal_id?: number | null;
   estado:
-    'PENDIENTE_PAGO' | 'PAGADO' | 'PREPARANDO' | 'LISTO' | 'ENVIADO' | 'ENTREGADO' | 'CANCELADO';
+    | 'PENDIENTE_PAGO'
+    | 'PAGADO'
+    | 'PREPARANDO'
+    | 'LISTO'
+    | 'ENVIADO'
+    | 'ENTREGADO'
+    | 'DEVUELTO'
+    | 'CANCELADO';
   canal: 'MOBILE' | 'WEB' | 'TIENDA';
   tipo_entrega: 'DELIVERY' | 'RECOJO' | 'TIENDA';
   subtotal: number;
