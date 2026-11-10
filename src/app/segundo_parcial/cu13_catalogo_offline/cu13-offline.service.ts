@@ -12,13 +12,30 @@ import {
 import { OfflineStore } from './cu13-offline-store';
 
 export function offlineMessage(error: unknown): string {
-  const detail = (error as HttpErrorResponse)?.error?.detail;
+  if (!error) return 'Error desconocido al conectar.';
+  if (typeof error === 'string') return error;
+
+  const err = error as any;
+  const httpErr = err?.error;
+
+  const detail = httpErr?.detail ?? err?.detail;
   if (typeof detail === 'string') return detail;
-  if (detail?.message) return detail.message;
-  if (Array.isArray(detail)) return 'Revisa los datos de la solicitud e inténtalo nuevamente.';
-  return error instanceof Error && !(error instanceof HttpErrorResponse)
-    ? error.message
-    : 'No pudimos conectar. Tu solicitud sigue guardada en este dispositivo.';
+  if (detail && typeof detail === 'object') {
+    if (typeof detail.message === 'string') return detail.message;
+    if (typeof detail.error === 'string') return detail.error;
+    if (Array.isArray(detail)) {
+      const first = detail[0];
+      if (typeof first === 'string') return first;
+      if (first?.msg) return first.msg;
+      return 'Revisa los datos de la solicitud e inténtalo nuevamente.';
+    }
+  }
+
+  if (typeof httpErr?.message === 'string') return httpErr.message;
+  if (typeof httpErr?.error === 'string') return httpErr.error;
+  if (typeof err?.message === 'string') return err.message;
+
+  return 'No pudimos conectar. Tu solicitud sigue guardada en este dispositivo.';
 }
 
 export function offlineMediaUrl(apiUrl: string, image: string): string {

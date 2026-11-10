@@ -199,12 +199,112 @@ export class ExchangesComponent implements OnInit {
     return this.offline.bundle()?.variants.filter((v) => v.producto_id === productId) ?? [];
   }
 
+  // Modal Selector Boutique
+  pickerProduct: any = null;
+  pickerSelectedSize = '';
+  pickerSelectedColor = '';
+  pickerQuantity = 1;
+
+  get pickerAvailableSizes(): string[] {
+    if (!this.pickerProduct) return [];
+    const variants = this.variantsForProduct(this.pickerProduct.id);
+    return [...new Set(variants.map((v) => v.talla))].filter(Boolean);
+  }
+
+  get pickerAvailableColors(): string[] {
+    if (!this.pickerProduct) return [];
+    const variants = this.variantsForProduct(this.pickerProduct.id);
+    const filtered = this.pickerSelectedSize
+      ? variants.filter((v) => v.talla === this.pickerSelectedSize)
+      : variants;
+    return [...new Set(filtered.map((v) => v.color))].filter(Boolean);
+  }
+
+  get currentPickerVariant(): any | null {
+    if (!this.pickerProduct) return null;
+    const variants = this.variantsForProduct(this.pickerProduct.id);
+    return (
+      variants.find(
+        (v) =>
+          (!this.pickerSelectedSize || v.talla === this.pickerSelectedSize) &&
+          (!this.pickerSelectedColor || v.color === this.pickerSelectedColor),
+      ) ||
+      variants[0] ||
+      null
+    );
+  }
+
+  get currentReturnCredit(): number {
+    if (!this.order?.items) return 0;
+    return this.order.items.reduce((sum: number, it: any) => {
+      const q = this.returns[it.id] || 0;
+      return sum + q * Number(it.credito_unitario || 0);
+    }, 0);
+  }
+
+  openPicker(prod: any) {
+    this.pickerProduct = prod;
+    this.pickerQuantity = 1;
+    this.selectedProduct = prod;
+    const variants = this.variantsForProduct(prod.id);
+    const sizes = [...new Set(variants.map((v) => v.talla))].filter(Boolean);
+    this.pickerSelectedSize = sizes[0] || '';
+    const filteredVars = this.pickerSelectedSize
+      ? variants.filter((v) => v.talla === this.pickerSelectedSize)
+      : variants;
+    const colors = [...new Set(filteredVars.map((v) => v.color))].filter(Boolean);
+    this.pickerSelectedColor = colors[0] || '';
+    const variant = this.currentPickerVariant;
+    if (variant) {
+      this.variant = variant.id;
+      this.selectedVariant = variant;
+    }
+  }
+
+  closePicker() {
+    this.pickerProduct = null;
+  }
+
+  selectPickerSize(size: string) {
+    this.pickerSelectedSize = size;
+    const colors = this.pickerAvailableColors;
+    if (!colors.includes(this.pickerSelectedColor)) {
+      this.pickerSelectedColor = colors[0] || '';
+    }
+    const variant = this.currentPickerVariant;
+    if (variant) {
+      this.variant = variant.id;
+      this.selectedVariant = variant;
+    }
+  }
+
+  selectPickerColor(color: string) {
+    this.pickerSelectedColor = color;
+    const variant = this.currentPickerVariant;
+    if (variant) {
+      this.variant = variant.id;
+      this.selectedVariant = variant;
+    }
+  }
+
+  changePickerQty(delta: number) {
+    this.pickerQuantity = Math.max(1, this.pickerQuantity + delta);
+  }
+
+  confirmPickerAdd() {
+    const v = this.currentPickerVariant;
+    if (!v) {
+      this.error = 'Por favor selecciona una talla y color disponibles.';
+      return;
+    }
+    this.variant = v.id;
+    this.quantity = this.pickerQuantity;
+    this.addVariant();
+    this.closePicker();
+  }
+
   selectProduct(p: any) {
-    this.selectedProduct = p;
-    const variants = this.variantsForProduct(p.id);
-    this.selectedVariant = variants[0] || null;
-    this.variant = this.selectedVariant?.id || 0;
-    this.quantity = 1;
+    this.openPicker(p);
   }
 
   selectVariant(v: any) {

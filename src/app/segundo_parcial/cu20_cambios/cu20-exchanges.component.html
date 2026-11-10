@@ -470,49 +470,45 @@
               }
             </div>
 
-            <!-- GRILLA VISUAL DE PRENDAS DEL CATÁLOGO -->
-            <div class="garment-catalog-scroll">
+            <!-- GRILLA BOUTIQUE DE PRENDAS DEL CATÁLOGO -->
+            <div class="boutique-catalog-container">
               @if (catalogProducts.length === 0) {
                 <div class="empty-catalog-msg">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
                   <p>No se encontraron prendas con los filtros aplicados.</p>
                 </div>
               } @else {
-                <div class="garment-cards-grid">
+                <div class="boutique-cards-grid">
                   @for (prod of catalogProducts; track prod.id) {
-                    <article
-                      class="visual-product-card"
-                      [class.is-selected]="selectedProduct?.id === prod.id"
-                      (click)="selectProduct(prod)"
-                    >
-                      <div class="prod-card-thumb">
+                    <article class="boutique-prod-card" (click)="openPicker(prod)">
+                      <div class="boutique-thumb-wrap">
                         @if (productImage(prod)) {
                           <img [src]="productImage(prod)" [alt]="prod.nombre" loading="lazy" />
                         } @else {
-                          <div class="no-thumb-placeholder">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <div class="thumb-placeholder">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                               <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
                             </svg>
                           </div>
                         }
-                        <span class="price-badge">Bs {{ prod.precio }}</span>
+                        <span class="boutique-price-tag">Bs {{ prod.precio }}</span>
                       </div>
-                      <div class="prod-card-info">
-                        <strong class="prod-name">{{ prod.nombre }}</strong>
-                        @if (prod.marca) {
-                          <span class="prod-brand">{{ prod.marca }}</span>
-                        }
-                        <div class="prod-variants-chips">
-                          @for (v of variantsForProduct(prod.id); track v.id) {
-                            <button
-                              type="button"
-                              class="var-pill"
-                              [class.is-active]="selectedVariant?.id === v.id"
-                              (click)="$event.stopPropagation(); selectProduct(prod); selectVariant(v)"
-                            >
-                              {{ v.talla }} · {{ v.color }}
-                            </button>
+
+                      <div class="boutique-info">
+                        <div class="boutique-meta-row">
+                          @if (prod.marca) {
+                            <span class="boutique-brand">{{ prod.marca }}</span>
                           }
+                          <span class="boutique-variants-count">{{ variantsForProduct(prod.id).length }} variantes</span>
                         </div>
+                        <h3 class="boutique-title">{{ prod.nombre }}</h3>
+                        <button type="button" class="btn-boutique-select" (click)="$event.stopPropagation(); openPicker(prod)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                          <span>Elegir talla y color</span>
+                        </button>
                       </div>
                     </article>
                   }
@@ -520,55 +516,168 @@
               }
             </div>
 
-            <!-- PANEL DE PRENDA SELECCIONADA Y CANTIDAD -->
-            @if (selectedProduct && selectedVariant) {
-              <div class="active-selection-banner">
-                <div class="selection-thumb">
-                  @if (productImage(selectedProduct)) {
-                    <img [src]="productImage(selectedProduct)" [alt]="selectedProduct.nombre" />
-                  } @else {
-                    <div class="mini-thumb">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
-                    </div>
-                  }
-                </div>
-                <div class="selection-copy">
-                  <span class="selection-tag">Prenda elegida:</span>
-                  <strong>{{ selectedProduct.nombre }}</strong>
-                  <span class="selection-meta">Talla: {{ selectedVariant.talla }} · Color: {{ selectedVariant.color }} · Bs {{ selectedProduct.precio }} c/u</span>
-                </div>
-                <div class="selection-actions">
-                  <div class="qty-pill">
-                    <button type="button" class="btn-qty" [disabled]="quantity <= 1" (click)="quantity = quantity - 1">-</button>
-                    <span class="qty-num">{{ quantity }}</span>
-                    <button type="button" class="btn-qty" (click)="quantity = quantity + 1">+</button>
+            <!-- MODAL SELECTOR BOUTIQUE PARA ELEGIR TALLA / COLOR / CANTIDAD -->
+            @if (pickerProduct) {
+              <div class="picker-modal-backdrop" (click)="closePicker()"></div>
+              <div class="boutique-picker-modal" role="dialog" aria-modal="true" (keydown.escape)="closePicker()">
+                <header class="picker-modal-head">
+                  <div class="picker-title-group">
+                    <span class="picker-eyebrow">{{ pickerProduct.marca || 'Atelier Colección' }}</span>
+                    <h2>{{ pickerProduct.nombre }}</h2>
                   </div>
-                  <button
-                    type="button"
-                    class="btn-add-to-exchange"
-                    (click)="addSelectedVariant()"
-                  >
-                    + Añadir al cambio
+                  <button type="button" class="btn-picker-close" (click)="closePicker()" aria-label="Cerrar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
+                </header>
+
+                <div class="picker-modal-content">
+                  <!-- COLUMNA IZQUIERDA: IMAGEN PRINCIPAL Y PRECIO -->
+                  <div class="picker-media-col">
+                    <div class="picker-large-photo">
+                      @if (productImage(pickerProduct)) {
+                        <img [src]="productImage(pickerProduct)" [alt]="pickerProduct.nombre" />
+                      } @else {
+                        <div class="picker-ph">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+                        </div>
+                      }
+                      <span class="picker-price-sticker">Bs {{ pickerProduct.precio }}</span>
+                    </div>
+
+                    @if (pickerProduct.descripcion) {
+                      <p class="picker-desc">{{ pickerProduct.descripcion }}</p>
+                    }
+                  </div>
+
+                  <!-- COLUMNA DERECHA: SIMULADOR DE BALANCE + SELECTORES -->
+                  <div class="picker-controls-col">
+                    <!-- SIMULADOR FINANCIERO EN VIVO -->
+                    <div class="picker-balance-simulator">
+                      <div class="sim-line">
+                        <span>Crédito a tu favor por prendas devueltas:</span>
+                        <strong>Bs {{ currentReturnCredit.toFixed(2) }}</strong>
+                      </div>
+                      <div class="sim-line">
+                        <span>Valor nueva prenda (x{{ pickerQuantity }}):</span>
+                        <strong>Bs {{ (+pickerProduct.precio * pickerQuantity).toFixed(2) }}</strong>
+                      </div>
+                      <div
+                        class="sim-badge"
+                        [class.is-surplus]="(+pickerProduct.precio * pickerQuantity) < currentReturnCredit"
+                        [class.is-deficit]="(+pickerProduct.precio * pickerQuantity) > currentReturnCredit"
+                      >
+                        @if ((+pickerProduct.precio * pickerQuantity) < currentReturnCredit) {
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          <span>Reembolso garantizado a tu favor: Bs {{ (currentReturnCredit - (+pickerProduct.precio * pickerQuantity)).toFixed(2) }}</span>
+                        } @else if ((+pickerProduct.precio * pickerQuantity) > currentReturnCredit) {
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                          <span>Diferencia a abonar: Bs {{ ((+pickerProduct.precio * pickerQuantity) - currentReturnCredit).toFixed(2) }}</span>
+                        } @else {
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          <span>Cambio exacto: Bs 0.00 adicional</span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- SELECTOR DE TALLA -->
+                    @if (pickerAvailableSizes.length > 0) {
+                      <div class="picker-selector-block">
+                        <div class="block-label-row">
+                          <label>Talla disponible:</label>
+                          <strong>{{ pickerSelectedSize }}</strong>
+                        </div>
+                        <div class="pills-grid">
+                          @for (sz of pickerAvailableSizes; track sz) {
+                            <button
+                              type="button"
+                              class="picker-pill"
+                              [class.is-active]="pickerSelectedSize === sz"
+                              (click)="selectPickerSize(sz)"
+                            >
+                              {{ sz }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- SELECTOR DE COLOR -->
+                    @if (pickerAvailableColors.length > 0) {
+                      <div class="picker-selector-block">
+                        <div class="block-label-row">
+                          <label>Color disponible:</label>
+                          <strong>{{ pickerSelectedColor }}</strong>
+                        </div>
+                        <div class="pills-grid">
+                          @for (col of pickerAvailableColors; track col) {
+                            <button
+                              type="button"
+                              class="picker-pill color-pill-item"
+                              [class.is-active]="pickerSelectedColor === col"
+                              (click)="selectPickerColor(col)"
+                            >
+                              <span class="color-dot"></span>
+                              <span>{{ col }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- SELECTOR DE CANTIDAD -->
+                    <div class="picker-selector-block">
+                      <div class="block-label-row">
+                        <label>Cantidad:</label>
+                      </div>
+                      <div class="picker-stepper">
+                        <button
+                          type="button"
+                          class="picker-step-btn"
+                          [disabled]="pickerQuantity <= 1"
+                          (click)="changePickerQty(-1)"
+                          aria-label="Restar"
+                        >−</button>
+                        <strong class="picker-step-display">{{ pickerQuantity }}</strong>
+                        <button
+                          type="button"
+                          class="picker-step-btn"
+                          (click)="changePickerQty(1)"
+                          aria-label="Sumar"
+                        >+</button>
+                      </div>
+                    </div>
+
+                    <!-- BOTON CONFIRMAR AGREGAR -->
+                    <div class="picker-confirm-wrap">
+                      <button
+                        type="button"
+                        class="btn-confirm-picker-add"
+                        (click)="confirmPickerAdd()"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Añadir al cambio (Bs {{ (+pickerProduct.precio * pickerQuantity).toFixed(2) }})</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             }
 
             <!-- LISTA DE PRENDAS NUEVAS AGREGADAS AL CAMBIO -->
             <div class="new-lines-list">
-              <span class="lines-heading">Prendas en tu solicitud de cambio:</span>
+              <span class="lines-heading">Prendas en tu solicitud de cambio ({{ lines.length }}):</span>
               @if (lines.length === 0) {
                 <div class="empty-lines-hint">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
                     <path d="M3 6h18"/>
                     <path d="M16 10a4 4 0 0 1-8 0"/>
                   </svg>
-                  <span>Elige arriba una prenda de la cuadrícula para calcular la diferencia de precio.</span>
+                  <span>Elige arriba una prenda del catálogo para calcular la diferencia de precio.</span>
                 </div>
               } @else {
                 <div class="lines-cards-container">
-                  @for (line of lines; track line.variante_id) {
+                  @for (line of lines; track line.variante_id; let idx = $index) {
                     <div class="line-garment-card">
                       <div class="line-thumb">
                         @if (variantImage(line.variante_id)) {
@@ -581,10 +690,20 @@
                       </div>
                       <div class="line-details">
                         <strong class="line-title">{{ line.name }}</strong>
-                        <span class="line-qty">Cantidad: {{ line.cantidad }}</span>
+                        <div class="line-meta-pricing">
+                          <span>Cantidad: <strong>{{ line.cantidad }}</strong></span>
+                          <span>Unitario: <strong>Bs {{ (line.price || 0).toFixed(2) }}</strong></span>
+                          <span>Subtotal: <strong>Bs {{ ((line.price || 0) * line.cantidad).toFixed(2) }}</strong></span>
+                        </div>
                       </div>
-                      <button type="button" class="btn-remove-line" (click)="removeLine($index)">
-                        Quitar
+                      <button
+                        type="button"
+                        class="btn-remove-line"
+                        (click)="removeLine(idx)"
+                        title="Quitar esta prenda"
+                        aria-label="Quitar prenda"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                       </button>
                     </div>
                   }
