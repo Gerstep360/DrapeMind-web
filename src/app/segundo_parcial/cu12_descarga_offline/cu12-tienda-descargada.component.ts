@@ -92,7 +92,7 @@ import { AuthService } from '../../core/auth.service';
             <button
               class="btn-primary-action"
               type="button"
-              [disabled]="busy() || !connected()"
+              [disabled]="busy()"
               (click)="download()"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -177,32 +177,36 @@ import { AuthService } from '../../core/auth.service';
       .panel-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.35);
-        z-index: 1400;
-        backdrop-filter: blur(2px);
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 99998;
+        backdrop-filter: blur(4px);
       }
       .download-panel {
         position: fixed;
-        right: 24px;
-        top: 76px;
-        z-index: 1500;
-        width: min(380px, calc(100vw - 32px));
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 99999;
+        width: min(450px, calc(100vw - 32px));
+        max-height: 90vh;
+        overflow-y: auto;
         background: #fffdf9;
         border: 3px solid #151515;
-        box-shadow: 6px 6px 0 #151515;
+        border-radius: 16px;
+        box-shadow: 8px 8px 0 #151515;
         color: #151515;
         text-align: left;
         font-family: inherit;
-        animation: panelSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: panelCenterIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      @keyframes panelSlide {
+      @keyframes panelCenterIn {
         from {
           opacity: 0;
-          transform: translateY(-8px) scale(0.98);
+          transform: translate(-50%, -46%) scale(0.96);
         }
         to {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translate(-50%, -50%) scale(1);
         }
       }
       .panel-header {
@@ -386,10 +390,8 @@ import { AuthService } from '../../core/auth.service';
       }
       @media (max-width: 600px) {
         .download-panel {
-          left: 16px;
-          right: 16px;
-          top: 72px;
-          width: auto;
+          width: calc(100vw - 24px);
+          max-height: 92vh;
         }
       }
     `,

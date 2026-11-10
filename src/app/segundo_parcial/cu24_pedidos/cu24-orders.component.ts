@@ -46,13 +46,13 @@ export class OrdersComponent {
         LISTO: 'Listos',
         ENVIADO: 'En camino',
         ENTREGADO: 'Entregados',
-        DEVUELTO: 'Devoluciones',
+        DEVUELTO: 'Devoluciones / Cambios',
         CANCELADO: 'Cancelados',
       } as Record<string, string>
     )[state] || state;
   }
   orderStatusLabel(order: Order): string {
-    if (order.estado === 'DEVUELTO') {
+    if (order.estado === 'DEVUELTO' || order.observacion?.toLowerCase().includes('cambio') || order.observacion?.toLowerCase().includes('devolución') || order.observacion?.toLowerCase().includes('devolucion')) {
       if (order.observacion?.toLowerCase().includes('cambio')) {
         return 'Cambio';
       }

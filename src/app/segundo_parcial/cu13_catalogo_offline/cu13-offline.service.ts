@@ -139,7 +139,12 @@ export class OfflineService {
   }
   async download(): Promise<void> {
     const owner = this.owner();
-    if (!owner || this.downloading()) return;
+    if (!owner) {
+      const err = new Error('Inicia sesión en tu tienda para guardar su catálogo offline.');
+      this.message.set(err.message);
+      throw err;
+    }
+    if (this.downloading()) return;
     this.downloading.set(true);
     this.message.set('');
     this.phase.set('Descargando prendas y disponibilidad…');
@@ -161,6 +166,7 @@ export class OfflineService {
       }
     } catch (e) {
       if (owner === this.owner()) this.message.set(offlineMessage(e));
+      throw e;
     } finally {
       this.downloading.set(false);
     }
