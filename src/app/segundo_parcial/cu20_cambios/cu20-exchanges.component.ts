@@ -181,8 +181,18 @@ export class ExchangesComponent implements OnInit {
       if (!this.offline.online())
         throw new Error('Los cambios de prendas necesitan conexión para validar el comprobante.');
       await work();
-    } catch (e) {
-      this.error = offlineMessage(e);
+    } catch (e: any) {
+      if (e?.error?.detail?.message) {
+        this.error = e.error.detail.message;
+      } else if (typeof e?.error?.detail === 'string') {
+        this.error = e.error.detail;
+      } else if (e?.error?.message) {
+        this.error = e.error.message;
+      } else if (e?.message) {
+        this.error = e.message;
+      } else {
+        this.error = offlineMessage(e);
+      }
     } finally {
       this.busy = false;
       this.cdr.markForCheck();

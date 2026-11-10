@@ -104,25 +104,42 @@
       @if (quote) {
         <section class="download-strip">
           <div>
-            <h2>{{ +quote.diferencia < 0 ? 'Reembolso al cliente ' + (-quote.diferencia | currency: 'BOB' : 'Bs ') : 'Diferencia a cobrar ' + (quote.diferencia | currency: 'BOB' : 'Bs ') }}</h2>
+            @if (+quote.diferencia < 0) {
+              <h2>Reembolso a tu favor: {{ -quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
+              <p class="exchange-summary-hint">
+                El crédito de tus prendas devueltas supera las nuevas. Se registrará la devolución con saldo reembolsado a tu favor.
+              </p>
+            } @else if (+quote.diferencia > 0) {
+              <h2>Diferencia a abonar: {{ quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
+              <p class="exchange-summary-hint">
+                Las prendas elegidas tienen un importe superior. Esta diferencia se abona en caja o al momento de la entrega.
+              </p>
+            } @else {
+              <h2>Cambio equivalente: Bs 0.00</h2>
+              <p class="exchange-summary-hint">
+                Prendas de igual valor. El cambio no genera saldo adicional ni a favor ni en contra.
+              </p>
+            }
             <p>
-              Crédito de devolución {{ quote.credito | currency: 'BOB' : 'Bs ' }} · Prendas nuevas
+              Crédito por prendas devueltas: {{ quote.credito | currency: 'BOB' : 'Bs ' }} · Prendas nuevas:
               {{ quote.total_nuevo | currency: 'BOB' : 'Bs ' }}
             </p>
-            <div class="form-grid">
-              <label
-                >Efectivo recibido<input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  [(ngModel)]="received" /></label
-              ><label
-                >Efectivo devuelto<input type="number" min="0" step="0.01" [(ngModel)]="refunded"
-              /></label>
-            </div>
+            @if (auth.user()?.rol !== 'CLIENTE') {
+              <div class="form-grid">
+                <label
+                  >Efectivo recibido en caja<input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [(ngModel)]="received" /></label
+                ><label
+                  >Efectivo devuelto en caja<input type="number" min="0" step="0.01" [(ngModel)]="refunded"
+                /></label>
+              </div>
+            }
           </div>
           <button class="primary" type="button" [disabled]="busy" (click)="save()">
-            {{ lines.length === 0 ? 'Confirmar devolución y reembolso' : 'Confirmar cambio y efectivo' }}
+            {{ lines.length === 0 ? 'Confirmar devolución y reembolso' : 'Confirmar cambio de prendas' }}
           </button>
         </section>
       }
