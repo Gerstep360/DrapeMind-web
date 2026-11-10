@@ -30,6 +30,13 @@ export class DeferredCheckoutService {
   }
   private async restore(owner:string):Promise<void>{try{const cached=await this.store.read<{key:string;value:PurchaseContext}>('context',owner);if(owner!==this.owner)return;this.context.set(cached?.value||null);await this.reloadLocal(owner);void this.refresh();}catch{this.error.set('No pudimos abrir el almacenamiento local. No se guardó ninguna compra nueva.');}}
   private async reloadLocal(owner=this.owner){const rows=await this.store.list(owner);if(owner===this.owner)this.purchases.set(rows.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)));}
+  async prepareDownload():Promise<void>{
+    await this.ready;const owner=this.owner;if(!owner)throw new Error('Inicia sesión en esta tienda antes de preparar tu compra.');
+    const value=await firstValueFrom(this.http.get<PurchaseContext>(this.runtime.apiUrl+'/payments/deferred/context').pipe(timeout(15000)));
+    if(owner!==this.owner||value.owner!==owner.split('|').at(-1))throw new Error('La tienda cambió. Abre de nuevo la descarga.');
+    const snapshot=this.cart.cart()?{...value,cart:this.cart.cart()!}:value;
+    await this.store.write('context',{key:owner,value:snapshot});if(owner===this.owner)this.context.set(snapshot);
+  }
   async refresh():Promise<void>{
     const owner=this.owner;if(!owner||!navigator.onLine)return;
     try{await this.cart.local.synchronize();const value=await firstValueFrom(this.http.get<PurchaseContext>(this.runtime.apiUrl+'/payments/deferred/context').pipe(timeout(15000)));if(owner!==this.owner||value.owner!==owner.split('|').at(-1))return;await this.store.write('context',{key:owner,value});this.context.set(this.cart.cart()?{...value,cart:this.cart.cart()!}:value);

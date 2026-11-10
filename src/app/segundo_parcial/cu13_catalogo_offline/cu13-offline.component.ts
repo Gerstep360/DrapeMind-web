@@ -2,13 +2,14 @@ import { Component, ElementRef, computed, inject, signal, viewChild } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import {StoreDownloadComponent} from '../cu12_descarga_offline/cu12-tienda-descargada.component';
 import { OfflineService, offlineMessage, offlineMediaUrl } from './cu13-offline.service';
 import { OfflineProduct, QueuedReservation } from './cu13-offline.models';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 
 @Component({
   selector: 'app-offline',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, StoreDownloadComponent],
   templateUrl: './cu13-offline.component.html',
   styleUrl: '../compartido/feature.scss',
 })

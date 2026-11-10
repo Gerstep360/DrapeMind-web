@@ -41,7 +41,9 @@ describe('Recovery of garment exchanges', () => {
     requests = TestBed.inject(HttpTestingController);
   });
   afterEach(() => {
+    requests.match('/api/v1/orders').forEach(request=>request.flush([]));
     requests.verify();
+    TestBed.resetTestingModule();
     localStorage.clear();
   });
   it('keeps the frozen request when authentication expires', async () => {

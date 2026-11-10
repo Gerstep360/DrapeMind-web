@@ -2,8 +2,9 @@
   <header class="feature-heading">
     <div>
       <p class="eyebrow">Tu tienda contigo</p>
-      <h1>Sin conexión</h1>
-      <p>Guarda la colección y elige tus prendas aunque no tengas señal.</p>
+      <h1>Reservas guardadas</h1>
+      <p>Consulta las prendas descargadas y tus solicitudes de esta tienda.</p>
+      <a routerLink="/catalog">Ir al catálogo y seguir comprando ↗</a>
     </div>
     <span class="connection" [class.connection--off]="!offline.online()">{{
       offline.online() ? 'Con conexión' : 'Sin señal'
@@ -25,20 +26,7 @@
         <p>Descarga prendas, tallas, colores y disponibilidad de las sucursales de esta tienda.</p>
       }
     </div>
-    <button
-      type="button"
-      class="primary"
-      [disabled]="offline.downloading() || !offline.online()"
-      (click)="offline.download()"
-    >
-      {{
-        offline.downloading()
-          ? offline.phase()
-          : offline.bundle()
-            ? 'Actualizar descarga'
-            : 'Guardar catálogo'
-      }}
-    </button>
+    <app-store-download />
   </section>
   @if (offline.downloading()) {
     <progress aria-label="Descargando catálogo"></progress>

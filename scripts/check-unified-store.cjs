@@ -60,9 +60,9 @@ const server=http.createServer((req,res)=>{
  // Reload closes detail without reaching into Angular state.
  await page.goto(base+'/catalog');
  await page.setViewportSize({width:1440,height:1000});
- await page.getByRole('button',{name:'Datos de esta tienda',exact:true}).filter({visible:true}).click();
+ await page.getByRole('button',{name:'Tienda descargada',exact:true}).filter({visible:true}).click();
  await page.getByRole('button',{name:'Descargar esta tienda',exact:true}).click();
- await page.getByRole('button',{name:'Actualizar descarga',exact:true}).waitFor();
+ await page.getByText('Tu tienda está lista en este dispositivo.',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Cerrar datos de tienda',exact:true}).click();
  await page.evaluate(()=>navigator.serviceWorker.ready.then(()=>true));
  connected=false;await context.setOffline(true);await page.reload();

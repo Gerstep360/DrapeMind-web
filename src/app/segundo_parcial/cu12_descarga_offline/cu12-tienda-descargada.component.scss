@@ -1,0 +1,280 @@
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--dm-ink, #181818);
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+.download-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  min-height: 42px;
+  padding: 9px 12px;
+  background: var(--dm-paper, #fffdf5);
+  border: 1px solid currentColor;
+  font-size: 12px;
+  font-weight: 750;
+  color: inherit;
+  white-space: nowrap;
+}
+.download-trigger:hover {
+  background: var(--dm-lime, #dfff4f);
+}
+.saved-dot {
+  width: 7px;
+  height: 7px;
+  background: #32845c;
+  border-radius: 50%;
+}
+.pending-count {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background: #dfff4f;
+  border: 1px solid #181818;
+  font-size: 10px;
+  padding: 1px 4px;
+}
+.download-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: #fffdf5;
+  color: #181818;
+  border: 2px solid #181818;
+  box-shadow: 6px 6px #181818;
+  font: inherit;
+  text-align: left;
+}
+.download-dialog::backdrop {
+  background: #15151588;
+  backdrop-filter: blur(3px);
+}
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 2px solid #181818;
+}
+.eyebrow {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+h2 {
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  margin: 0;
+  font-weight: 850;
+}
+.close {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: transparent;
+  color: inherit;
+  border: 1px solid;
+  font-size: 24px;
+  line-height: 1;
+}
+.dialog-body {
+  padding: 24px;
+}
+.intro {
+  margin: 0 0 20px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.download-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 18px;
+  background: #dfff4f;
+  border: 1px solid;
+  margin: 0 0 20px;
+}
+.download-summary > div {
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+.download-summary strong {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 850;
+}
+.download-summary span {
+  font-size: 11px;
+  line-height: 1.4;
+}
+.download-summary b {
+  font-size: 13px;
+}
+.expired {
+  background: #f9e0ce;
+}
+.download-steps {
+  margin: 20px 0;
+}
+.download-steps > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 12px;
+  border-bottom: 1px solid #deddd3;
+}
+.step-marker {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #b6b5aa;
+  font-size: 11px;
+}
+.download-steps small {
+  margin-left: auto;
+  font-size: 10px;
+  color: #68685f;
+}
+.done .step-marker {
+  background: #dfff4f;
+  border-color: #181818;
+}
+.running .step-marker {
+  background: #181818;
+  color: #fff;
+}
+.failed {
+  color: #97301e;
+}
+.failed .step-marker {
+  border-color: currentColor;
+}
+.download-primary,
+.catalog-link {
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 12px 16px;
+  border: 1px solid #181818;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  color: #181818;
+  background: #dfff4f;
+}
+.catalog-link {
+  background: transparent;
+  margin-top: 10px;
+}
+.download-primary:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.note,
+.phase {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64645c;
+  margin: 16px 0 0;
+}
+.success {
+  font-size: 13px;
+  font-weight: 700;
+}
+.download-error {
+  padding: 12px;
+  border-left: 3px solid #a63624;
+  background: #fff0e9;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.offline-note {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.pending-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  border-top: 1px solid #cecec0;
+  padding-top: 16px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: inherit;
+}
+.pending-link span {
+  font-weight: 700;
+}
+progress {
+  width: 100%;
+  height: 5px;
+  accent-color: #181818;
+  margin-top: 14px;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #71850b;
+  outline-offset: 3px;
+}
+@media (max-width: 1100px) {
+  .trigger-label {
+    display: none;
+  }
+  .download-trigger {
+    padding: 10px;
+  }
+}
+@media (max-width: 480px) {
+  header,
+  .dialog-body {
+    padding: 20px;
+  }
+  .download-dialog {
+    max-height: calc(100dvh - 24px);
+  }
+  h2 {
+    font-size: 27px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .download-dialog[open] {
+    animation: show-download 0.18s ease-out;
+  }
+  @keyframes show-download {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

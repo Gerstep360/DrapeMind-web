@@ -1,6 +1,6 @@
 import {Injectable,inject} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {defer,from,catchError,tap,throwError,Observable} from 'rxjs';
+import {defer,from,catchError,tap,throwError,Observable,firstValueFrom,timeout} from 'rxjs';
 import {AuthService} from '../../core/auth.service';
 import {RuntimeConfigService} from '../../core/runtime-config.service';
 import {Order} from '../../core/models';
@@ -9,6 +9,7 @@ import {DeferredStore} from '../cu23_pagos/cu23-deferred-store';
 
 @Injectable({providedIn:'root'})
 export class DownloadedOrdersService{
+ async prepareDownload(){const owner=this.scope();if(!owner)throw new Error('Inicia sesión para guardar tus pedidos.');const rows=await firstValueFrom(this.http.get<Order[]>(this.runtime.apiUrl+'/orders').pipe(timeout(15000)));if(owner!==this.scope())throw new Error('La cuenta cambió durante la descarga.');await this.store.write('context',{key:owner,rows,savedAt:new Date().toISOString()});}
  private auth=inject(AuthService);private runtime=inject(RuntimeConfigService);private offline=inject(OfflineService);private http=inject(HttpClient);private store=new DeferredStore();
  private scope(){const u=this.auth.user();return u?.tenant_id&&this.auth.isAuthenticated()?`${this.runtime.apiUrl}|${u.tenant_id}:${u.id}|orders:${u.rol}`:'';}
  list():Observable<Order[]>{return defer(()=>{

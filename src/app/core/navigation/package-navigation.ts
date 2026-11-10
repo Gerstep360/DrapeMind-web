@@ -43,7 +43,7 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
     {label:'Operaciones por revisar',description:'Resolver conflictos y dejar constancia',icon:'inventory',route:'/sync-conflicts',roles:['ADMIN','ENCARGADO']},
     {label:'Cambios y devoluciones',description:'Devolución de prendas y reembolsos',icon:'orders',route:'/exchanges',roles:everyone}
   ]},
-  {label:'Sin conexión',description:'Tu tienda guardada en este dispositivo',items:[{label:'Catálogo y reservas offline',description:'Descargar prendas y enviar solicitudes pendientes',icon:'catalog',route:'/offline',roles:staff.concat('CLIENTE')}]},
+  {label:'Reservas guardadas',description:'Solicitudes de esta tienda',items:[{label:'Consultar reservas guardadas',description:'Prendas descargadas y solicitudes pendientes',icon:'reservations',route:'/offline',roles:staff}]},
   {
     label: 'Acceso y gestión de usuarios',
     description: 'Perfil y preferencias',

@@ -1,0 +1,144 @@
+<button
+  type="button"
+  class="download-trigger"
+  (click)="show()"
+  aria-label="Tienda descargada"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="open()"
+  title="Descargar esta tienda"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    aria-hidden="true"
+  >
+    <path d="M4 15v5h16v-5M12 3v12m-5-5 5 5 5-5" />
+  </svg>
+  <span class="trigger-label">Tienda descargada</span>
+  @if (saved()) {
+    <span class="saved-dot" aria-label="Descarga vigente"></span>
+  }
+  @if (count()) {
+    <span class="pending-count">{{ count() }}</span>
+  }
+</button>
+<dialog
+  #downloadDialog
+  class="download-dialog"
+  aria-labelledby="download-title"
+  (close)="open.set(false)"
+  (click)="backdrop($event)"
+>
+  <header>
+    <div>
+      <p class="eyebrow">{{ auth.user()?.tenant_name || 'Tu tienda' }}</p>
+      <h2 id="download-title">Tu tienda, contigo.</h2>
+    </div>
+    <button
+      class="close"
+      type="button"
+      (click)="close()"
+      aria-label="Cerrar datos de tienda"
+      autofocus
+    >
+      ×
+    </button>
+  </header>
+  <div class="dialog-body">
+    <p class="intro">
+      Descarga una vez. Sigue eligiendo prendas desde el mismo catálogo y carrito cuando no tengas
+      Internet.
+    </p>
+    @if (offline.bundle(); as bundle) {
+      <section class="download-summary" [class.expired]="!saved()" aria-label="Descarga guardada">
+        <div>
+          <strong>{{ bundle.products.length }}</strong
+          ><span>prendas guardadas</span>
+        </div>
+        <div>
+          <span>{{ saved() ? 'Última actualización' : 'Actualiza esta descarga' }}</span
+          ><b>{{ bundle.downloaded_at | date: 'd MMM, HH:mm' }}</b>
+        </div>
+      </section>
+    }
+    @if (busy() || steps().length) {
+      <section class="download-steps" aria-label="Preparación de tu tienda" aria-live="polite">
+        @for (step of steps(); track $index) {
+          <div
+            [class.running]="step.state === 'running'"
+            [class.done]="step.state === 'done'"
+            [class.failed]="step.state === 'failed'"
+          >
+            <span class="step-marker" aria-hidden="true">{{
+              step.state === 'done' ? '✓' : step.state === 'failed' ? '!' : $index + 1
+            }}</span
+            ><span>{{ step.name }}</span
+            ><small>{{
+              step.state === 'done'
+                ? 'Guardado'
+                : step.state === 'running'
+                  ? 'En curso'
+                  : step.state === 'failed'
+                    ? 'Por completar'
+                    : 'Pendiente'
+            }}</small>
+          </div>
+        }
+        @if (busy()) {
+          <progress
+            max="4"
+            [value]="done()"
+            aria-label="Partes de la descarga completadas"
+          ></progress>
+          <p class="phase">
+            {{ done() === 0 ? offline.phase() : 'Guardando los datos de tu cuenta…' }}
+          </p>
+        }
+      </section>
+    }
+    @if (offline.photos().failed && steps().length) {
+      <p class="note">
+        {{ offline.photos().failed }} fotos no pudieron guardarse. Las prendas y sus datos están
+        disponibles; esas imágenes se cargarán al recuperar conexión.
+      </p>
+    }
+    @if (error()) {
+      <p class="download-error" role="alert">{{ error() }}</p>
+    }
+    @if (complete()) {
+      <p class="success" role="status">Tu tienda está lista en este dispositivo.</p>
+    }
+    <button class="download-primary" type="button" [disabled]="busy()" (click)="download()">
+      {{
+        busy()
+          ? 'Preparando tu tienda…'
+          : saved()
+            ? 'Actualizar descarga'
+            : 'Descargar esta tienda'
+      }}<span aria-hidden="true">↓</span>
+    </button>
+    @if (saved()) {
+      <a routerLink="/catalog" class="catalog-link" (click)="close()"
+        >Seguir en el catálogo <span aria-hidden="true">↗</span></a
+      >
+    }
+    <p class="note">
+      La disponibilidad y el precio se comprobarán al reconectar. Tu compra aparecerá en Mis pedidos
+      y el pago autorizado se procesará con Stripe.
+    </p>
+    @if (!offline.online()) {
+      <p class="offline-note">
+        Estás sin conexión. Puedes utilizar la descarga vigente de esta tienda.
+      </p>
+    }
+    @if (count()) {
+      <a class="pending-link" routerLink="/orders" (click)="close()"
+        >{{ count() }} operaciones por confirmar <span>Ver mis pedidos ↗</span></a
+      >
+    }
+  </div>
+</dialog>

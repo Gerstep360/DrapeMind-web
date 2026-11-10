@@ -59,6 +59,7 @@ export class OfflineService {
   readonly syncing = signal(false);
   readonly message = signal('');
   readonly phase = signal('');
+  readonly photos=signal({total:0,done:0,saved:0,failed:0});
   readonly owner = computed(() => {
     const u = this.auth.user();
     return u?.tenant_id &&
@@ -146,6 +147,7 @@ export class OfflineService {
     }
     if (this.downloading()) return;
     this.downloading.set(true);
+    this.photos.set({total:0,done:0,saved:0,failed:0});
     this.message.set('');
     this.phase.set('Descargando prendas y disponibilidad…');
     try {
@@ -161,6 +163,7 @@ export class OfflineService {
           await this.cachePhotos(owner, data);
         } catch {
           /* Optional photos may be unavailable when browser storage is restricted. */
+          this.photos.update(state=>({...state,done:state.total,failed:state.total-state.saved}));
         }
         if (owner === this.owner()) this.phase.set('Catálogo guardado');
       }
@@ -172,20 +175,22 @@ export class OfflineService {
     }
   }
   private async cachePhotos(owner: string, bundle: OfflineBundle): Promise<void> {
-    if (!('caches' in window)) return;
     const urls = [
       ...new Set(
-        bundle.products
-          .map((p) => offlineMediaUrl(this.runtime.apiUrl, p.imagenes?.[0] ?? ''))
+        [...bundle.products.flatMap(p=>p.imagenes||[]),...bundle.variants.map(v=>v.imagen||'')]
+          .map(image=>offlineMediaUrl(this.runtime.apiUrl,image))
           .filter((u) => u && !u.startsWith('data:') && !u.startsWith('blob:')),
       ),
     ];
+    this.photos.set({total:urls.length,done:0,saved:0,failed:0});
+    if (!('caches' in window)){this.photos.set({total:urls.length,done:urls.length,saved:0,failed:urls.length});return;}
     const cache = await caches.open(`drapemind-product-images-${encodeURIComponent(owner)}`);
     let done = 0,
       index = 0;
     const worker = async () => {
       while (index < urls.length && owner === this.owner()) {
         const url = urls[index++];
+        let saved=false;
         try {
           const response = await fetch(url, {
             credentials: 'omit',
@@ -193,15 +198,17 @@ export class OfflineService {
           });
           if (
             response.ok &&
+            (response.headers.get('Content-Type')||'').startsWith('image/') &&
             Number(response.headers.get('Content-Length') || 0) < 2_000_000 &&
             owner === this.owner()
-          )
-            await cache.put(url, response);
+          ){
+            await cache.put(url, response);saved=true;
+          }
         } catch {
           /* A missing photograph does not invalidate the catalog or pending operations. */
         }
         done++;
-        if (owner === this.owner()) this.phase.set(`Guardando fotos ${done} de ${urls.length}…`);
+        if (owner === this.owner()) {this.phase.set(`Guardando fotos ${done} de ${urls.length}…`);this.photos.update(state=>({...state,done,saved:state.saved+(saved?1:0),failed:state.failed+(saved?0:1)}));}
       }
     };
     await Promise.all(Array.from({ length: Math.min(3, urls.length) }, () => worker()));

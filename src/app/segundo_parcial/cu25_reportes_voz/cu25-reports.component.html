@@ -1,22 +1,245 @@
-<main class="feature-page report-page">
- <header class="feature-heading"><div><p class="eyebrow">Decisiones para tu tienda</p><h1>Reportes de tu negocio</h1><p>Pregunta por tus ventas o inventario. Revisa la consulta antes de generar el análisis.</p></div></header>
- @if(error()){<p class="error" role="alert">{{error()}}</p>}
- <form class="stack report-form" (ngSubmit)="generate()">
-  <label>¿Qué necesitas conocer?<textarea name="query" [(ngModel)]="query" (ngModelChange)="entry='TEXTO'" required minlength="5" maxlength="1000" rows="3" placeholder="Por ejemplo: ¿cómo van las ventas de este mes?"></textarea></label>
-  <div class="button-group"><button type="button" (click)="selectExample('¿Cómo van las ventas de este mes?')">Ventas del mes</button><button type="button" (click)="selectExample('Revisa el inventario actual y el stock bajo')">Disponibilidad actual</button><button type="button" [disabled]="voice.processing() || busy()" (click)="dictate()" [attr.aria-pressed]="listening()">{{voice.processing()?'Transcribiendo…':listening()?'Terminar grabación ('+voice.seconds()+' s)':'Dictar consulta'}}</button></div>
-  <p class="muted">Pulsa para grabar, habla y termina la grabación. Revisa el texto antes de generar el reporte.</p>
-  <div class="filters"><label>Desde (opcional)<input type="date" name="from" [(ngModel)]="from"></label><label>Hasta (opcional)<input type="date" name="to" [(ngModel)]="to"></label><label>Sucursal<select name="branch" [(ngModel)]="branch"><option value="">Todas mis sucursales</option>@for(b of branches();track b.id){<option [value]="b.id">{{b.nombre}}</option>}</select></label></div>
-  <p class="muted">Sin fechas manuales se interpreta hoy, ayer, esta semana, este mes o últimos N días; por defecto, últimos 30 días. El inventario corresponde al momento de la consulta.</p>
-  <button class="primary" type="submit" [disabled]="busy() || query.trim().length<5">{{busy()?'Analizando los datos de tu tienda…':'Generar reporte'}}</button>
- </form>
- @if(report();as r){
- <article class="stack report-result" aria-live="polite">
-  <header class="section-heading"><div><p class="eyebrow">{{r.datos.empresa}} · {{r.datos.sucursal}}</p><h2>{{r.titulo}}</h2><p>{{r.datos.desde}} — {{r.datos.hasta}}</p></div><div class="button-group"><button type="button" (click)="download()">Descargar PDF</button><button type="button" (click)="download('xlsx')">Descargar Excel</button></div></header>
-  <dl class="report-metrics"><div><dt>Ingreso neto cobrado</dt><dd>Bs {{r.datos.ingreso_neto_cobrado|number:'1.2-2'}}</dd></div><div><dt>Pedidos pagados</dt><dd>{{r.datos.pedidos_pagados}}</dd></div><div><dt>Unidades disponibles ahora</dt><dd>{{r.datos.inventario_actual.unidades_disponibles}}</dd></div></dl>
-  <p class="report-analysis">{{r.analisis}}</p>
-  @if(r.datos.prendas_vendidas.length){<div class="table-wrap"><table class="list-table"><thead><tr><th>Prenda en pedidos pagados</th><th>Unidades</th></tr></thead><tbody>@for(item of r.datos.prendas_vendidas;track item.nombre){<tr><td>{{item.nombre}}</td><td>{{item.cantidad}}</td></tr>}</tbody></table></div>}
-  <h3>Acciones sugeridas</h3><ul>@for(action of r.recomendaciones;track $index){<li>{{action}}</li>}</ul><p class="muted">{{r.datos.alcance}}</p>
- </article>
- }
- @if(history().length){<section class="stack"><h2>Reportes guardados</h2>@for(row of history();track row.id){<button class="history-report" type="button" (click)="report.set(row)"><strong>{{row.titulo}}</strong><span>{{row.datos.desde}} — {{row.datos.hasta}} · {{row.datos.sucursal}}</span></button>}</section>}
+<main class="reports-workspace">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">DrapeMind / Tu negocio</p>
+      <h1>Reportes de<br /><span>tu negocio</span></h1>
+      <p class="lead">
+        Tus ventas e inventario, en un informe que puedes consultar, compartir y descargar.
+      </p>
+    </div>
+    <span class="report-stamp">REPORTES<br />EMPRESARIALES <span aria-hidden="true">↗</span></span>
+  </header>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  <div class="reports-layout">
+    <aside class="report-tools">
+      <form (ngSubmit)="generate()" class="query-form">
+        <div class="section-kicker">
+          <span>01</span>
+          <h2>Haz tu consulta</h2>
+        </div>
+        <label for="report-query">¿Qué necesitas conocer?</label
+        ><textarea
+          id="report-query"
+          name="query"
+          [(ngModel)]="query"
+          (ngModelChange)="entry = 'TEXTO'"
+          required
+          minlength="5"
+          maxlength="1000"
+          rows="4"
+          placeholder="¿Cómo van las ventas de este mes?"
+        ></textarea>
+        <div class="query-suggestions">
+          <button type="button" (click)="selectExample('¿Cómo van las ventas de este mes?')">
+            Ventas del mes ↗</button
+          ><button
+            type="button"
+            (click)="selectExample('Revisa el inventario actual y el stock bajo')"
+          >
+            Disponibilidad actual ↗
+          </button>
+        </div>
+        <button
+          class="voice-button"
+          type="button"
+          [disabled]="voice.processing() || busy()"
+          (click)="dictate()"
+          [attr.aria-pressed]="listening()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            <rect x="9" y="2" width="6" height="13" rx="3" />
+            <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8" /></svg
+          >{{
+            voice.processing()
+              ? 'Transcribiendo…'
+              : listening()
+                ? 'Terminar grabación (' + voice.seconds() + ' s)'
+                : 'Dictar consulta'
+          }}
+        </button>
+        <p class="field-hint">Revisa el texto antes de generar tu reporte.</p>
+        <details class="report-filters">
+          <summary>Periodo y sucursal <span aria-hidden="true">+</span></summary>
+          <div class="date-fields">
+            <label>Desde (opcional)<input type="date" name="from" [(ngModel)]="from" /></label
+            ><label>Hasta (opcional)<input type="date" name="to" [(ngModel)]="to" /></label>
+          </div>
+          <label
+            >Sucursal<select name="branch" [(ngModel)]="branch">
+              <option value="">Todas mis sucursales</option>
+              @for (b of branches(); track b.id) {
+                <option [value]="b.id">{{ b.nombre }}</option>
+              }
+            </select></label
+          >
+          <p class="field-hint">
+            También puedes indicar el periodo en tu consulta. Sin fechas se usan los últimos 30
+            días.
+          </p>
+        </details>
+        <button
+          class="generate-button"
+          type="submit"
+          [disabled]="busy() || voice.processing() || listening() || query.trim().length < 5"
+        >
+          {{ busy() ? 'Preparando tu informe…' : 'Generar reporte'
+          }}<span aria-hidden="true">↗</span>
+        </button>
+      </form>
+      @if (history().length) {
+        <section class="history-panel" aria-labelledby="history-title">
+          <div class="section-kicker">
+            <span>02</span>
+            <h2 id="history-title">Guardados</h2>
+          </div>
+          @for (row of history(); track row.id) {
+            <button
+              class="history-report"
+              type="button"
+              [class.selected]="report()?.id === row.id"
+              [attr.aria-pressed]="report()?.id === row.id"
+              (click)="selectReport(row)"
+            >
+              <span
+                >{{ row.datos.desde | date: 'd MMM' }} —
+                {{ row.datos.hasta | date: 'd MMM yyyy' }}</span
+              ><strong>{{ row.titulo }}</strong
+              ><small>{{ row.datos.sucursal }} ↗</small>
+            </button>
+          }
+        </section>
+      }
+    </aside>
+    <section class="report-viewer" aria-label="Informe de tu negocio" [attr.aria-busy]="busy()">
+      @if (busy()) {
+        <div class="report-loading" role="status">
+          <span class="loading-mark" aria-hidden="true"></span>
+          <p class="eyebrow">Consultando tus datos</p>
+          <h2>Un momento.<br />Tu informe está en camino.</h2>
+          <p>Estamos analizando los cobros y existencias de tu tienda.</p>
+        </div>
+      } @else if (report(); as r) {
+        <nav class="export-toolbar" aria-label="Descargar reporte">
+          <span>INFORME #{{ r.id }}</span>
+          <div>
+            <button type="button" [disabled]="!!exporting()" (click)="download('pdf')">
+              {{ exporting() === 'pdf' ? 'Preparando…' : 'Descargar PDF' }} ↓</button
+            ><button type="button" [disabled]="!!exporting()" (click)="download('xlsx')">
+              {{ exporting() === 'xlsx' ? 'Preparando…' : 'Excel' }} ↓
+            </button>
+          </div>
+        </nav>
+        <article class="report-document" aria-live="polite">
+          <header class="document-heading">
+            <p class="eyebrow">{{ r.datos.empresa }} / Reporte empresarial</p>
+            <h2>{{ r.titulo }}</h2>
+            <div class="document-meta">
+              <span
+                >{{ r.datos.desde | date: 'd MMM yyyy' }} —
+                {{ r.datos.hasta | date: 'd MMM yyyy' }}</span
+              ><span>{{ r.datos.sucursal }}</span>
+            </div>
+          </header>
+          <dl class="report-metrics">
+            <div class="metric-income">
+              <dt>Ingreso neto cobrado</dt>
+              <dd><span>Bs</span> {{ r.datos.ingreso_neto_cobrado | number: '1.2-2' }}</dd>
+              <small>Cobros del periodo</small>
+            </div>
+            <div>
+              <dt>Pedidos pagados</dt>
+              <dd>{{ r.datos.pedidos_pagados | number }}</dd>
+              <small>{{ soldUnits() | number }} prendas en esos pedidos</small>
+            </div>
+            <div>
+              <dt>Stock disponible</dt>
+              <dd>{{ r.datos.inventario_actual.unidades_disponibles | number }}</dd>
+              <small
+                >{{ r.datos.inventario_actual.variantes_con_stock_bajo | number }} variantes con
+                stock bajo · actual</small
+              >
+            </div>
+          </dl>
+          <section class="analysis-section" aria-labelledby="analysis-title">
+            <div class="report-section-title">
+              <span>01 / ANÁLISIS</span>
+              <h3 id="analysis-title">Lo que dicen tus datos</h3>
+            </div>
+            <div class="analysis-copy" [innerHTML]="analysisHtml()"></div>
+          </section>
+          <section class="sales-section" aria-labelledby="sales-title">
+            <div class="report-section-title">
+              <span>02 / PRODUCTOS</span>
+              <h3 id="sales-title">Prendas en pedidos pagados</h3>
+            </div>
+            @if (r.datos.prendas_vendidas.length) {
+              <table class="sales-table">
+                <caption class="sr-only">
+                  Unidades por prenda en el periodo del reporte
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Prenda</th>
+                    <th scope="col">Unidades</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of r.datos.prendas_vendidas; track $index) {
+                    <tr>
+                      <td>
+                        <span>{{ item.nombre }}</span
+                        ><span class="sales-bar" aria-hidden="true"
+                          ><span [style.width.%]="(item.cantidad / maxUnits()) * 100"></span
+                        ></span>
+                      </td>
+                      <td>{{ item.cantidad | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="empty-section">No hubo prendas en pedidos pagados durante este periodo.</p>
+            }
+          </section>
+          <section class="actions-section" aria-labelledby="actions-title">
+            <div class="report-section-title">
+              <span>03 / SIGUIENTES PASOS</span>
+              <h3 id="actions-title">Acciones sugeridas</h3>
+            </div>
+            <ol>
+              @for (action of r.recomendaciones; track $index) {
+                <li>{{ action }}</li>
+              }
+            </ol>
+          </section>
+          <footer class="document-footer">
+            <span class="document-brand">DrapeMind<span>.</span></span>
+            <p>{{ r.datos.alcance }}</p>
+          </footer>
+        </article>
+      } @else {
+        <div class="report-empty">
+          <div class="empty-sheet" aria-hidden="true">
+            <span></span><span></span><span></span><b>DM.</b>
+          </div>
+          <p class="eyebrow">Tu próximo informe</p>
+          <h2>Pregunta por tu negocio.<br />Elige qué mejorar.</h2>
+          <p>
+            Escribe o dicta una consulta. Aquí verás el análisis, las prendas vendidas y las
+            acciones sugeridas con los datos de tu tienda.
+          </p>
+        </div>
+      }
+    </section>
+  </div>
 </main>

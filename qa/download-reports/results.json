@@ -1,0 +1,15 @@
+{
+  "viewports": [
+    1440,
+    390,
+    320
+  ],
+  "topLayerAndCentered": true,
+  "downloadFailureAndRecovery": true,
+  "fourVerifiedStages": true,
+  "normalCatalogLink": true,
+  "markdownStructured": true,
+  "sanitizedHTML": true,
+  "pdfDownload": true,
+  "pageErrors": []
+}

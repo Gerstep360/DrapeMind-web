@@ -485,7 +485,8 @@ export class ExchangesComponent implements OnInit {
               .get<any>(`${this.base}/exchanges/operations/${payload.operacion_id}`)
               .pipe(timeout(15000)),
           );
-        } catch (e) {
+        } catch (e:any) {
+          if(e.status!==404)throw e;
           result = await firstValueFrom(
             this.http.post<any>(`${this.base}/exchanges`, payload).pipe(timeout(15000)),
           );

@@ -21,7 +21,7 @@ export const cu11Cu20Routes: Routes = [
   },
   {
     path: 'offline',
-    title: 'Sin conexión | DrapeMind',
+    title: 'Reservas guardadas | DrapeMind',
     data: { casos: ['CU-12', 'CU-13', 'CU-14'] },
     loadComponent: () => import('../cu13_catalogo_offline/cu13-offline.component').then((m) => m.OfflineComponent),
   },
