@@ -17,6 +17,7 @@ export interface Order {
   descuento: number;
   costo_envio: number;
   total: number;
+  observacion?: string | null;
   created_at: string;
   paid_at: string | null;
   completed_at: string | null;

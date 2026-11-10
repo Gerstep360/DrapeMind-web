@@ -51,6 +51,15 @@ export class OrdersComponent {
       } as Record<string, string>
     )[state] || state;
   }
+  orderStatusLabel(order: Order): string {
+    if (order.estado === 'DEVUELTO') {
+      if (order.observacion?.toLowerCase().includes('cambio')) {
+        return 'Cambio';
+      }
+      return 'Devolución';
+    }
+    return this.filterLabel(order.estado);
+  }
   readonly auth = inject(AuthService);
   private readonly commerceApi = inject(CommerceApiService);
   private readonly branchApi = inject(BranchInventoryApiService);
@@ -148,7 +157,7 @@ export class OrdersComponent {
 
   filteredOrders(): Order[] {
     const hidden=new Set(this.queued.purchases().filter(r=>this.queued.state(r)!=='PAGADA').map(r=>r.remote?.pedido_id));
-    const orders=this.orders().filter(o=>!hidden.has(o.id));
+    const orders=this.orders().filter(o=>!hidden.has(o.id) && Number(o.total) > 0);
     return this.filter()==='TODOS'?orders:orders.filter(o=>o.estado===this.filter());
   }
 

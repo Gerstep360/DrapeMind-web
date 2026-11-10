@@ -45,8 +45,20 @@
 }
 
 .mode-switch-icon {
-  font-size: 24px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #f0f0eb;
+  border: 1.5px solid #1b1b1b;
+  border-radius: 8px;
+  color: #1b1b1b;
+  flex-shrink: 0;
+}
+
+.mode-switch-btn.is-active .mode-switch-icon {
+  background: #c8ff2a;
 }
 
 .mode-switch-label {
@@ -79,7 +91,10 @@
 }
 
 .error-icon {
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .error-content strong {
@@ -120,10 +135,10 @@
   width: 32px;
   height: 32px;
   background: #1b1b1b;
-  color: #edf1d4;
+  color: #c8ff2a;
   border-radius: 50%;
   font-weight: 900;
-  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .success-badge h2 {
@@ -186,10 +201,62 @@
   color: #d9480f;
 }
 
+.neutral-highlight {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b1b1b;
+}
+
 .success-actions {
   display: flex;
   gap: 12px;
   margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-view-voucher {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #c8ff2a !important;
+  color: #1b1b1b !important;
+  border: 2px solid #1b1b1b !important;
+  box-shadow: 3px 3px 0 #1b1b1b !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+
+  &:hover {
+    transform: translate(1px, 1px) !important;
+    box-shadow: 2px 2px 0 #1b1b1b !important;
+    color: #1b1b1b !important;
+  }
+}
+
+.btn-manage-another {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #ffffff !important;
+  color: #1b1b1b !important;
+  border: 2px solid #1b1b1b !important;
+  box-shadow: 3px 3px 0 #1b1b1b !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+
+  &:hover {
+    transform: translate(1px, 1px) !important;
+    box-shadow: 2px 2px 0 #1b1b1b !important;
+  }
 }
 
 /* SELECCIÓN DIRECTA DE PEDIDOS */
@@ -494,8 +561,16 @@
 }
 
 .item-visual-badge {
-  font-size: 26px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #f8f9fa;
+  border: 1.5px solid #1b1b1b;
+  border-radius: 8px;
+  color: #1b1b1b;
+  flex-shrink: 0;
 }
 
 .item-details {
@@ -580,7 +655,15 @@
 }
 
 .live-refund-icon {
-  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: 1.5px solid #2b8a3e;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .live-refund-eyebrow {
@@ -655,23 +738,39 @@
 }
 
 .btn-confirm-return {
-  background: #2b8a3e;
-  color: #fff;
-  border: 2px solid #1b1b1b;
-  box-shadow: 4px 4px 0 #1b1b1b;
-  font-size: 15px;
-  font-weight: 900;
-  padding: 14px 28px;
+  background: #2b8a3e !important;
+  color: #fff !important;
+  border: 2px solid #1b1b1b !important;
+  box-shadow: 4px 4px 0 #1b1b1b !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  padding: 14px 28px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+
+  &:hover {
+    background: #237032 !important;
+    transform: translate(1px, 1px) !important;
+    box-shadow: 3px 3px 0 #1b1b1b !important;
+  }
 }
 
 .btn-confirm-exchange {
-  background: #c8ff2a;
-  color: #1b1b1b;
-  border: 2px solid #1b1b1b;
-  box-shadow: 4px 4px 0 #1b1b1b;
-  font-size: 15px;
-  font-weight: 900;
-  padding: 14px 28px;
+  background: #c8ff2a !important;
+  color: #1b1b1b !important;
+  border: 2px solid #1b1b1b !important;
+  box-shadow: 4px 4px 0 #1b1b1b !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  padding: 14px 28px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+
+  &:hover {
+    background: #bbf019 !important;
+    transform: translate(1px, 1px) !important;
+    box-shadow: 3px 3px 0 #1b1b1b !important;
+  }
 }
 
 /* MODO 2: COLUMNAS DE CAMBIO */
@@ -823,8 +922,15 @@
 }
 
 .balance-icon {
-  font-size: 32px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: #ffffff;
+  border: 1.5px solid #1b1b1b;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .balance-eyebrow {

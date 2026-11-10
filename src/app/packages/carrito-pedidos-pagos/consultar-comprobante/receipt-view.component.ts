@@ -47,6 +47,9 @@ export class ReceiptViewComponent implements OnInit {
 
   readonly statusMeta = computed<ReceiptStatusMeta>(() => {
     const estado = this.receipt()?.order?.estado ?? '';
+    if (estado === 'DEVUELTO') {
+      return { label: 'Devolución y Reembolso', tone: 'warning' };
+    }
     return RECEIPT_STATUS_META[estado] ?? { label: estado || 'Sin estado', tone: 'neutral' };
   });
 

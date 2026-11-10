@@ -37,7 +37,7 @@
             <span class="order-label">Pedido Registrado</span>
             <strong class="order-id">#{{ order.id.toString().padStart(5, '0') }}</strong>
           </div>
-          <span class="status-badge" [attr.data-status]="order.estado">{{ filterLabel(order.estado) }}</span>
+          <span class="status-badge" [attr.data-status]="order.estado">{{ orderStatusLabel(order) }}</span>
         </header>
 
         <div class="order-card__body">
@@ -89,22 +89,10 @@
             }
             @if (['PAGADO', 'ENTREGADO'].includes(order.estado)) {
               <a
-                class="button button--small button-return"
-                [routerLink]="['/exchanges']"
-                [queryParams]="{ code: order.id, mode: 'DEVOLUCION' }"
-                title="Devolver prendas y recibir reembolso"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                  <path d="M3 3v5h5"/>
-                </svg>
-                <span>↩️ Devolución</span>
-              </a>
-              <a
                 class="button button--secondary button--small button-exchange"
                 [routerLink]="['/exchanges']"
-                [queryParams]="{ code: order.id, mode: 'CAMBIO' }"
-                title="Cambiar prenda por otra talla o modelo"
+                [queryParams]="{ code: order.id }"
+                title="Tramitar cambio de prenda o devolución"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 3h5v5"/>
@@ -113,7 +101,7 @@
                   <path d="M15 15l6 6"/>
                   <path d="M4 4l5 5"/>
                 </svg>
-                <span>🔄 Cambiar</span>
+                <span>Cambios o devoluciones</span>
               </a>
             }
           </div>

@@ -7,7 +7,7 @@
     </div>
   </header>
 
-  <!-- SWITCH SEGMENTADO ELEGANTE ENTRE DEVOLUCION Y CAMBIO -->
+  <!-- SWITCH SEGMENTADO ENTRE DEVOLUCION Y CAMBIO (CON ICONOS SVG, SIN EMOJIS) -->
   <section class="mode-switcher-container" aria-label="Modalidad del trámite">
     <div class="mode-segmented-bar">
       <button
@@ -16,7 +16,12 @@
         [class.is-active]="activeMode === 'DEVOLUCION'"
         (click)="setMode('DEVOLUCION')"
       >
-        <span class="mode-switch-icon">↩️</span>
+        <span class="mode-switch-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 14 4 9 9 4"/>
+            <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+          </svg>
+        </span>
         <span class="mode-switch-label">
           <strong>Solicitar Devolución</strong>
           <small>Reembolso de dinero a tu favor</small>
@@ -29,7 +34,15 @@
         [class.is-active]="activeMode === 'CAMBIO'"
         (click)="setMode('CAMBIO')"
       >
-        <span class="mode-switch-icon">🔄</span>
+        <span class="mode-switch-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 3h5v5"/>
+            <path d="M4 20L21 3"/>
+            <path d="M21 16v5h-5"/>
+            <path d="M15 15l6 6"/>
+            <path d="M4 4l5 5"/>
+          </svg>
+        </span>
         <span class="mode-switch-label">
           <strong>Solicitar Cambio</strong>
           <small>Llevar otra prenda, talla o color</small>
@@ -41,7 +54,13 @@
   <!-- MENSAJES DE ERROR ESPECIFICOS -->
   @if (error) {
     <div class="specific-error-card" role="alert">
-      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <div class="error-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e03131" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
       <div class="error-content">
         <strong>No se pudo completar la solicitud</strong>
         <p>{{ error }}</p>
@@ -64,7 +83,11 @@
   @if (result) {
     <section class="exchange-success-card">
       <div class="success-badge">
-        <span class="success-icon">✓</span>
+        <span class="success-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
         <h2>
           {{ result.total_nuevo === '0' || result.total_nuevo === '0.00' ? 'Devolución y Reembolso' : 'Cambio de Prendas' }} #{{ result.id }} Registrado
         </h2>
@@ -96,14 +119,20 @@
       <div class="success-actions">
         @if (result.sale?.pedido_id) {
           <a
-            class="button button--primary"
+            class="button btn-view-voucher"
             [routerLink]="['/receipt', result.sale.pedido_id]"
             [queryParams]="{ code: result.sale.codigo_publico, store: auth.user()?.tenant_slug }"
           >
-            Ver nuevo comprobante oficial ↗
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Ver comprobante oficial
           </a>
         }
-        <button type="button" class="button button--secondary" (click)="clearOrder()">
+        <button type="button" class="button btn-manage-another" (click)="clearOrder()">
           Gestionar otro pedido
         </button>
       </div>
@@ -115,7 +144,7 @@
     <section class="order-picker-section">
       <div class="picker-header">
         <h2>Selecciona el pedido que deseas {{ activeMode === 'DEVOLUCION' ? 'devolver' : 'cambiar' }}</h2>
-        <p>No necesitas escribir códigos. Elige tu compra para cargar automáticamente los detalles y montos:</p>
+        <p>Elige tu compra para cargar automáticamente los detalles y montos de las prendas:</p>
       </div>
 
       @if (loadingOrders()) {
@@ -147,7 +176,7 @@
 
               <div class="choice-card-foot">
                 @if (ord.estado === 'DEVUELTO') {
-                  <span class="already-returned-badge">✓ Reembolso ya tramitado</span>
+                  <span class="already-returned-badge">Reembolso ya tramitado</span>
                 } @else {
                   <button
                     type="button"
@@ -156,7 +185,7 @@
                     [class.btn-select-exchange]="activeMode === 'CAMBIO'"
                     (click)="selectOrder(ord)"
                   >
-                    {{ activeMode === 'DEVOLUCION' ? '↩️ Devolver este pedido' : '🔄 Cambiar prendas de este pedido' }}
+                    {{ activeMode === 'DEVOLUCION' ? 'Devolver este pedido' : 'Cambiar prendas de este pedido' }}
                   </button>
                 }
               </div>
@@ -176,7 +205,7 @@
           class="btn-toggle-manual"
           (click)="showManualSearch = !showManualSearch"
         >
-          {{ showManualSearch ? '▲ Ocultar búsqueda por código' : '▼ ¿Compraste en tienda física con comprobante en papel? Buscar por código' }}
+          {{ showManualSearch ? 'Ocultar búsqueda por código' : '¿Compraste en tienda física con comprobante en papel? Buscar por código' }}
         </button>
 
         @if (showManualSearch) {
@@ -210,7 +239,7 @@
         </span>
       </div>
       <button type="button" class="btn-change-active-order" (click)="clearOrder()">
-        ✕ Elegir otro pedido
+        Elegir otro pedido
       </button>
     </section>
 
@@ -225,7 +254,12 @@
         <div class="return-items-list">
           @for (item of order.items; track item.id) {
             <article class="return-item-card" [class.is-selected]="(returns[item.id] || 0) > 0">
-              <div class="item-visual-badge">👗</div>
+              <div class="item-visual-badge">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </div>
               <div class="item-details">
                 <h3>{{ item.nombre }}</h3>
                 <div class="item-meta-pills">
@@ -267,14 +301,20 @@
         @if (quote && +quote.diferencia < 0) {
           <div class="live-refund-card">
             <div class="live-refund-header">
-              <span class="live-refund-icon">💰</span>
+              <span class="live-refund-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                  <path d="M12 18V6"/>
+                </svg>
+              </span>
               <div>
                 <span class="live-refund-eyebrow">MONTO A DEVOLVER AL CLIENTE</span>
                 <strong class="live-refund-sum">Bs {{ (-quote.diferencia).toFixed(2) }}</strong>
               </div>
             </div>
             <p class="live-refund-desc">
-              ✓ Se reembolsará exactamente este importe a tu favor mediante efectivo o abono registrado en tu cuenta.
+              Se reembolsará exactamente este importe a tu favor mediante efectivo o abono registrado en tu cuenta.
             </p>
           </div>
         }
@@ -283,10 +323,10 @@
         <div class="reason-section">
           <label><strong>Motivo de la devolución</strong></label>
           <div class="quick-chips">
-            <button type="button" class="chip" (click)="setQuickNote('Talla incorrecta')">Talla no quedó bien</button>
-            <button type="button" class="chip" (click)="setQuickNote('Prenda con defecto')">Defecto de confección</button>
-            <button type="button" class="chip" (click)="setQuickNote('No cumplió expectativas')">No era lo que esperaba</button>
-            <button type="button" class="chip" (click)="setQuickNote('Preferencia personal')">Cambio de parecer</button>
+            <button type="button" class="chip" (click)="setQuickNote('Talla no quedó bien')">Talla no quedó bien</button>
+            <button type="button" class="chip" (click)="setQuickNote('Defecto de confección')">Defecto de confección</button>
+            <button type="button" class="chip" (click)="setQuickNote('No era lo que esperaba')">No era lo que esperaba</button>
+            <button type="button" class="chip" (click)="setQuickNote('Preferencia por reembolso')">Preferencia por reembolso</button>
           </div>
           <textarea
             [(ngModel)]="note"
@@ -305,7 +345,7 @@
             (click)="save()"
           >
             <span class="btn-text">
-              {{ busy ? 'Procesando devolución...' : '↩️ Confirmar Devolución y Reembolso' }}
+              {{ busy ? 'Procesando devolución...' : 'Confirmar Devolución y Reembolso' }}
               @if (quote && +quote.diferencia < 0) {
                 (Bs {{ (-quote.diferencia).toFixed(2) }})
               }
@@ -410,7 +450,7 @@
                 @for (line of lines; track line.variante_id) {
                   <div class="line-pill">
                     <span class="line-name">{{ line.cantidad }} × {{ variantName(line.variante_id) }}</span>
-                    <button type="button" class="btn-remove-line" (click)="removeLine($index)">Quitar ✕</button>
+                    <button type="button" class="btn-remove-line" (click)="removeLine($index)">Quitar</button>
                   </div>
                 }
               }
@@ -424,9 +464,14 @@
             @if (+quote.diferencia < 0) {
               <!-- SOBRA PLATA: SE DEVUELVE AL CLIENTE -->
               <div class="balance-card balance-card--surplus">
-                <div class="balance-icon">🎉</div>
+                <div class="balance-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
                 <div class="balance-copy">
-                  <span class="balance-eyebrow">¡SOBRA DINERO A TU FAVOR!</span>
+                  <span class="balance-eyebrow">SOBRA DINERO A TU FAVOR</span>
                   <strong class="balance-title">Se te reembolsarán Bs {{ (-quote.diferencia).toFixed(2) }}</strong>
                   <p>
                     La nueva prenda cuesta menos que tu prenda original devuelta. Esta diferencia a tu favor te será devuelta en efectivo o saldo.
@@ -436,7 +481,13 @@
             } @else if (+quote.diferencia > 0) {
               <!-- FALTA PLATA: CLIENTE DEBE ABONAR LA DIFERENCIA -->
               <div class="balance-card balance-card--deficit">
-                <div class="balance-icon">⚠️</div>
+                <div class="balance-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d9480f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
                 <div class="balance-copy">
                   <span class="balance-eyebrow">DIFERENCIA PENDIENTE A ABONAR</span>
                   <strong class="balance-title">Debes abonar Bs {{ (+quote.diferencia).toFixed(2) }}</strong>
@@ -448,7 +499,11 @@
             } @else {
               <!-- CAMBIO EQUIVALENTE -->
               <div class="balance-card balance-card--equal">
-                <div class="balance-icon">✓</div>
+                <div class="balance-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1971c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
                 <div class="balance-copy">
                   <span class="balance-eyebrow">CAMBIO EQUIVALENTE</span>
                   <strong class="balance-title">Sin diferencia económica: Bs 0.00</strong>
@@ -463,10 +518,10 @@
         <div class="reason-section">
           <label><strong>Motivo del cambio</strong></label>
           <div class="quick-chips">
-            <button type="button" class="chip" (click)="setQuickNote('Cambio por talla más grande')">Talla más grande</button>
-            <button type="button" class="chip" (click)="setQuickNote('Cambio por talla más pequeña')">Talla más pequeña</button>
+            <button type="button" class="chip" (click)="setQuickNote('Talla más grande')">Talla más grande</button>
+            <button type="button" class="chip" (click)="setQuickNote('Talla más pequeña')">Talla más pequeña</button>
             <button type="button" class="chip" (click)="setQuickNote('Preferencia por otro color')">Otro color</button>
-            <button type="button" class="chip" (click)="setQuickNote('Cambio por otro modelo')">Otro modelo</button>
+            <button type="button" class="chip" (click)="setQuickNote('Preferencia por otro modelo')">Otro modelo</button>
           </div>
           <textarea
             [(ngModel)]="note"
@@ -485,7 +540,7 @@
             (click)="save()"
           >
             <span class="btn-text">
-              {{ busy ? 'Procesando cambio...' : '🔄 Confirmar Cambio de Prenda' }}
+              {{ busy ? 'Procesando cambio...' : 'Confirmar Cambio de Prenda' }}
             </span>
           </button>
         </div>
