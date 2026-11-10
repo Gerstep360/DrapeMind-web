@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
-import { OfflineService, offlineMessage } from '../cu13_catalogo_offline/cu13-offline.service';
+import { OfflineService, offlineMessage, offlineMediaUrl } from '../cu13_catalogo_offline/cu13-offline.service';
+import { StripePaymentComponent } from '../cu23_pagos/cu23-pago.component';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { AuthService } from '../../core/auth.service';
 import { DownloadedOrdersService } from '../cu24_pedidos/cu24-pedidos-descargados.service';
@@ -14,7 +15,7 @@ export type ExchangeMode = 'DEVOLUCION' | 'CAMBIO';
 
 @Component({
   selector: 'app-exchanges',
-  imports: [CommonModule, FormsModule, RouterLink, DatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, DatePipe, StripePaymentComponent],
   templateUrl: './cu20-exchanges.component.html',
   styleUrls: ['../compartido/feature.scss', './cu20-exchanges.component.scss'],
 })
@@ -43,6 +44,16 @@ export class ExchangesComponent implements OnInit {
   lines: { variante_id: number; cantidad: number; name?: string; price?: number }[] = [];
   requestId = crypto.randomUUID();
   pending: any = null;
+
+  // Pago y Diferencia
+  paymentMethod: 'STRIPE' | 'EFECTIVO' = 'STRIPE';
+  stripePaidSuccess = false;
+
+  // Selección Visual de Prendas
+  garmentSearch = '';
+  selectedCategory = 0;
+  selectedProduct: any = null;
+  selectedVariant: any = null;
 
   // Selección directa sin buscar
   clientOrders = signal<Order[]>([]);
@@ -138,8 +149,11 @@ export class ExchangesComponent implements OnInit {
     this.order = null;
     this.quote = null;
     this.result = null;
+    this.stripePaidSuccess = false;
     this.lines = [];
     this.returns = {};
+    this.selectedProduct = null;
+    this.selectedVariant = null;
     this.code = '';
     this.error = '';
     this.loadClientOrders();
@@ -153,6 +167,62 @@ export class ExchangesComponent implements OnInit {
 
   get availableVariants() {
     return this.offline.bundle()?.variants ?? [];
+  }
+
+  get catalogProducts() {
+    const products = this.offline.bundle()?.products ?? [];
+    const q = this.garmentSearch.trim().toLowerCase();
+    const cat = this.selectedCategory;
+    return products.filter((p) => {
+      const matchSearch =
+        !q || p.nombre.toLowerCase().includes(q) || (p.marca && p.marca.toLowerCase().includes(q));
+      const matchCat = !cat || p.categoria_id === cat;
+      return matchSearch && matchCat;
+    });
+  }
+
+  get categories() {
+    return this.offline.bundle()?.categories ?? [];
+  }
+
+  productImage(p: any): string {
+    return p?.imagenes?.[0] ? offlineMediaUrl(this.runtime.apiUrl, p.imagenes[0]) : '';
+  }
+
+  variantImage(variantId: number): string {
+    const v = this.offline.bundle()?.variants.find((v) => v.id === variantId);
+    const p = this.offline.bundle()?.products.find((p) => p.id === v?.producto_id);
+    return this.productImage(p);
+  }
+
+  variantsForProduct(productId: number) {
+    return this.offline.bundle()?.variants.filter((v) => v.producto_id === productId) ?? [];
+  }
+
+  selectProduct(p: any) {
+    this.selectedProduct = p;
+    const variants = this.variantsForProduct(p.id);
+    this.selectedVariant = variants[0] || null;
+    this.variant = this.selectedVariant?.id || 0;
+    this.quantity = 1;
+  }
+
+  selectVariant(v: any) {
+    this.selectedVariant = v;
+    this.variant = v.id;
+  }
+
+  addSelectedVariant() {
+    if (!this.selectedVariant || this.quantity < 1) return;
+    this.addVariant();
+  }
+
+  onStripePaid() {
+    this.stripePaidSuccess = true;
+    if (this.result) {
+      this.result.stripe_payment_needed = false;
+    }
+    this.cdr.markForCheck();
   }
 
   async find() {
@@ -222,6 +292,8 @@ export class ExchangesComponent implements OnInit {
       this.error = 'Elige una variante de prenda y cantidad válidas.';
       return;
     }
+    const v = this.offline.bundle()?.variants.find((v) => v.id === id);
+    const p = this.offline.bundle()?.products.find((p) => p.id === v?.producto_id);
     const line = this.lines.find((i) => i.variante_id === id);
     if (line) {
       line.cantidad += q;
@@ -229,11 +301,13 @@ export class ExchangesComponent implements OnInit {
       this.lines.push({
         variante_id: id,
         cantidad: q,
-        name: this.variantName(id),
+        name: p ? `${p.nombre} · ${v?.talla} · ${v?.color}` : `Variante #${id}`,
+        price: p ? Number(p.precio) : 0,
       });
     }
     this.variant = 0;
     this.quantity = 1;
+    this.selectedVariant = null;
     this.quote = null;
     void this.calculate();
   }
@@ -254,14 +328,15 @@ export class ExchangesComponent implements OnInit {
     return {
       operacion_id: this.requestId,
       pedido_origen_id: this.order.pedido_id,
-      sucursal_id: this.order.sucursal_id,
+      sucursal_id: this.order.sucursal_id || 1,
       motivo: this.note.trim() || (this.activeMode === 'DEVOLUCION' ? 'Devolución de prenda' : 'Cambio de prenda'),
       devoluciones: Object.entries(this.returns)
         .filter(([, q]) => +q > 0)
         .map(([id, q]) => ({ item_pedido_id: +id, cantidad: +q })),
       prendas_nuevas: this.lines.map((i) => ({ variante_id: i.variante_id, cantidad: i.cantidad })),
-      efectivo_recibido: Number(this.received).toFixed(2),
-      efectivo_devuelto: Number(this.refunded).toFixed(2),
+      efectivo_recibido: this.paymentMethod === 'STRIPE' ? '0.00' : Number(this.received).toFixed(2),
+      efectivo_devuelto: this.paymentMethod === 'STRIPE' ? '0.00' : Number(this.refunded).toFixed(2),
+      metodo_pago: this.paymentMethod,
     };
   }
 

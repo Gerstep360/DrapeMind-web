@@ -99,7 +99,13 @@
           <strong>Prendas nuevas:</strong> Bs {{ result.total_nuevo }}
         </p>
 
-        @if (+result.diferencia < 0) {
+        @if (result.stripe_refund) {
+          <div class="refund-highlight refund-highlight--stripe">
+            <span class="refund-pill">Reembolso Procesado con Stripe</span>
+            <strong class="refund-amount">Bs {{ result.stripe_refund.monto }}</strong>
+            <p>Se emitió el reembolso directo a tu tarjeta vía Stripe (ID: <code>{{ result.stripe_refund.id }}</code>). El dinero se reflejará en tu cuenta en los plazos bancarios habituales.</p>
+          </div>
+        } @else if (+result.diferencia < 0) {
           <div class="refund-highlight">
             <span class="refund-pill">Reembolso a tu favor</span>
             <strong class="refund-amount">Bs {{ (-result.diferencia).toFixed(2) }}</strong>
@@ -109,12 +115,29 @@
           <div class="deficit-highlight">
             <span class="deficit-pill">Diferencia a abonar</span>
             <strong class="deficit-amount">Bs {{ (+result.diferencia).toFixed(2) }}</strong>
-            <p>Abona este saldo pendiente al recibir tus nuevas prendas o en caja.</p>
+            @if (result.stripe_payment_needed && !stripePaidSuccess) {
+              <p>Autoriza el pago seguro de la diferencia con Stripe a continuación para completar tu cambio:</p>
+            } @else if (stripePaidSuccess) {
+              <p class="paid-success-tag">Diferencia pagada y autorizada exitosamente mediante Stripe.</p>
+            } @else {
+              <p>Abona este saldo pendiente al recibir tus nuevas prendas o en caja.</p>
+            }
           </div>
         } @else {
           <p class="neutral-highlight">Cambio exacto de igual valor: sin diferencia económica pendiente.</p>
         }
       </div>
+
+      <!-- FORMULARIO DE PAGO STRIPE PARA LA DIFERENCIA -->
+      @if (result.stripe_payment_needed && !stripePaidSuccess && result.sale?.pedido_id) {
+        <div class="stripe-difference-container">
+          <div class="stripe-diff-header">
+            <h3>Pagar diferencia de Bs {{ (+result.diferencia).toFixed(2) }} con Stripe</h3>
+            <p>Ingresa tu tarjeta de crédito o débito para liquidar el importe del cambio de forma segura.</p>
+          </div>
+          <app-stripe-payment [orderId]="result.sale.pedido_id" (paid)="onStripePaid()" />
+        </div>
+      }
 
       <div class="success-actions">
         @if (result.sale?.pedido_id) {
@@ -406,59 +429,172 @@
             }
           </div>
 
-          <!-- COLUMNA DERECHA: NUEVA PRENDA QUE LLEVAS -->
+          <!-- COLUMNA DERECHA: NUEVA PRENDA QUE LLEVAS (SELECCIÓN VISUAL CON IMAGEN) -->
           <div class="exchange-col">
             <div class="panel-section-title">
               <h2>2. Nueva prenda que llevarás</h2>
-              <p>Elige la nueva variante del catálogo disponible.</p>
+              <p>Elige visualmente la prenda de catálogo por la cual cambiarás tu producto.</p>
             </div>
 
-            <div class="new-garment-selector">
-              <label>
-                Seleccionar nueva prenda y talla:
-                <select [(ngModel)]="variant" aria-label="Variante de prenda">
-                  <option [ngValue]="0">-- Elige una prenda disponible --</option>
-                  @for (v of availableVariants; track v.id) {
-                    <option [ngValue]="v.id">{{ variantName(v.id) }}</option>
-                  }
-                </select>
-              </label>
-
-              <div class="add-row">
-                <label>
-                  Cantidad:
-                  <input type="number" min="1" max="50" [(ngModel)]="quantity" />
-                </label>
-                <button
-                  type="button"
-                  class="button button--secondary"
-                  [disabled]="!variant || quantity < 1"
-                  (click)="addVariant()"
-                >
-                  + Añadir al cambio
-                </button>
+            <!-- BUSCADOR Y FILTROS VISUALES -->
+            <div class="visual-catalog-filter">
+              <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  type="text"
+                  [(ngModel)]="garmentSearch"
+                  placeholder="Buscar por nombre o marca..."
+                  class="catalog-search-input"
+                />
               </div>
+              @if (categories.length > 0) {
+                <div class="category-chips-bar">
+                  <button
+                    type="button"
+                    class="cat-chip"
+                    [class.is-active]="selectedCategory === 0"
+                    (click)="selectedCategory = 0"
+                  >Todas</button>
+                  @for (cat of categories; track cat.id) {
+                    <button
+                      type="button"
+                      class="cat-chip"
+                      [class.is-active]="selectedCategory === cat.id"
+                      (click)="selectedCategory = cat.id"
+                    >{{ cat.nombre }}</button>
+                  }
+                </div>
+              }
             </div>
 
-            <!-- LISTA DE PRENDAS NUEVAS AGREGADAS -->
-            <div class="new-lines-list">
-              @if (lines.length === 0) {
-                <div class="empty-lines-hint">
-                  <span>Selecciona una prenda arriba para calcular la diferencia de precio.</span>
+            <!-- GRILLA VISUAL DE PRENDAS DEL CATÁLOGO -->
+            <div class="garment-catalog-scroll">
+              @if (catalogProducts.length === 0) {
+                <div class="empty-catalog-msg">
+                  <p>No se encontraron prendas con los filtros aplicados.</p>
                 </div>
               } @else {
-                @for (line of lines; track line.variante_id) {
-                  <div class="line-pill">
-                    <span class="line-name">{{ line.cantidad }} × {{ variantName(line.variante_id) }}</span>
-                    <button type="button" class="btn-remove-line" (click)="removeLine($index)">Quitar</button>
+                <div class="garment-cards-grid">
+                  @for (prod of catalogProducts; track prod.id) {
+                    <article
+                      class="visual-product-card"
+                      [class.is-selected]="selectedProduct?.id === prod.id"
+                      (click)="selectProduct(prod)"
+                    >
+                      <div class="prod-card-thumb">
+                        @if (productImage(prod)) {
+                          <img [src]="productImage(prod)" [alt]="prod.nombre" loading="lazy" />
+                        } @else {
+                          <div class="no-thumb-placeholder">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                            </svg>
+                          </div>
+                        }
+                        <span class="price-badge">Bs {{ prod.precio }}</span>
+                      </div>
+                      <div class="prod-card-info">
+                        <strong class="prod-name">{{ prod.nombre }}</strong>
+                        @if (prod.marca) {
+                          <span class="prod-brand">{{ prod.marca }}</span>
+                        }
+                        <div class="prod-variants-chips">
+                          @for (v of variantsForProduct(prod.id); track v.id) {
+                            <button
+                              type="button"
+                              class="var-pill"
+                              [class.is-active]="selectedVariant?.id === v.id"
+                              (click)="$event.stopPropagation(); selectProduct(prod); selectVariant(v)"
+                            >
+                              {{ v.talla }} · {{ v.color }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- PANEL DE PRENDA SELECCIONADA Y CANTIDAD -->
+            @if (selectedProduct && selectedVariant) {
+              <div class="active-selection-banner">
+                <div class="selection-thumb">
+                  @if (productImage(selectedProduct)) {
+                    <img [src]="productImage(selectedProduct)" [alt]="selectedProduct.nombre" />
+                  } @else {
+                    <div class="mini-thumb">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+                    </div>
+                  }
+                </div>
+                <div class="selection-copy">
+                  <span class="selection-tag">Prenda elegida:</span>
+                  <strong>{{ selectedProduct.nombre }}</strong>
+                  <span class="selection-meta">Talla: {{ selectedVariant.talla }} · Color: {{ selectedVariant.color }} · Bs {{ selectedProduct.precio }} c/u</span>
+                </div>
+                <div class="selection-actions">
+                  <div class="qty-pill">
+                    <button type="button" class="btn-qty" [disabled]="quantity <= 1" (click)="quantity = quantity - 1">-</button>
+                    <span class="qty-num">{{ quantity }}</span>
+                    <button type="button" class="btn-qty" (click)="quantity = quantity + 1">+</button>
                   </div>
-                }
+                  <button
+                    type="button"
+                    class="btn-add-to-exchange"
+                    (click)="addSelectedVariant()"
+                  >
+                    + Añadir al cambio
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- LISTA DE PRENDAS NUEVAS AGREGADAS AL CAMBIO -->
+            <div class="new-lines-list">
+              <span class="lines-heading">Prendas en tu solicitud de cambio:</span>
+              @if (lines.length === 0) {
+                <div class="empty-lines-hint">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                  <span>Elige arriba una prenda de la cuadrícula para calcular la diferencia de precio.</span>
+                </div>
+              } @else {
+                <div class="lines-cards-container">
+                  @for (line of lines; track line.variante_id) {
+                    <div class="line-garment-card">
+                      <div class="line-thumb">
+                        @if (variantImage(line.variante_id)) {
+                          <img [src]="variantImage(line.variante_id)" [alt]="line.name || 'Prenda'" />
+                        } @else {
+                          <div class="mini-thumb">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+                          </div>
+                        }
+                      </div>
+                      <div class="line-details">
+                        <strong class="line-title">{{ line.name }}</strong>
+                        <span class="line-qty">Cantidad: {{ line.cantidad }}</span>
+                      </div>
+                      <button type="button" class="btn-remove-line" (click)="removeLine($index)">
+                        Quitar
+                      </button>
+                    </div>
+                  }
+                </div>
               }
             </div>
           </div>
         </div>
 
-        <!-- BALANCE ECONOMICO EN VIVO (SOBRA PLATA O FALTA PLATA) -->
+        <!-- BALANCE ECONOMICO EN VIVO (DIFERENCIA DE CAMBIO / REEMBOLSO) -->
         @if (quote) {
           <div class="economic-balance-box">
             @if (+quote.diferencia < 0) {
@@ -471,15 +607,20 @@
                   </svg>
                 </div>
                 <div class="balance-copy">
-                  <span class="balance-eyebrow">SOBRA DINERO A TU FAVOR</span>
+                  <span class="balance-eyebrow">REEMBOLSO A TU FAVOR</span>
                   <strong class="balance-title">Se te reembolsarán Bs {{ (-quote.diferencia).toFixed(2) }}</strong>
-                  <p>
-                    La nueva prenda cuesta menos que tu prenda original devuelta. Esta diferencia a tu favor te será devuelta en efectivo o saldo.
-                  </p>
+                  @if (quote.stripe_refund_eligible) {
+                    <div class="stripe-refund-preview">
+                      <span class="stripe-tag">Reembolso automático con Stripe</span>
+                      <p>Tu compra original fue pagada con tarjeta en Stripe. El reembolso de <strong>Bs {{ (-quote.diferencia).toFixed(2) }}</strong> se enviará directamente a tu tarjeta al confirmar.</p>
+                    </div>
+                  } @else {
+                    <p>La nueva prenda cuesta menos que tu prenda original devuelta. Esta diferencia a tu favor te será devuelta en efectivo o saldo.</p>
+                  }
                 </div>
               </div>
             } @else if (+quote.diferencia > 0) {
-              <!-- FALTA PLATA: CLIENTE DEBE ABONAR LA DIFERENCIA -->
+              <!-- FALTA PLATA: CLIENTE DEBE ABONAR LA DIFERENCIA (OPCIÓN STRIPE) -->
               <div class="balance-card balance-card--deficit">
                 <div class="balance-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d9480f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -489,11 +630,42 @@
                   </svg>
                 </div>
                 <div class="balance-copy">
-                  <span class="balance-eyebrow">DIFERENCIA PENDIENTE A ABONAR</span>
+                  <span class="balance-eyebrow">DIFERENCIA A ABONAR</span>
                   <strong class="balance-title">Debes abonar Bs {{ (+quote.diferencia).toFixed(2) }}</strong>
-                  <p>
-                    La nueva prenda tiene un valor superior. Abonarás este saldo pendiente al recibir la prenda o en caja de la tienda.
-                  </p>
+                  <p>La nueva prenda tiene un valor superior a tu prenda devuelta.</p>
+
+                  <!-- SELECTOR DE METODO DE PAGO DE LA DIFERENCIA -->
+                  <div class="payment-method-selector">
+                    <span class="method-title">¿Cómo deseas abonar la diferencia?</span>
+                    <div class="methods-grid">
+                      <label class="method-card" [class.is-selected]="paymentMethod === 'STRIPE'">
+                        <input
+                          type="radio"
+                          name="diffPaymentMethod"
+                          value="STRIPE"
+                          [checked]="paymentMethod === 'STRIPE'"
+                          (change)="paymentMethod = 'STRIPE'"
+                        />
+                        <div class="method-body">
+                          <strong>Pagar con Tarjeta (Stripe)</strong>
+                          <small>Pago seguro online inmediato de la diferencia</small>
+                        </div>
+                      </label>
+                      <label class="method-card" [class.is-selected]="paymentMethod === 'EFECTIVO'">
+                        <input
+                          type="radio"
+                          name="diffPaymentMethod"
+                          value="EFECTIVO"
+                          [checked]="paymentMethod === 'EFECTIVO'"
+                          (change)="paymentMethod = 'EFECTIVO'"
+                        />
+                        <div class="method-body">
+                          <strong>Pagar en Tienda / Efectivo</strong>
+                          <small>Abona la diferencia en caja al recoger tus prendas</small>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             } @else {
