@@ -30,7 +30,8 @@ self.addEventListener('notificationclick', event => {
     else await self.clients.openWindow(url.href);
   })());
 });
-self.addEventListener('install', (event) =>
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     (async () => {
       const response = await fetch(new URL('sw-assets.json', self.registration.scope), {
@@ -42,10 +43,9 @@ self.addEventListener('install', (event) =>
       await cache.addAll(
         manifest.assets.map((path) => new URL(path, self.registration.scope).href),
       );
-      // Activate updates after existing tabs close, so their lazy chunks keep the same shell version.
     })(),
-  ),
-);
+  );
+});
 self.addEventListener('activate', (event) =>
   event.waitUntil(
     (async () => {
