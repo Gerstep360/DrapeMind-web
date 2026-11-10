@@ -158,6 +158,7 @@ export interface Promotion {
   tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA' | string;
   valor_descuento: number;
   monto_minimo_compra: number;
+  cantidad_minima?: number;
   fecha_inicio: string | null;
   fecha_fin: string | null;
   limite_usos: number | null;
@@ -176,6 +177,7 @@ export interface PromotionInput {
   tipo_descuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA' | string;
   valor_descuento: number;
   monto_minimo_compra?: number;
+  cantidad_minima?: number;
   fecha_inicio?: string | null;
   fecha_fin?: string | null;
   limite_usos?: number | null;

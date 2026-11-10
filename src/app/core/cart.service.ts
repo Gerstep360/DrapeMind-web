@@ -1,4 +1,4 @@
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom, Subscription, timeout} from 'rxjs';
 import {LocalCartService} from '../segundo_parcial/cu22_carrito_checkout/cu22-carrito-local.service';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
@@ -17,6 +17,12 @@ export class CartService {
   readonly cart = signal<Cart | null>(null);
   readonly isOpen = signal<boolean>(false);
   readonly loading = signal<boolean>(false);
+  readonly quotingPromotions=signal(false);
+  readonly promoNotice=signal('');
+  private readonly requestedPromo=signal<string|null>(null);
+  private promoRequest?:Subscription;
+  private promoOwner='';
+  private promoKey='';
 
   readonly items = computed<CartItem[]>(() => this.cart()?.items ?? []);
   readonly totalItems = computed<number>(() => this.cart()?.total_items ?? 0);
@@ -28,21 +34,42 @@ export class CartService {
     descuento_calculado: number;
     mensaje: string;
     tipo_descuento?: string;
+    automatico?: boolean;
   } | null>(null);
 
   readonly discountAmount = computed<number>(() => this.appliedPromo()?.descuento_calculado ?? 0);
   readonly totalWithDiscount = computed<number>(() => Math.max(0, this.subtotal() - this.discountAmount()));
 
   setPromo(promo: { codigo: string; descuento_calculado: number; mensaje: string; tipo_descuento?: string } | null): void {
+    this.requestedPromo.set(promo?.codigo??null);
     this.appliedPromo.set(promo);
   }
 
   clearPromo(): void {
+    this.requestedPromo.set(null);
     this.appliedPromo.set(null);
   }
 
   constructor() {
     effect(()=>{this.cart.set(this.local.current());});
+    effect(()=>{
+      const owner=this.local.scopeKey(),items=this.items(),active=this.local.active();
+      if(owner!==this.promoOwner){this.promoOwner=owner;this.requestedPromo.set(null);this.appliedPromo.set(null);}
+      const code=this.requestedPromo();
+      const key=JSON.stringify([owner,items.map(i=>[i.variante_id,i.cantidad,i.precio_unitario]),code,active]);
+      if(key===this.promoKey)return;
+      this.promoKey=key;this.promoRequest?.unsubscribe();this.appliedPromo.set(null);this.promoNotice.set('');
+      if(!owner||!items.length){this.quotingPromotions.set(false);return;}
+      if(!navigator.onLine){this.quotingPromotions.set(false);this.promoNotice.set('Los descuentos se comprueban con conexión.');return;}
+      this.quotingPromotions.set(true);
+      this.promoRequest=this.api.quotePromotions({codigo:code,items:items.map(i=>({variante_id:i.variante_id,cantidad:i.cantidad}))}).pipe(timeout(10000)).subscribe({
+        next:quote=>{
+          if(this.promoKey!==key||this.local.scopeKey()!==owner)return;
+          this.appliedPromo.set(quote.valido?{codigo:quote.codigo,descuento_calculado:Number(quote.descuento_calculado),mensaje:quote.mensaje,tipo_descuento:quote.tipo_descuento,automatico:quote.automatico}:null);
+          this.promoNotice.set(quote.mensaje||'');this.quotingPromotions.set(false);
+        },error:()=>{if(this.promoKey===key){this.quotingPromotions.set(false);this.promoNotice.set('No pudimos comprobar las promociones. Actualiza el carrito para reintentar.');}}
+      });
+    });
     effect(() => {
       if (this.auth.isAuthenticated()) {
         this.loadCart();

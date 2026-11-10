@@ -198,10 +198,15 @@ export class CommerceApiService {
   }
 
   // CU-36: Validar código promocional u oferta
+  quotePromotions(payload: {codigo?: string | null;items: Array<{variante_id:number;cantidad:number}>}): Observable<any> {
+    return this.http.post<any>(`${this.runtime.apiUrl}/catalog/promotions/quote`, payload);
+  }
+
   validatePromotion(payload: {
     codigo: string;
     monto_subtotal: number;
     item_producto_ids?: number[];
+    items?: Array<{variante_id:number;cantidad:number}>;
   }): Observable<{
     valido: boolean;
     codigo: string;

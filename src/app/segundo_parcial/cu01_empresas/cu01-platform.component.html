@@ -59,6 +59,7 @@
     ><button [class.selected]="tab() === 'plans'" (click)="tab.set('plans')">
       Planes y precios
     </button>
+    <button [class.selected]="tab() === 'billing'" (click)="tab.set('billing')">Pagos y reportes</button>
   </nav>
   @if (tab() === 'companies') {
     <section aria-labelledby="companies-title">
@@ -139,6 +140,8 @@
         </div>
       }
     </section>
+  } @else if (tab() === 'billing') {
+    <app-saas-billing [companies]="tenants()" />
   } @else {
     <section class="plan-layout">
       <div>

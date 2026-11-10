@@ -1,0 +1,35 @@
+<section class="billing" aria-labelledby="billing-title">
+  <header class="report-heading">
+    <div><p class="eyebrow">Suscripciones de todas las empresas</p><h2 id="billing-title">Pagos y facturación</h2><p>Consulta quién pagó, qué plan contrató y qué facturas siguen pendientes.</p></div>
+    <button class="primary" [disabled]="syncing() || loading()" (click)="synchronize()">{{ syncing() ? 'Actualizando… ' + imported() + ' facturas' : 'Actualizar desde Stripe' }}</button>
+  </header>
+  @if(error()){<p class="feedback error" role="alert">{{error()}}</p>}
+  @if(notice()){<p class="feedback notice" role="status">{{notice()}}</p>}
+  <form class="filters" [formGroup]="filters" (ngSubmit)="load()">
+    <label class="search">Buscar empresa o administrador<input formControlName="search" placeholder="Nombre, correo o factura"/></label>
+    <label>Empresa<select formControlName="tenant_id"><option value="">Todas las empresas</option>@for(company of companies; track company.tenant.id){<option [value]="company.tenant.id">{{company.tenant.name}}</option>}</select></label>
+    <label>Emitida desde<input type="date" formControlName="since"/></label><label>Hasta<input type="date" formControlName="until"/></label>
+    <label>Estado<select formControlName="status"><option value="">Todos</option><option value="paid">Pagadas</option><option value="open">Pendientes</option><option value="draft">Borradores</option><option value="void">Anuladas</option><option value="uncollectible">Incobrables</option></select></label>
+    <label>Entorno<select formControlName="mode"><option value="all">Real y pruebas, separados</option><option value="live">Solo pagos reales</option><option value="test">Solo pruebas</option></select></label>
+    <button class="secondary" [disabled]="loading() || syncing()">Ver reporte</button>
+  </form>
+  @if(data(); as report){
+    <div class="report-meta"><span><b>{{report.total}}</b> facturas · <b>{{report.companies}}</b> empresas</span><span>Última actualización: {{report.last_synced_at ? (report.last_synced_at | date:'dd/MM/yyyy HH:mm') : 'Sin importar todavía'}}</span></div>
+    @if(loading()){<div class="loading" role="status">Consultando el historial…</div>}
+    <div class="amounts">
+      @for(group of report.summary; track group.currency + group.livemode){
+        <article class="amount-group"><div class="amount-head"><span>{{group.currency}}</span><span class="mode" [class.live]="group.livemode">{{group.livemode?'Pagos reales':'Pruebas de Stripe'}}</span></div><small>Abonado en facturas pagadas</small><strong>{{money(group.paid_amount_minor / 100,group.currency)}}</strong><p>{{group.paid_count}} pagadas · {{group.pending_count}} pendientes</p><div class="pending">Por cobrar <b>{{money(group.pending_amount_minor / 100,group.currency)}}</b></div></article>
+      }
+    </div>
+    @if(report.monthly.length){<div class="charts">
+      @for(chart of charts();track chart.currency + chart.livemode){@if(chart.months.length){<section class="chart"><h3>{{chart.currency}} · {{chart.livemode?'Cobros reales':'Modo de prueba'}}</h3><p>{{chart.limited?'Últimos 12 meses del periodo':'Por mes de emisión de factura'}}</p>@for(month of chart.months;track month.month){<div class="chart-row"><span>{{monthLabel(month.month)}}</span><div class="track"><div [style.width.%]="month.amount_minor / chart.max * 100"></div></div><b>{{money(month.amount_minor / 100,month.currency)}}</b></div>}</section>}}
+    </div>}
+    <div class="history-head"><h3>Historial de pagos</h3><div class="exports"><button class="secondary" [disabled]="exporting() || loading() || !report.total" (click)="export('pdf')">Descargar PDF</button><button class="secondary" [disabled]="exporting() || loading() || !report.total" (click)="export('xlsx')">Exportar Excel</button></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Empresa / administrador</th><th>Factura / plan</th><th>Emitida</th><th>Estado</th><th>Abonado</th><th>Por cobrar</th><th>Entorno</th><th>Documento</th></tr></thead><tbody>
+      @for(row of report.items;track row.id){<tr><td><strong>{{row.company}}</strong><span>{{row.admin || 'Administrador no asignado'}}</span><small>{{row.email}}</small></td><td><strong>{{row.number || 'Sin número asignado'}}</strong><span>{{row.plan || 'Plan anterior'}}</span></td><td>{{row.issued_at | date:'dd/MM/yyyy'}}@if(row.paid_at){<small>Pagada {{row.paid_at | date:'dd/MM/yyyy'}}</small>}</td><td><span class="status" [class.paid]="row.status==='paid'">{{label(row.status)}}</span>@if(row.attempts){<small>{{row.attempts}} intento(s)</small>}</td><td class="numeric">{{money(row.amount_paid,row.currency)}}</td><td class="numeric">{{money(row.amount_remaining,row.currency)}}</td><td><span class="mode" [class.live]="row.livemode">{{row.livemode?'Real':'Prueba'}}</span></td><td>@if(row.pdf_url){<a [href]="row.pdf_url" target="_blank" rel="noopener noreferrer">PDF ↗</a>}@else if(row.invoice_url){<a [href]="row.invoice_url" target="_blank" rel="noopener noreferrer">Ver factura ↗</a>}@else{<small>No disponible</small>}</td></tr>}
+      @empty{<tr><td colspan="8" class="empty"><h3>Aquí verás los pagos de tus empresas</h3><p>{{report.last_synced_at?'No hay facturas para estos filtros. Prueba otro periodo o empresa.':'Actualiza desde Stripe para recuperar las facturas existentes.'}}</p><small>Una licencia activada administrativamente no se contabiliza como un pago.</small></td></tr>}
+    </tbody></table></div>
+    @if(report.total>25){<nav class="pagination" aria-label="Páginas del historial"><button class="secondary" [disabled]="loading() || offset()===0" (click)="load(offset()-25)">Anterior</button><span>{{offset()+1}}–{{offset()+report.items.length}} de {{report.total}}</span><button class="secondary" [disabled]="loading() || offset()+25>=report.total" (click)="load(offset()+25)">Siguiente</button></nav>}
+    <p class="source">Importes de facturas verificadas con Stripe. Las monedas y los pagos de prueba se muestran por separado.</p>
+  }@else if(loading()){<div class="loading" role="status">Cargando los pagos de las empresas…</div>}
+</section>

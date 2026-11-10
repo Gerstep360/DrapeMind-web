@@ -24,7 +24,7 @@ export class PromotionsManagementComponent implements OnInit {
   readonly loading = signal(false);
   readonly submitting = signal(false);
   readonly searchQuery = signal('');
-  readonly filterType = signal<'ALL' | 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA'>('ALL');
+  readonly filterType = signal<'ALL' | 'PORCENTAJE' | 'MONTO_FIJO' | 'DOS_POR_UNO' | 'COMPRA_MINIMA' | 'POR_CANTIDAD'>('ALL');
   readonly filterActive = signal<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
   readonly modalOpen = signal(false);
@@ -137,6 +137,7 @@ export class PromotionsManagementComponent implements OnInit {
       tipo_descuento: ['PORCENTAJE', [Validators.required]],
       valor_descuento: [15, [Validators.required, Validators.min(0.01)]],
       monto_minimo_compra: [0, [Validators.min(0)]],
+      cantidad_minima: [1, [Validators.required, Validators.min(1), Validators.max(1000)]],
       fecha_inicio: [null],
       fecha_fin: [null],
       limite_usos: [null, [Validators.min(1)]],
@@ -177,6 +178,7 @@ export class PromotionsManagementComponent implements OnInit {
       tipo_descuento: 'PORCENTAJE',
       valor_descuento: 15,
       monto_minimo_compra: 0,
+      cantidad_minima: 1,
       fecha_inicio: null,
       fecha_fin: null,
       limite_usos: null,
@@ -199,6 +201,7 @@ export class PromotionsManagementComponent implements OnInit {
       tipo_descuento: promo.tipo_descuento,
       valor_descuento: promo.valor_descuento,
       monto_minimo_compra: promo.monto_minimo_compra,
+      cantidad_minima: promo.cantidad_minima ?? 1,
       fecha_inicio: promo.fecha_inicio ? promo.fecha_inicio.substring(0, 10) : null,
       fecha_fin: promo.fecha_fin ? promo.fecha_fin.substring(0, 10) : null,
       limite_usos: promo.limite_usos,
@@ -231,6 +234,12 @@ export class PromotionsManagementComponent implements OnInit {
     }
   }
 
+  onBenefitChanged(): void {
+    const bulk=this.promoForm.value.tipo_descuento==='POR_CANTIDAD';
+    this.promoForm.patchValue({cantidad_minima:bulk?Math.max(2,Number(this.promoForm.value.cantidad_minima)||3):1});
+    if(bulk&&!this.promoForm.value.codigo)this.promoForm.patchValue({codigo:'MAYOR-'+Math.random().toString(36).slice(2,8).toUpperCase()});
+  }
+
   savePromotion(): void {
     const rawCode = (this.promoForm.value.codigo || '').trim();
     if (!rawCode) {
@@ -238,6 +247,9 @@ export class PromotionsManagementComponent implements OnInit {
       this.promoForm.get('codigo')?.markAsTouched();
       return;
     }
+    const type=this.promoForm.value.tipo_descuento;
+    if((type==='PORCENTAJE'||type==='POR_CANTIDAD')&&Number(this.promoForm.value.valor_descuento)>100){this.toasts.show('El descuento no puede superar el 100 %.','error');return;}
+    if(type==='POR_CANTIDAD'&&(!Number.isInteger(Number(this.promoForm.value.cantidad_minima))||Number(this.promoForm.value.cantidad_minima)<2)){this.toasts.show('Indica desde cuántas prendas se aplica la oferta (mínimo 2).','error');return;}
     const val = Number(this.promoForm.value.valor_descuento);
     if (!val || val <= 0) {
       this.toasts.show('El valor del descuento debe ser mayor a 0.', 'error');
@@ -261,6 +273,7 @@ export class PromotionsManagementComponent implements OnInit {
       tipo_descuento: formVal.tipo_descuento,
       valor_descuento: val,
       monto_minimo_compra: Number(formVal.monto_minimo_compra || 0),
+      cantidad_minima: formVal.tipo_descuento === "POR_CANTIDAD" ? Number(formVal.cantidad_minima) : 1,
       fecha_inicio: this.formatPayloadDate(formVal.fecha_inicio, false),
       fecha_fin: this.formatPayloadDate(formVal.fecha_fin, true),
       limite_usos: formVal.limite_usos ? Number(formVal.limite_usos) : null,
@@ -307,9 +320,11 @@ export class PromotionsManagementComponent implements OnInit {
       tipo_descuento: promo.tipo_descuento,
       valor_descuento: promo.valor_descuento,
       monto_minimo_compra: promo.monto_minimo_compra,
+      cantidad_minima: promo.cantidad_minima ?? 1,
       fecha_inicio: promo.fecha_inicio,
       fecha_fin: promo.fecha_fin,
       limite_usos: promo.limite_usos,
+      producto_id: promo.producto_id,
       activo: !promo.activo,
     };
 

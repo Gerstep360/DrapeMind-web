@@ -13,12 +13,13 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
+import { BillingReportsComponent } from '../cu03_suscripciones/cu03-billing-reports.component';
 import { SaaSService, SaaSPlan, CompanySubscription, saasError } from '../../core/saas.service';
 
 @Component({
   selector: 'app-saas-platform',
   standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, BillingReportsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './cu01-platform.component.scss',
   templateUrl: './cu01-platform.component.html',
@@ -31,7 +32,7 @@ export class PlatformComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   @ViewChild('companyDialog') companyDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild('licenseDialog') licenseDialog?: ElementRef<HTMLDialogElement>;
-  readonly tab = signal<'companies' | 'plans'>('companies');
+  readonly tab = signal<'companies' | 'plans' | 'billing'>('companies');
   readonly loading = signal(false);
   readonly search = signal('');
   readonly step = signal(1);

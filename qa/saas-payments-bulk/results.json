@@ -1,0 +1,14 @@
+{
+  "billing": [
+    1440,
+    390,
+    320
+  ],
+  "bulk": [
+    1440,
+    390
+  ],
+  "automaticCart": true,
+  "export": true,
+  "errors": []
+}

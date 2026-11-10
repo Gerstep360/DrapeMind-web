@@ -147,6 +147,7 @@ export class CartDrawerComponent {
         codigo: code,
         monto_subtotal: this.cart.subtotal(),
         item_producto_ids: prodIds,
+        items: this.cart.items().map(item=>({variante_id:item.variante_id,cantidad:item.cantidad})),
       })
       .subscribe({
         next: (res) => {
@@ -276,6 +277,7 @@ export class CartDrawerComponent {
   }
 
   confirmOrder(): void {
+    if(this.cart.quotingPromotions())return;
     if(this.offlineCheckout()){void this.saveOfflinePurchase();return;}
     if(this.checkoutForm.get('tipo_entrega')?.value==='DELIVERY' && this.deliveryFee()===null){this.toast.show('No pudimos consultar la tarifa de envío. Reabre el carrito para reintentar.','error');return;}
     if (this.processing() || this.checkingAvailability() || this.checkoutError()) return;

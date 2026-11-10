@@ -1042,3 +1042,14 @@
 
 // Shared primitives own visual identity; this component owns layout.
 @include fashion.page;
+
+.bulk-rule{padding:18px;border:2px solid #20221a;background:#f1f7d4}.bulk-rule p{margin:8px 0;line-height:1.5}.bulk-rule small{line-height:1.6;color:#505346}.bulk-rule input{max-width:180px}
+.modal-dialog .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.modal-dialog .form-grid .form-field{min-width:0}
+.modal-dialog .form-grid .full-width{grid-column:1/-1}
+.modal-dialog input,.modal-dialog select{box-sizing:border-box;max-width:100%;min-width:0}
+.modal-dialog .field-header-row{flex-wrap:wrap;gap:8px}
+.modal-dialog .scope-choice-btn,.modal-dialog .choice-sub{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.filter-pills{flex-wrap:wrap}
+@media(max-width:680px){.modal-dialog .form-grid{grid-template-columns:minmax(0,1fr)}.modal-dialog .scope-pill-selector{grid-template-columns:minmax(0,1fr)}.modal-dialog .modal-header{padding:20px}.modal-dialog .modal-form{padding:20px}.promotions-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:680px){.modal-dialog{padding:20px;box-sizing:border-box}.modal-dialog .modal-header{padding:0 0 16px}.modal-dialog .modal-form{padding:0}}

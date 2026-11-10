@@ -159,6 +159,7 @@ button:not(:disabled):active {
 }
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
   margin-bottom: 28px;
   border-bottom: 1px solid var(--dm-border);

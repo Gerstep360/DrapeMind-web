@@ -229,7 +229,7 @@
                     <div class="promo-pill-left">
                       <span class="promo-pill-code">{{ p.codigo }}</span>
                       <span class="promo-pill-benefit">
-                        @if (p.tipo_descuento === 'PORCENTAJE') {
+                        @if (p.tipo_descuento === 'PORCENTAJE' || p.tipo_descuento === 'POR_CANTIDAD') {
                           {{ p.valor_descuento }}% OFF
                         } @else if (p.tipo_descuento === 'DOS_POR_UNO') {
                           2x1 PROMO
@@ -239,6 +239,7 @@
                         @if (p.monto_minimo_compra > 0) {
                           <small class="pill-min">Mín. Bs {{ p.monto_minimo_compra }}</small>
                         }
+                        @if(p.tipo_descuento === 'POR_CANTIDAD'){<small class="pill-min">Desde {{p.cantidad_minima}} prendas</small>}
                       </span>
                     </div>
                     <button
@@ -256,6 +257,8 @@
           }
 
           <!-- Cupón de Descuento / Promoción -->
+          @if(cart.quotingPromotions()){<p class="promotion-feedback" role="status">Comprobando tu mejor descuento…</p>}
+          @if(cart.promoNotice()){<p class="promotion-feedback" role="status">{{cart.promoNotice()}}</p>}
           <div class="cart-coupon-box">
             @if (cart.appliedPromo(); as promo) {
               <div class="applied-coupon-card">
@@ -274,7 +277,7 @@
                   </div>
                   <div class="coupon-card-details">
                     <div class="coupon-top-line">
-                      <span class="coupon-label-tag">CUPÓN APLICADO</span>
+                      <span class="coupon-label-tag">{{promo.automatico ? "DESCUENTO POR MAYOR" : "CUPÓN APLICADO"}}</span>
                       <strong class="coupon-name">{{ promo.codigo }}</strong>
                     </div>
                     <span class="coupon-saving-text"
@@ -286,6 +289,7 @@
                 <button
                   type="button"
                   class="btn-remove-coupon"
+                  [hidden]="cart.appliedPromo()?.automatico"
                   (click)="removePromo()"
                   title="Quitar cupón de este pedido"
                 >
@@ -555,6 +559,7 @@
               <button
                 type="button"
                 class="btn-checkout-remove-promo"
+                [hidden]="cart.appliedPromo()?.automatico"
                 (click)="removePromo()"
                 title="Quitar cupón"
               >
@@ -608,7 +613,7 @@
             class="button button--ghost btn-back-cart"
             type="button"
             (click)="backToCart()"
-            [disabled]="processing() || checkingAvailability()"
+            [disabled]="processing() || checkingAvailability() || cart.quotingPromotions()"
           >
             &larr; Volver
           </button>
@@ -616,7 +621,7 @@
             class="button button--primary button--wide btn-confirm-checkout"
             type="button"
             (click)="confirmOrder()"
-            [disabled]="processing() || checkingAvailability()"
+            [disabled]="processing() || checkingAvailability() || cart.quotingPromotions()"
           >
             @if (processing()) {
               <span class="spinner"></span> Procesando orden...

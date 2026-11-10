@@ -5,7 +5,7 @@
       <span class="eyebrow">PK-02 &middot; CATÁLOGO Y COMERCIALIZACIÓN</span>
       <h1 class="page-title">Gestión de Promociones y Descuentos</h1>
       <p class="page-subtitle">
-        Configuración de cupones, porcentajes dinámicos, reglas de compra mínima y vigencias comerciales.
+        Crea descuentos, ofertas por cantidad y cupones para las compras de tu tienda.
       </p>
     </div>
     <div class="header-actions">
@@ -206,7 +206,7 @@
               </span>
               <span class="code-badge">{{ promo.codigo }}</span>
               <span class="discount-pill" [class.fixed]="promo.tipo_descuento === 'MONTO_FIJO'">
-                @if (promo.tipo_descuento === 'PORCENTAJE') {
+                @if (promo.tipo_descuento === 'PORCENTAJE' || promo.tipo_descuento === 'POR_CANTIDAD') {
                   {{ promo.valor_descuento }}% OFF
                 } @else if (promo.tipo_descuento === 'DOS_POR_UNO') {
                   2x1 PROMO
@@ -238,7 +238,7 @@
             <div class="spec-row">
               <span class="spec-label">Compra mínima:</span>
               <span class="spec-val">
-                {{ promo.monto_minimo_compra > 0 ? ('Bs ' + (promo.monto_minimo_compra | number:'1.2-2')) : 'Sin mínimo' }}
+                {{ promo.tipo_descuento === 'POR_CANTIDAD' ? 'Desde ' + promo.cantidad_minima + ' prendas · automático' : promo.monto_minimo_compra > 0 ? ('Bs ' + (promo.monto_minimo_compra | number:'1.2-2')) : 'Sin mínimo' }}
               </span>
             </div>
 
@@ -325,11 +325,11 @@
   <!-- Modal de Alta y Edición -->
   @if (modalOpen()) {
     <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="promotion-title" (keydown.escape)="closeModal()" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <div class="modal-title-group">
             <span class="modal-eyebrow">{{ editingPromotion() ? 'MODIFICACIÓN' : 'NUEVA CAMPAÑA' }}</span>
-            <h2>{{ editingPromotion() ? 'Editar Promoción' : 'Crear Regla de Descuento' }}</h2>
+            <h2 id="promotion-title">{{ editingPromotion() ? 'Editar Promoción' : 'Crear Regla de Descuento' }}</h2>
           </div>
           <button class="modal-close" (click)="closeModal()" aria-label="Cerrar ventana">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -359,7 +359,7 @@
                 placeholder="Ej. ATELIER15, VERANO20"
                 class="input-control uppercase font-mono"
               />
-              <small class="field-hint">Código alfanumérico que el cliente puede ingresar o canjear con 1 clic en el carrito.</small>
+              <small class="field-hint">{{promoForm.get('tipo_descuento')?.value === 'POR_CANTIDAD' ? 'Referencia de la oferta. El cliente recibe el descuento automáticamente; no necesita escribir un código.' : 'El cliente puede escribir o elegir este código en el carrito.'}}</small>
               @if (promoForm.get('codigo')?.touched && promoForm.get('codigo')?.invalid) {
                 <span class="field-error">El código es obligatorio (mínimo 2 caracteres).</span>
               }
@@ -379,7 +379,8 @@
             <!-- Tipo de Beneficio -->
             <div class="form-field">
               <label>Tipo de Beneficio *</label>
-              <select formControlName="tipo_descuento" class="input-control">
+              <select formControlName="tipo_descuento" class="input-control" (change)="onBenefitChanged()">
+                <option value="POR_CANTIDAD">Por mayor: descuento desde N prendas</option>
                 <option value="PORCENTAJE">Descuento Porcentual (%)</option>
                 <option value="MONTO_FIJO">Monto Fijo de Rebaja (Bs)</option>
                 <option value="DOS_POR_UNO">Promoción 2x1 en Prenda</option>
@@ -391,7 +392,7 @@
             <div class="form-field">
               <label>
                 Valor del Descuento
-                {{ promoForm.get('tipo_descuento')?.value === 'PORCENTAJE' ? '(%)' : '(Bs)' }} *
+                {{ ['PORCENTAJE','POR_CANTIDAD'].includes(promoForm.get('tipo_descuento')?.value) ? '(%)' : '(Bs)' }} *
               </label>
               <input
                 type="number"
@@ -405,6 +406,14 @@
               }
             </div>
 
+            @if(promoForm.get('tipo_descuento')?.value === 'POR_CANTIDAD'){
+              <div class="form-field full-width bulk-rule">
+                <label>¿Desde cuántas prendas se aplica?</label>
+                <input type="number" min="2" max="1000" step="1" formControlName="cantidad_minima" class="input-control"/>
+                <p>Desde <strong>{{promoForm.get('cantidad_minima')?.value}}</strong> prendas, el cliente recibe <strong>{{promoForm.get('valor_descuento')?.value}} %</strong> de descuento automáticamente en el carrito.</p>
+                <small>Se cuentan unidades, aunque tengan tallas o colores diferentes. Si eliges una prenda específica, solo cuentan y se descuentan sus unidades. Se aplica la oferta con mayor ahorro, sin acumular cupones.</small>
+              </div>
+            }
             <!-- Alcance: Todo el Catálogo vs Prenda Específica -->
             <div class="form-field full-width">
               <label class="scope-selection-label">Alcance de Aplicación</label>
