@@ -70,12 +70,18 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         try {
-          return await fetch(event.request, { signal: AbortSignal.timeout(5000) });
-        } catch {
-          return (
-            (await caches.match(new URL('index.html', self.registration.scope))) || new Response('Abre la tienda con conexión para preparar el modo sin Internet.', {status:503,headers:{'Content-Type':'text/plain;charset=utf-8'}})
-          );
-        }
+          const res = await fetch(event.request);
+          if (res && res.status < 400) return res;
+        } catch (_) {}
+        const cached = await caches.match(new URL('index.html', self.registration.scope));
+        if (cached) return cached;
+        try {
+          return await fetch(new URL('index.html', self.registration.scope));
+        } catch (_) {}
+        return new Response('<!DOCTYPE html><html><body>Cargando DrapeMind...</body></html>', {
+          status: 200,
+          headers: { 'Content-Type': 'text/html;charset=utf-8' },
+        });
       })(),
     );
     return;
@@ -89,7 +95,7 @@ self.addEventListener('fetch', (event) => {
         try {
           return await fetch(event.request);
         } catch {
-          return (await cache.match(event.request)) || new Response('',{status:503});
+          return (await cache.match(event.request)) || new Response('{}',{status:200,headers:{'Content-Type':'application/json'}});
         }
       }
       return (await cache.match(event.request)) || safeFetch(event.request);
@@ -101,6 +107,6 @@ async function safeFetch(request) {
   try { return await fetch(request); }
   catch {
     if (request.destination === 'image') return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',{status:200,headers:{'Content-Type':'image/svg+xml','Cache-Control':'no-store'}});
-    return new Response('Recurso no disponible sin conexión.',{status:503,headers:{'Content-Type':'text/plain;charset=utf-8','Cache-Control':'no-store'}});
+    return (await caches.match(request)) || new Response('',{status:404,headers:{'Content-Type':'text/plain;charset=utf-8','Cache-Control':'no-store'}});
   }
 }

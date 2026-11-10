@@ -1,5 +1,5 @@
-import { Component, ChangeDetectorRef, effect, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ChangeDetectorRef, effect, inject, OnInit, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -7,11 +7,16 @@ import { firstValueFrom, timeout } from 'rxjs';
 import { OfflineService, offlineMessage } from '../cu13_catalogo_offline/cu13-offline.service';
 import { RuntimeConfigService } from '../../core/runtime-config.service';
 import { AuthService } from '../../core/auth.service';
+import { DownloadedOrdersService } from '../cu24_pedidos/cu24-pedidos-descargados.service';
+import { Order } from '../../core/models';
+
+export type ExchangeMode = 'DEVOLUCION' | 'CAMBIO';
+
 @Component({
   selector: 'app-exchanges',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, DatePipe],
   templateUrl: './cu20-exchanges.component.html',
-  styleUrl: '../compartido/feature.scss',
+  styleUrls: ['../compartido/feature.scss', './cu20-exchanges.component.scss'],
 })
 export class ExchangesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
@@ -20,6 +25,9 @@ export class ExchangesComponent implements OnInit {
   private http = inject(HttpClient);
   private runtime = inject(RuntimeConfigService);
   private route = inject(ActivatedRoute);
+  private downloaded = inject(DownloadedOrdersService);
+
+  activeMode: ExchangeMode = 'DEVOLUCION';
   code = '';
   order: any = null;
   quote: any = null;
@@ -32,17 +40,28 @@ export class ExchangesComponent implements OnInit {
   variant = 0;
   quantity = 1;
   returns: Record<number, number> = {};
-  lines: { variante_id: number; cantidad: number }[] = [];
+  lines: { variante_id: number; cantidad: number; name?: string; price?: number }[] = [];
   requestId = crypto.randomUUID();
   pending: any = null;
+
+  // Selección directa sin buscar
+  clientOrders = signal<Order[]>([]);
+  loadingOrders = signal(false);
+  showManualSearch = false;
+
+  private lastOwner: string | null = null;
+
   constructor() {
     effect(() => {
       const owner = this.offline.owner();
-      this.order = null;
-      this.quote = null;
-      this.result = null;
-      this.lines = [];
-      this.returns = {};
+      if (this.lastOwner !== null && this.lastOwner !== owner) {
+        this.order = null;
+        this.quote = null;
+        this.result = null;
+        this.lines = [];
+        this.returns = {};
+      }
+      this.lastOwner = owner;
       try {
         this.pending = owner
           ? JSON.parse(localStorage.getItem(`drapemind.exchange.pending|${owner}`) ?? 'null')
@@ -52,27 +71,96 @@ export class ExchangesComponent implements OnInit {
       }
     });
   }
+
   ngOnInit() {
-    const codeParam = this.route.snapshot.queryParamMap.get('code');
+    const qp = this.route.snapshot.queryParamMap;
+    const modeParam = qp.get('mode');
+    if (modeParam === 'CAMBIO') {
+      this.activeMode = 'CAMBIO';
+    } else {
+      this.activeMode = 'DEVOLUCION';
+    }
+
+    const codeParam = qp.get('code');
     if (codeParam) {
       this.code = codeParam;
-      this.find();
+      void this.find();
+    } else {
+      this.loadClientOrders();
     }
   }
+
   get base() {
     return `${this.runtime.apiUrl}/retail`;
   }
+
   get hasReturns(): boolean {
     return Object.values(this.returns).some((q) => +q > 0);
   }
-  variantName(id: number) {
-    const v = this.offline.bundle()?.variants.find((v) => v.id === id),
-      p = this.offline.bundle()?.products.find((p) => p.id === v?.producto_id);
-    return p ? `${p.nombre} · ${v?.talla} · ${v?.color}` : `Variante ${id}`;
+
+  setMode(mode: ExchangeMode) {
+    if (this.activeMode === mode) return;
+    this.activeMode = mode;
+    this.error = '';
+    if (mode === 'DEVOLUCION') {
+      this.lines = [];
+      if (this.order && this.hasReturns) {
+        void this.calculate();
+      }
+    } else {
+      this.quote = null;
+      if (this.lines.length > 0 && this.order && this.hasReturns) {
+        void this.calculate();
+      }
+    }
   }
+
+  loadClientOrders() {
+    this.loadingOrders.set(true);
+    this.downloaded.list().subscribe({
+      next: (orders) => {
+        // Filtrar pedidos que aplican a cambio o devolución: PAGADO o ENTREGADO preferidos
+        this.clientOrders.set(orders);
+        this.loadingOrders.set(false);
+      },
+      error: () => {
+        this.loadingOrders.set(false);
+      },
+    });
+  }
+
+  selectOrder(order: Order) {
+    this.code = String(order.id);
+    void this.find();
+  }
+
+  clearOrder() {
+    this.order = null;
+    this.quote = null;
+    this.result = null;
+    this.lines = [];
+    this.returns = {};
+    this.code = '';
+    this.error = '';
+    this.loadClientOrders();
+  }
+
+  variantName(id: number): string {
+    const v = this.offline.bundle()?.variants.find((v) => v.id === id);
+    const p = this.offline.bundle()?.products.find((p) => p.id === v?.producto_id);
+    return p ? `${p.nombre} · ${v?.talla} · ${v?.color} (Bs ${p.precio})` : `Variante #${id}`;
+  }
+
+  get availableVariants() {
+    return this.offline.bundle()?.variants ?? [];
+  }
+
   async find() {
     await this.action(async () => {
-      if (this.pending) throw new Error('Comprueba primero el resultado del cambio anterior.');
+      if (this.pending) throw new Error('Comprueba primero el resultado de la operación anterior.');
+      if (!this.code.trim()) {
+        throw new Error('Ingresa un número de pedido o código válido.');
+      }
       this.order = await firstValueFrom(
         this.http.get(`${this.base}/orders/find`, { params: { code: this.code.trim() } }),
       );
@@ -81,36 +169,104 @@ export class ExchangesComponent implements OnInit {
       this.quote = null;
       this.result = null;
       this.requestId = crypto.randomUUID();
-      if (!this.offline.usable()) await this.offline.download();
+
+      // Inicializar prendas a devolver automáticamente
+      if (this.order?.items) {
+        for (const item of this.order.items) {
+          if (item.disponible_cambio > 0) {
+            this.returns[item.id] = 1;
+          }
+        }
+      }
+
+      if (!this.offline.usable()) {
+        try {
+          await this.offline.download();
+        } catch (_) {}
+      }
+
+      // Si está en modo devolución, pre-calcular automáticamente
+      if (this.activeMode === 'DEVOLUCION' && this.hasReturns) {
+        await this.calculate();
+      }
     });
   }
-  add() {
-    const id = +this.variant,
-      q = +this.quantity;
+
+  toggleReturn(itemId: number, max: number) {
+    const cur = this.returns[itemId] || 0;
+    if (cur > 0) {
+      this.returns[itemId] = 0;
+    } else {
+      this.returns[itemId] = Math.min(1, max);
+    }
+    this.quote = null;
+    if (this.activeMode === 'DEVOLUCION') {
+      void this.calculate();
+    }
+  }
+
+  changeReturnQty(itemId: number, delta: number, max: number) {
+    const cur = this.returns[itemId] || 0;
+    const next = Math.max(0, Math.min(max, cur + delta));
+    this.returns[itemId] = next;
+    this.quote = null;
+    if (this.activeMode === 'DEVOLUCION') {
+      void this.calculate();
+    }
+  }
+
+  addVariant() {
+    const id = +this.variant;
+    const q = +this.quantity;
     if (!id || q < 1 || !Number.isInteger(q)) {
-      this.error = 'Elige una prenda y cantidad válidas.';
+      this.error = 'Elige una variante de prenda y cantidad válidas.';
       return;
     }
     const line = this.lines.find((i) => i.variante_id === id);
-    if (line) line.cantidad += q;
-    else this.lines.push({ variante_id: id, cantidad: q });
+    if (line) {
+      line.cantidad += q;
+    } else {
+      this.lines.push({
+        variante_id: id,
+        cantidad: q,
+        name: this.variantName(id),
+      });
+    }
+    this.variant = 0;
+    this.quantity = 1;
     this.quote = null;
+    void this.calculate();
   }
+
+  removeLine(index: number) {
+    this.lines.splice(index, 1);
+    this.quote = null;
+    if (this.lines.length > 0 || this.activeMode === 'DEVOLUCION') {
+      void this.calculate();
+    }
+  }
+
+  setQuickNote(reason: string) {
+    this.note = reason;
+  }
+
   draft() {
     return {
       operacion_id: this.requestId,
       pedido_origen_id: this.order.pedido_id,
       sucursal_id: this.order.sucursal_id,
-      motivo: this.note.trim(),
+      motivo: this.note.trim() || (this.activeMode === 'DEVOLUCION' ? 'Devolución de prenda' : 'Cambio de prenda'),
       devoluciones: Object.entries(this.returns)
         .filter(([, q]) => +q > 0)
         .map(([id, q]) => ({ item_pedido_id: +id, cantidad: +q })),
-      prendas_nuevas: this.lines.map((i) => ({ ...i })),
+      prendas_nuevas: this.lines.map((i) => ({ variante_id: i.variante_id, cantidad: i.cantidad })),
       efectivo_recibido: Number(this.received).toFixed(2),
       efectivo_devuelto: Number(this.refunded).toFixed(2),
     };
   }
+
   async calculate() {
+    if (!this.order || !this.hasReturns) return;
     await this.action(async () => {
       this.quote = await firstValueFrom(
         this.http.post(`${this.base}/exchanges?preview=true`, this.draft()),
@@ -119,23 +275,30 @@ export class ExchangesComponent implements OnInit {
       this.refunded = String(Math.max(0, -this.quote.diferencia));
     });
   }
+
   async save() {
-    if (!this.order || !this.quote || this.pending) return;
+    if (!this.order || !this.hasReturns || this.pending) return;
+    if (!this.quote) {
+      await this.calculate();
+      if (!this.quote) return;
+    }
     await this.action(async () => {
       const owner = this.offline.owner();
-      if (!owner) throw new Error('Inicia sesión para confirmar el cambio.');
+      if (!owner) throw new Error('Inicia sesión para confirmar la operación.');
       const payload = this.draft();
       localStorage.setItem(`drapemind.exchange.pending|${owner}`, JSON.stringify(payload));
       this.pending = payload;
       await this.sendPending(owner);
     });
   }
+
   async checkPending() {
     await this.action(async () => {
       const owner = this.offline.owner();
       if (owner) await this.sendPending(owner, true);
     });
   }
+
   private async sendPending(owner: string, recover = false) {
     const payload = this.pending;
     try {
@@ -148,54 +311,62 @@ export class ExchangesComponent implements OnInit {
               .pipe(timeout(15000)),
           );
         } catch (e) {
-          if ((e as { status?: number }).status !== 404) throw e;
+          result = await firstValueFrom(
+            this.http.post<any>(`${this.base}/exchanges`, payload).pipe(timeout(15000)),
+          );
         }
-      }
-      if (!result) {
-        if (owner !== this.offline.owner()) return;
+      } else {
         result = await firstValueFrom(
-          this.http.post<any>(`${this.base}/exchanges`, payload).pipe(timeout(25000)),
+          this.http.post<any>(`${this.base}/exchanges`, payload).pipe(timeout(15000)),
         );
       }
       localStorage.removeItem(`drapemind.exchange.pending|${owner}`);
-      if (owner !== this.offline.owner()) return;
-      this.result = result;
       this.pending = null;
+      this.result = result;
       this.order = null;
       this.quote = null;
-      void this.offline.download();
-    } catch (e) {
-      const status = (e as { status?: number }).status;
-      if (!recover && (status === 409 || status === 422)) {
-        localStorage.removeItem(`drapemind.exchange.pending|${owner}`);
-        if (owner === this.offline.owner()) this.pending = null;
-      }
-      throw e;
+      this.lines = [];
+      this.returns = {};
+      this.loadClientOrders();
+      this.cdr.markForCheck();
+    } catch (err: any) {
+      this.error = this.getSpecificError(err);
+      this.cdr.markForCheck();
     }
   }
-  async action(work: () => Promise<void>) {
-    if (this.busy) return;
+
+  private async action(fn: () => Promise<void>) {
     this.busy = true;
     this.error = '';
     try {
-      if (!this.offline.online())
-        throw new Error('Los cambios de prendas necesitan conexión para validar el comprobante.');
-      await work();
-    } catch (e: any) {
-      if (e?.error?.detail?.message) {
-        this.error = e.error.detail.message;
-      } else if (typeof e?.error?.detail === 'string') {
-        this.error = e.error.detail;
-      } else if (e?.error?.message) {
-        this.error = e.error.message;
-      } else if (e?.message) {
-        this.error = e.message;
-      } else {
-        this.error = offlineMessage(e);
-      }
+      await fn();
+    } catch (err: any) {
+      this.error = this.getSpecificError(err);
     } finally {
       this.busy = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private getSpecificError(err: any): string {
+    if (!err) return 'Ocurrió un error inesperado al procesar la solicitud.';
+    if (typeof err === 'string') return err;
+    if (err.message && !err.status && !err.error) return err.message;
+    if (err.status === 403) {
+      return 'No tienes permisos para realizar cambios o devoluciones en este pedido, o el pedido pertenece a otra cuenta.';
+    }
+    if (err.status === 404) {
+      return `No se encontró ningún pedido con el número "${this.code}". Verifica el número ingresado.`;
+    }
+    if (err.status === 409 || err.status === 400 || err.status === 422) {
+      const detail = err.error?.detail;
+      if (typeof detail === 'string') return detail;
+      if (detail?.message) return detail.message;
+      if (Array.isArray(detail)) return detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+    }
+    if (err.status === 503) {
+      return 'Servicio no disponible temporalmente. Comprueba tu conexión o vuelve a intentar en unos segundos.';
+    }
+    return err.error?.detail || err.message || 'Error en la operación. Intenta nuevamente.';
   }
 }

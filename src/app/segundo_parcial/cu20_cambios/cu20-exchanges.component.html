@@ -1,148 +1,495 @@
-<main class="feature-page">
+<main class="feature-page exchanges-page">
   <header class="feature-heading">
     <div>
-      <p class="eyebrow">Otra talla o reembolso, el mismo cuidado</p>
-      <h1>Cambios y devoluciones de prendas</h1>
-      <p>Recupera la venta original, selecciona las prendas devueltas y calcula la diferencia o reembolso.</p>
+      <p class="eyebrow">DrapeMind · Atención y Garantía Atelier</p>
+      <h1>Centro de Cambios y Devoluciones</h1>
+      <p>Gestiona devoluciones directas con reembolso garantizado a tu favor o cambios por otra talla y prenda.</p>
     </div>
   </header>
-  @if (error) {
-    <p class="error" role="alert">{{ error }}</p>
-  }
-  @if (pending) {
-    <section class="notice">
-      <h2>Un cambio necesita comprobarse</h2>
-      <p>La respuesta no llegó. Conservamos la misma operación para comprobarla sin duplicarla.</p>
-      <button type="button" [disabled]="busy || !offline.online()" (click)="checkPending()">
-        Comprobar cambio anterior
-      </button>
-    </section>
-  }
-  @if (result) {
-    <section class="download-strip">
-      <div>
-        <h2>{{ result.total_nuevo === '0' || result.total_nuevo === '0.00' ? 'Devolución' : 'Cambio' }} {{ result.id }} registrado</h2>
-        <p>
-          Crédito por prendas devueltas: Bs {{ result.credito }} · Prendas nuevas: Bs {{ result.total_nuevo }} ·
-          {{ +result.diferencia < 0 ? 'Efectivo devuelto al cliente' : 'Diferencia a cobrar' }}: Bs {{ +result.diferencia < 0 ? (-result.diferencia).toFixed(2) : result.diferencia }}
-        </p>
-        <p>El inventario de la sucursal ya está actualizado.</p>
-      </div>
-      <a
-        class="action"
-        [routerLink]="['/receipt', result.sale.pedido_id]"
-        [queryParams]="{ code: result.sale.codigo_publico, store: auth.user()?.tenant_slug }"
-        >Ver nuevo comprobante</a
+
+  <!-- SWITCH SEGMENTADO ELEGANTE ENTRE DEVOLUCION Y CAMBIO -->
+  <section class="mode-switcher-container" aria-label="Modalidad del trámite">
+    <div class="mode-segmented-bar">
+      <button
+        type="button"
+        class="mode-switch-btn"
+        [class.is-active]="activeMode === 'DEVOLUCION'"
+        (click)="setMode('DEVOLUCION')"
       >
+        <span class="mode-switch-icon">↩️</span>
+        <span class="mode-switch-label">
+          <strong>Solicitar Devolución</strong>
+          <small>Reembolso de dinero a tu favor</small>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="mode-switch-btn"
+        [class.is-active]="activeMode === 'CAMBIO'"
+        (click)="setMode('CAMBIO')"
+      >
+        <span class="mode-switch-icon">🔄</span>
+        <span class="mode-switch-label">
+          <strong>Solicitar Cambio</strong>
+          <small>Llevar otra prenda, talla o color</small>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- MENSAJES DE ERROR ESPECIFICOS -->
+  @if (error) {
+    <div class="specific-error-card" role="alert">
+      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <div class="error-content">
+        <strong>No se pudo completar la solicitud</strong>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- REVISIÓN PENDIENTE OFFLINE -->
+  @if (pending) {
+    <section class="notice pending-notice">
+      <h2>Operación pendiente de comprobación</h2>
+      <p>Conservamos la operación de forma segura para comprobar el resultado sin duplicar registros ni transacciones.</p>
+      <button type="button" class="primary" [disabled]="busy || !offline.online()" (click)="checkPending()">
+        Comprobar resultado anterior
+      </button>
     </section>
   }
-  <form class="order-form" (ngSubmit)="find()">
-    <label
-      >Número de pedido o código del comprobante<input
-        name="code"
-        [(ngModel)]="code"
-        required
-        maxlength="40"
-        placeholder="Ej. 125 o código del comprobante" /></label
-    ><button class="primary" [disabled]="busy || !!pending">Buscar venta</button>
-  </form>
-  @if (order && !pending) {
-    <section class="stack">
-      <div class="section-heading">
-        <h2>Pedido {{ order.pedido_id }} · Sucursal {{ order.sucursal_id }}</h2>
-        <p>Total original Bs {{ order.total }}</p>
+
+  <!-- RESULTADO EXITOSO DE LA OPERACIÓN -->
+  @if (result) {
+    <section class="exchange-success-card">
+      <div class="success-badge">
+        <span class="success-icon">✓</span>
+        <h2>
+          {{ result.total_nuevo === '0' || result.total_nuevo === '0.00' ? 'Devolución y Reembolso' : 'Cambio de Prendas' }} #{{ result.id }} Registrado
+        </h2>
       </div>
-      <div class="workspace retail-workspace">
-        <section class="stack">
-          <h2>Prendas que devuelve</h2>
-          @for (item of order.items; track item.id) {
-            <label
-              >{{ item.nombre }} · {{ item.talla }} · {{ item.color
-              }}<span class="muted"
-                >Crédito por unidad Bs {{ item.credito_unitario }} ·
-                {{ item.disponible_cambio }} disponibles para cambio</span
-              ><input
-                type="number"
-                min="0"
-                [max]="item.disponible_cambio"
-                [(ngModel)]="returns[item.id]"
-                (ngModelChange)="quote = null"
-                placeholder="0"
-            /></label>
-          }
-        </section>
-        <section class="order-form">
-          <h2>Prendas que lleva (opcional si es solo devolución)</h2>
-          <label
-            >Nueva talla o prenda<select aria-label="Nueva talla o prenda" [(ngModel)]="variant">
-              <option [ngValue]="0">Elige una variante</option>
-              @for (v of offline.bundle()?.variants ?? []; track v.id) {
-                <option [ngValue]="v.id">{{ variantName(v.id) }}</option>
-              }
-            </select></label
-          ><label>Cantidad<input type="number" min="1" max="100" [(ngModel)]="quantity" /></label
-          ><button type="button" (click)="add()">Añadir prenda nueva</button>
-          @for (line of lines; track line.variante_id) {
-            <div class="request-row">
-              <span>{{ line.cantidad }} × {{ variantName(line.variante_id) }}</span
-              ><button type="button" (click)="lines.splice($index, 1); quote = null">Quitar</button>
-            </div>
-          }
-        </section>
+
+      <div class="success-details">
+        <p>
+          <strong>Crédito devuelto:</strong> Bs {{ result.credito }} ·
+          <strong>Prendas nuevas:</strong> Bs {{ result.total_nuevo }}
+        </p>
+
+        @if (+result.diferencia < 0) {
+          <div class="refund-highlight">
+            <span class="refund-pill">Reembolso a tu favor</span>
+            <strong class="refund-amount">Bs {{ (-result.diferencia).toFixed(2) }}</strong>
+            <p>Se registró el movimiento de reembolso para devolución en efectivo o saldo en tu cuenta.</p>
+          </div>
+        } @else if (+result.diferencia > 0) {
+          <div class="deficit-highlight">
+            <span class="deficit-pill">Diferencia a abonar</span>
+            <strong class="deficit-amount">Bs {{ (+result.diferencia).toFixed(2) }}</strong>
+            <p>Abona este saldo pendiente al recibir tus nuevas prendas o en caja.</p>
+          </div>
+        } @else {
+          <p class="neutral-highlight">Cambio exacto de igual valor: sin diferencia económica pendiente.</p>
+        }
       </div>
-      <label
-        >Motivo del cambio o devolución<textarea
-          [(ngModel)]="note"
-          minlength="5"
-          maxlength="300"
-          (ngModelChange)="quote = null"
-          placeholder="Talla, color, defecto, acuerdo con el cliente…"
-        ></textarea></label
-      ><button type="button" [disabled]="busy || (!hasReturns && !lines.length)" (click)="calculate()">
-        {{ lines.length === 0 ? 'Calcular devolución y reembolso' : 'Calcular diferencia con precios actuales' }}
+
+      <div class="success-actions">
+        @if (result.sale?.pedido_id) {
+          <a
+            class="button button--primary"
+            [routerLink]="['/receipt', result.sale.pedido_id]"
+            [queryParams]="{ code: result.sale.codigo_publico, store: auth.user()?.tenant_slug }"
+          >
+            Ver nuevo comprobante oficial ↗
+          </a>
+        }
+        <button type="button" class="button button--secondary" (click)="clearOrder()">
+          Gestionar otro pedido
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- ESTADO 1: NINGÚN PEDIDO SELECCIONADO AÚN (LISTA DIRECTA SIN ESCRIBIR) -->
+  @if (!order && !result && !pending) {
+    <section class="order-picker-section">
+      <div class="picker-header">
+        <h2>Selecciona el pedido que deseas {{ activeMode === 'DEVOLUCION' ? 'devolver' : 'cambiar' }}</h2>
+        <p>No necesitas escribir códigos. Elige tu compra para cargar automáticamente los detalles y montos:</p>
+      </div>
+
+      @if (loadingOrders()) {
+        <div class="picker-loading">
+          <span class="spinner"></span>
+          <span>Buscando tus pedidos disponibles...</span>
+        </div>
+      } @else if (clientOrders().length > 0) {
+        <div class="order-cards-grid">
+          @for (ord of clientOrders(); track ord.id) {
+            <article class="order-choice-card" [class.is-returned]="ord.estado === 'DEVUELTO'">
+              <div class="choice-card-head">
+                <span class="order-code">Pedido #{{ ord.id.toString().padStart(5, '0') }}</span>
+                <span class="order-status-tag" [attr.data-status]="ord.estado">
+                  {{ ord.estado === 'DEVUELTO' ? 'Devuelto' : (ord.estado === 'PAGADO' ? 'Pagado' : ord.estado) }}
+                </span>
+              </div>
+
+              <div class="choice-card-body">
+                <div class="choice-meta">
+                  <span>Fecha: {{ ord.created_at | date: 'd MMM yyyy, HH:mm' }}</span>
+                  <span>Canal: {{ ord.canal }} · {{ ord.tipo_entrega }}</span>
+                </div>
+                <div class="choice-total">
+                  <small>Importe:</small>
+                  <strong>Bs {{ ord.total | number: '1.2-2' }}</strong>
+                </div>
+              </div>
+
+              <div class="choice-card-foot">
+                @if (ord.estado === 'DEVUELTO') {
+                  <span class="already-returned-badge">✓ Reembolso ya tramitado</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-select-order"
+                    [class.btn-select-return]="activeMode === 'DEVOLUCION'"
+                    [class.btn-select-exchange]="activeMode === 'CAMBIO'"
+                    (click)="selectOrder(ord)"
+                  >
+                    {{ activeMode === 'DEVOLUCION' ? '↩️ Devolver este pedido' : '🔄 Cambiar prendas de este pedido' }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty-orders-card">
+          <p>No tienes compras recientes con estado pagado o entregado en esta tienda.</p>
+        </div>
+      }
+
+      <!-- OPCIÓN SECUNDARIA: BÚSQUEDA MANUAL SI TIENE UN TICKET FÍSICO -->
+      <div class="manual-code-toggle">
+        <button
+          type="button"
+          class="btn-toggle-manual"
+          (click)="showManualSearch = !showManualSearch"
+        >
+          {{ showManualSearch ? '▲ Ocultar búsqueda por código' : '▼ ¿Compraste en tienda física con comprobante en papel? Buscar por código' }}
+        </button>
+
+        @if (showManualSearch) {
+          <form class="manual-code-form" (ngSubmit)="find()">
+            <label>
+              Número de pedido o código del comprobante
+              <input
+                name="code"
+                [(ngModel)]="code"
+                required
+                maxlength="40"
+                placeholder="Ej. 7209 o UUID del comprobante"
+              />
+            </label>
+            <button class="primary" [disabled]="busy || !code.trim()">Buscar venta</button>
+          </form>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ESTADO 2: PEDIDO SELECCIONADO -->
+  @if (order && !result && !pending) {
+    <!-- BARRA SUPERIOR DEL PEDIDO ACTIVO -->
+    <section class="active-order-bar">
+      <div class="active-order-info">
+        <span class="active-label">PEDIDO EN TRÁMITE</span>
+        <strong class="active-id">#{{ order.pedido_id.toString().padStart(5, '0') }}</strong>
+        <span class="active-meta">
+          Sucursal #{{ order.sucursal_id }} · Total compra: <strong>Bs {{ order.total }}</strong>
+        </span>
+      </div>
+      <button type="button" class="btn-change-active-order" (click)="clearOrder()">
+        ✕ Elegir otro pedido
       </button>
-      @if (quote) {
-        <section class="download-strip">
-          <div>
-            @if (+quote.diferencia < 0) {
-              <h2>Reembolso a tu favor: {{ -quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
-              <p class="exchange-summary-hint">
-                El crédito de tus prendas devueltas supera las nuevas. Se registrará la devolución con saldo reembolsado a tu favor.
-              </p>
-            } @else if (+quote.diferencia > 0) {
-              <h2>Diferencia a abonar: {{ quote.diferencia | currency: 'BOB' : 'Bs ' }}</h2>
-              <p class="exchange-summary-hint">
-                Las prendas elegidas tienen un importe superior. Esta diferencia se abona en caja o al momento de la entrega.
-              </p>
-            } @else {
-              <h2>Cambio equivalente: Bs 0.00</h2>
-              <p class="exchange-summary-hint">
-                Prendas de igual valor. El cambio no genera saldo adicional ni a favor ni en contra.
-              </p>
-            }
-            <p>
-              Crédito por prendas devueltas: {{ quote.credito | currency: 'BOB' : 'Bs ' }} · Prendas nuevas:
-              {{ quote.total_nuevo | currency: 'BOB' : 'Bs ' }}
+    </section>
+
+    <!-- MODO 1: DEVOLUCIÓN DE PRENDA (SOLO REEMBOLSO) -->
+    @if (activeMode === 'DEVOLUCION') {
+      <section class="pure-return-panel">
+        <div class="panel-section-title">
+          <h2>1. Prendas a devolver</h2>
+          <p>Indica las prendas que entregarás para recibir el reembolso de su importe.</p>
+        </div>
+
+        <div class="return-items-list">
+          @for (item of order.items; track item.id) {
+            <article class="return-item-card" [class.is-selected]="(returns[item.id] || 0) > 0">
+              <div class="item-visual-badge">👗</div>
+              <div class="item-details">
+                <h3>{{ item.nombre }}</h3>
+                <div class="item-meta-pills">
+                  <span>Talla: <strong>{{ item.talla }}</strong></span>
+                  <span>Color: <strong>{{ item.color }}</strong></span>
+                  <span>Crédito unitario: <strong>Bs {{ item.credito_unitario }}</strong></span>
+                </div>
+                <small class="item-available">
+                  {{ item.disponible_cambio }} unidad(es) disponible(s) para devolución
+                </small>
+              </div>
+
+              <div class="item-quantity-control">
+                @if (item.disponible_cambio > 0) {
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    [disabled]="(returns[item.id] || 0) <= 0"
+                    (click)="changeReturnQty(item.id, -1, item.disponible_cambio)"
+                    aria-label="Restar unidad"
+                  >−</button>
+                  <strong class="qty-display">{{ returns[item.id] || 0 }}</strong>
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    [disabled]="(returns[item.id] || 0) >= item.disponible_cambio"
+                    (click)="changeReturnQty(item.id, 1, item.disponible_cambio)"
+                    aria-label="Sumar unidad"
+                  >+</button>
+                } @else {
+                  <span class="exhausted-label">Ya devuelta</span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <!-- REEMBOLSO GARANTIZADO EN VIVO -->
+        @if (quote && +quote.diferencia < 0) {
+          <div class="live-refund-card">
+            <div class="live-refund-header">
+              <span class="live-refund-icon">💰</span>
+              <div>
+                <span class="live-refund-eyebrow">MONTO A DEVOLVER AL CLIENTE</span>
+                <strong class="live-refund-sum">Bs {{ (-quote.diferencia).toFixed(2) }}</strong>
+              </div>
+            </div>
+            <p class="live-refund-desc">
+              ✓ Se reembolsará exactamente este importe a tu favor mediante efectivo o abono registrado en tu cuenta.
             </p>
-            @if (auth.user()?.rol !== 'CLIENTE') {
-              <div class="form-grid">
-                <label
-                  >Efectivo recibido en caja<input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    [(ngModel)]="received" /></label
-                ><label
-                  >Efectivo devuelto en caja<input type="number" min="0" step="0.01" [(ngModel)]="refunded"
-                /></label>
+          </div>
+        }
+
+        <!-- MOTIVO DE LA DEVOLUCION -->
+        <div class="reason-section">
+          <label><strong>Motivo de la devolución</strong></label>
+          <div class="quick-chips">
+            <button type="button" class="chip" (click)="setQuickNote('Talla incorrecta')">Talla no quedó bien</button>
+            <button type="button" class="chip" (click)="setQuickNote('Prenda con defecto')">Defecto de confección</button>
+            <button type="button" class="chip" (click)="setQuickNote('No cumplió expectativas')">No era lo que esperaba</button>
+            <button type="button" class="chip" (click)="setQuickNote('Preferencia personal')">Cambio de parecer</button>
+          </div>
+          <textarea
+            [(ngModel)]="note"
+            rows="3"
+            maxlength="300"
+            placeholder="Describe brevemente el motivo para agilizar la recepción..."
+          ></textarea>
+        </div>
+
+        <!-- ACCION DE CONFIRMACION DE DEVOLUCION -->
+        <div class="confirm-bar">
+          <button
+            type="button"
+            class="button button--primary button--large btn-confirm-return"
+            [disabled]="busy || !hasReturns"
+            (click)="save()"
+          >
+            <span class="btn-text">
+              {{ busy ? 'Procesando devolución...' : '↩️ Confirmar Devolución y Reembolso' }}
+              @if (quote && +quote.diferencia < 0) {
+                (Bs {{ (-quote.diferencia).toFixed(2) }})
+              }
+            </span>
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- MODO 2: CAMBIO DE PRENDA (OTRA TALLA / PRENDA) -->
+    @if (activeMode === 'CAMBIO') {
+      <section class="pure-exchange-panel">
+        <div class="exchange-grid-columns">
+          <!-- COLUMNA IZQUIERDA: PRENDAS QUE DEVUELVE -->
+          <div class="exchange-col">
+            <div class="panel-section-title">
+              <h2>1. Prenda que entregas</h2>
+              <p>Selecciona la prenda original que deseas sustituir.</p>
+            </div>
+
+            <div class="return-items-list">
+              @for (item of order.items; track item.id) {
+                <article class="return-item-card" [class.is-selected]="(returns[item.id] || 0) > 0">
+                  <div class="item-details">
+                    <h3>{{ item.nombre }}</h3>
+                    <div class="item-meta-pills">
+                      <span>Talla: <strong>{{ item.talla }}</strong></span>
+                      <span>Crédito: <strong>Bs {{ item.credito_unitario }}</strong></span>
+                    </div>
+                  </div>
+
+                  <div class="item-quantity-control">
+                    @if (item.disponible_cambio > 0) {
+                      <button
+                        type="button"
+                        class="qty-btn"
+                        [disabled]="(returns[item.id] || 0) <= 0"
+                        (click)="changeReturnQty(item.id, -1, item.disponible_cambio)"
+                      >−</button>
+                      <strong class="qty-display">{{ returns[item.id] || 0 }}</strong>
+                      <button
+                        type="button"
+                        class="qty-btn"
+                        [disabled]="(returns[item.id] || 0) >= item.disponible_cambio"
+                        (click)="changeReturnQty(item.id, 1, item.disponible_cambio)"
+                      >+</button>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+
+            @if (quote) {
+              <div class="credit-counter">
+                <span>Crédito a tu favor por tus prendas:</span>
+                <strong>Bs {{ quote.credito }}</strong>
               </div>
             }
           </div>
-          <button class="primary" type="button" [disabled]="busy" (click)="save()">
-            {{ lines.length === 0 ? 'Confirmar devolución y reembolso' : 'Confirmar cambio de prendas' }}
+
+          <!-- COLUMNA DERECHA: NUEVA PRENDA QUE LLEVAS -->
+          <div class="exchange-col">
+            <div class="panel-section-title">
+              <h2>2. Nueva prenda que llevarás</h2>
+              <p>Elige la nueva variante del catálogo disponible.</p>
+            </div>
+
+            <div class="new-garment-selector">
+              <label>
+                Seleccionar nueva prenda y talla:
+                <select [(ngModel)]="variant" aria-label="Variante de prenda">
+                  <option [ngValue]="0">-- Elige una prenda disponible --</option>
+                  @for (v of availableVariants; track v.id) {
+                    <option [ngValue]="v.id">{{ variantName(v.id) }}</option>
+                  }
+                </select>
+              </label>
+
+              <div class="add-row">
+                <label>
+                  Cantidad:
+                  <input type="number" min="1" max="50" [(ngModel)]="quantity" />
+                </label>
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  [disabled]="!variant || quantity < 1"
+                  (click)="addVariant()"
+                >
+                  + Añadir al cambio
+                </button>
+              </div>
+            </div>
+
+            <!-- LISTA DE PRENDAS NUEVAS AGREGADAS -->
+            <div class="new-lines-list">
+              @if (lines.length === 0) {
+                <div class="empty-lines-hint">
+                  <span>Selecciona una prenda arriba para calcular la diferencia de precio.</span>
+                </div>
+              } @else {
+                @for (line of lines; track line.variante_id) {
+                  <div class="line-pill">
+                    <span class="line-name">{{ line.cantidad }} × {{ variantName(line.variante_id) }}</span>
+                    <button type="button" class="btn-remove-line" (click)="removeLine($index)">Quitar ✕</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- BALANCE ECONOMICO EN VIVO (SOBRA PLATA O FALTA PLATA) -->
+        @if (quote) {
+          <div class="economic-balance-box">
+            @if (+quote.diferencia < 0) {
+              <!-- SOBRA PLATA: SE DEVUELVE AL CLIENTE -->
+              <div class="balance-card balance-card--surplus">
+                <div class="balance-icon">🎉</div>
+                <div class="balance-copy">
+                  <span class="balance-eyebrow">¡SOBRA DINERO A TU FAVOR!</span>
+                  <strong class="balance-title">Se te reembolsarán Bs {{ (-quote.diferencia).toFixed(2) }}</strong>
+                  <p>
+                    La nueva prenda cuesta menos que tu prenda original devuelta. Esta diferencia a tu favor te será devuelta en efectivo o saldo.
+                  </p>
+                </div>
+              </div>
+            } @else if (+quote.diferencia > 0) {
+              <!-- FALTA PLATA: CLIENTE DEBE ABONAR LA DIFERENCIA -->
+              <div class="balance-card balance-card--deficit">
+                <div class="balance-icon">⚠️</div>
+                <div class="balance-copy">
+                  <span class="balance-eyebrow">DIFERENCIA PENDIENTE A ABONAR</span>
+                  <strong class="balance-title">Debes abonar Bs {{ (+quote.diferencia).toFixed(2) }}</strong>
+                  <p>
+                    La nueva prenda tiene un valor superior. Abonarás este saldo pendiente al recibir la prenda o en caja de la tienda.
+                  </p>
+                </div>
+              </div>
+            } @else {
+              <!-- CAMBIO EQUIVALENTE -->
+              <div class="balance-card balance-card--equal">
+                <div class="balance-icon">✓</div>
+                <div class="balance-copy">
+                  <span class="balance-eyebrow">CAMBIO EQUIVALENTE</span>
+                  <strong class="balance-title">Sin diferencia económica: Bs 0.00</strong>
+                  <p>Ambas prendas tienen el mismo valor exacto. El cambio no genera cargos ni devoluciones.</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- MOTIVO DEL CAMBIO -->
+        <div class="reason-section">
+          <label><strong>Motivo del cambio</strong></label>
+          <div class="quick-chips">
+            <button type="button" class="chip" (click)="setQuickNote('Cambio por talla más grande')">Talla más grande</button>
+            <button type="button" class="chip" (click)="setQuickNote('Cambio por talla más pequeña')">Talla más pequeña</button>
+            <button type="button" class="chip" (click)="setQuickNote('Preferencia por otro color')">Otro color</button>
+            <button type="button" class="chip" (click)="setQuickNote('Cambio por otro modelo')">Otro modelo</button>
+          </div>
+          <textarea
+            [(ngModel)]="note"
+            rows="3"
+            maxlength="300"
+            placeholder="Observaciones para preparar tu nueva prenda en sucursal..."
+          ></textarea>
+        </div>
+
+        <!-- ACCION DE CONFIRMACION DE CAMBIO -->
+        <div class="confirm-bar">
+          <button
+            type="button"
+            class="button button--primary button--large btn-confirm-exchange"
+            [disabled]="busy || !hasReturns || lines.length === 0"
+            (click)="save()"
+          >
+            <span class="btn-text">
+              {{ busy ? 'Procesando cambio...' : '🔄 Confirmar Cambio de Prenda' }}
+            </span>
           </button>
-        </section>
-      }
-    </section>
+        </div>
+      </section>
+    }
   }
 </main>

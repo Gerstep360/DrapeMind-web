@@ -125,6 +125,13 @@ export const PACKAGE_NAVIGATION: PackageNavigation[] = [
         roles: everyone,
       },
       {
+        label: 'Cambios y devoluciones',
+        description: 'Devolución de prendas y reembolsos',
+        icon: 'orders',
+        route: '/exchanges',
+        roles: everyone,
+      },
+      {
         label: 'Optimización de perchero',
         description: 'Compatibilidad, ocasión y paleta',
         icon: 'stylist',

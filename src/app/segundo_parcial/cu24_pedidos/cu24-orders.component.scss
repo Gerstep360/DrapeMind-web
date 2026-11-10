@@ -226,17 +226,34 @@
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        border: 1px solid var(--dm-border);
-        background: var(--dm-surface-soft, #FAFAF9);
-        color: var(--dm-ink, #1F2937);
+        border: 1px solid #2b8a3e;
+        background: #ebfbee;
+        color: #2b8a3e;
         text-decoration: none;
-        font-weight: 700;
+        font-weight: 750;
         cursor: pointer;
         transition: all var(--dm-fast, 150ms) ease;
 
         &:hover {
-          border-color: var(--dm-ink);
-          background: var(--dm-ink);
+          background: #2b8a3e;
+          color: #FFFFFF;
+        }
+      }
+
+      .button-exchange {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--dm-border);
+        background: #fff9db;
+        color: #d9480f;
+        text-decoration: none;
+        font-weight: 750;
+        cursor: pointer;
+        transition: all var(--dm-fast, 150ms) ease;
+
+        &:hover {
+          background: #d9480f;
           color: #FFFFFF;
         }
       }
